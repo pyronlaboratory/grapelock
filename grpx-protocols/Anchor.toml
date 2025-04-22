@@ -2,10 +2,14 @@
 package_manager = "yarn"
 
 [features]
+seeds = false
 resolution = true
 skip-lint = false
 
 [programs.localnet]
+grpx_protocols = "5rX13kKwWXDSbJjbsyZH4RYzwVc4kQed8ZgBgx7f3wJV"
+
+[programs.devnet]
 grpx_protocols = "5rX13kKwWXDSbJjbsyZH4RYzwVc4kQed8ZgBgx7f3wJV"
 
 [registry]
@@ -17,3 +21,9 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[test.validator]
+url = "https://api.mainnet-beta.solana.com"
+
+[[test.validator.clone]]
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
