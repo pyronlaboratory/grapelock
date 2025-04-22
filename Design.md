@@ -1,20 +1,4 @@
-# 1. Decentralized Applications
-
-The user-facing layer that interacts directly with consumers, producers, and other stakeholders in the wine supply chain.
-
-`grapelock/grpx-dapps` built on Solana's fast and scalable blockchain, dApps interact with users and provide decentralized services (e.g., decentralized marketplaces, IoT management, etc.)
-
-### Modules:
-
-- Wallet Integration: Connect to Solana wallet for users to store tokens (SOL) and wine NFTs.
-- Registration: Initially done via web panel, later release mobile app and SDKs to provide ease of access for inventory registration and linking and activating IoT sensors.
-- Marketplace: To enable producers to list wine, consumers to purchase, and retailers to interact with the ecosystem.
-- Supply Chain Monitoring: Dashboards for stakeholders to track wine shipment, transactions, and supply chain metrics.
-- Tracking and Certification: To enable stakeholders to track wine provenance, quality, and certifications like organic or biodynamic status. Provides transparency in the supply chain.
-  <br >
-  <br >
-
-# 2. Protocols and Smart contracts
+# 1. Protocols and Smart contracts
 
 `grapelock/grpx-protocols` manages the underlying blockchain logic and transaction rules to ensure the decentralized functioning of the supply chain.
 
@@ -27,6 +11,22 @@ The Solana Program Library (SPL) provides standard programming models for token 
 - Tokenization of Wine Assets: Representing wine bottles, batches, or crates as NFTs or fungible tokens on Solana.
 - Smart Contracts: These govern transactions, wine certifications, ownership, provenance, and other supply chain activities (e.g., contracts for wine batch creation, purchase agreements).
 - Solana Consensus Mechanism: Leverages Proof-of-History (PoH) and Proof-of-Stake (PoS) to secure transactions.
+  <br >
+  <br >
+
+# 2. Decentralized Applications
+
+The user-facing layer that interacts directly with consumers, producers, and other stakeholders in the wine supply chain.
+
+`grapelock/grpx-dapps` built on Solana's fast and scalable blockchain, dApps interact with users and provide decentralized services (e.g., decentralized marketplaces, IoT management, etc.)
+
+### Modules:
+
+- Wallet Integration: Connect to Solana wallet for users to store tokens (SOL) and wine NFTs.
+- Registration: Initially done via web panel, later release mobile app and SDKs to provide ease of access for inventory registration and linking and activating IoT sensors.
+- Marketplace: To enable producers to list wine, consumers to purchase, and retailers to interact with the ecosystem.
+- Supply Chain Monitoring: Dashboards for stakeholders to track wine shipment, transactions, and supply chain metrics.
+- Tracking and Certification: To enable stakeholders to track wine provenance, quality, and certifications like organic or biodynamic status. Provides transparency in the supply chain.
   <br >
   <br >
 
