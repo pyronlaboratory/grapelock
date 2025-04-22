@@ -1,179 +1,93 @@
-# 1.
+# 1. Protocols and Smart contracts
 
-Application Layer: The user-facing layer that interacts directly with consumers, producers, and other stakeholders in the wine supply chain.
+`grapelock/grpx-protocols` manages the underlying blockchain logic and transaction rules to ensure the decentralized functioning of the supply chain.
 
-Modules/Components:
+The rules and standards of the Solana blockchain, ensuring consensus and transactions. Solana’s Proof-of-History (PoH) mechanism helps ensure faster and more secure transaction finality in a decentralized manner.
 
-Decentralized Marketplace (for buying/selling wine): This would allow producers to list wine, consumers to purchase, and retailers to interact with the ecosystem.
+The Solana Program Library (SPL) provides standard programming models for token and contract management.
 
-Requires coding (smart contracts to handle transactions, escrow, and tokenization of assets).
+### Modules:
 
-Tracking and Certification dApp (to track wine provenance, quality, and certifications like organic or biodynamic status): Provides transparency in the supply chain.
+- Tokenization of Wine Assets: Representing wine bottles, batches, or crates as NFTs or fungible tokens on Solana.
+- Smart Contracts: These govern transactions, wine certifications, ownership, provenance, and other supply chain activities (e.g., contracts for wine batch creation, purchase agreements).
+- Solana Consensus Mechanism: Leverages Proof-of-History (PoH) and Proof-of-Stake (PoS) to secure transactions.
+  <br >
+  <br >
 
-Requires coding (smart contracts and integrations with external data sources for certification).
+# 2. Decentralized Applications
 
-User Interface (UI): Dashboards for stakeholders to track wine shipment, transactions, and supply chain metrics.
+The user-facing layer that interacts directly with consumers, producers, and other stakeholders in the wine supply chain.
 
-Requires coding (front-end development for web/mobile UI).
+`grapelock/grpx-dapps` built on Solana's fast and scalable blockchain, dApps interact with users and provide decentralized services (e.g., decentralized marketplaces, IoT management, etc.)
 
-Wallet Integration: Connect to Solana wallet for users to store tokens (SOL) and wine NFTs.
+### Modules:
 
-Requires coding (integration with Solana wallet SDK).
+- Wallet Integration: Connect to Solana wallet for users to store tokens (SOL) and wine NFTs.
+- Registration: Initially done via web panel, later release mobile app and SDKs to provide ease of access for inventory registration and linking and activating IoT sensors.
+- Marketplace: To enable producers to list wine, consumers to purchase, and retailers to interact with the ecosystem.
+- Supply Chain Monitoring: Dashboards for stakeholders to track wine shipment, transactions, and supply chain metrics.
+- Tracking and Certification: To enable stakeholders to track wine provenance, quality, and certifications like organic or biodynamic status. Provides transparency in the supply chain.
+  <br >
+  <br >
 
-# 2.
+# 3. Networking
 
-Protocol Layer: The underlying blockchain logic and transaction rules to ensure the decentralized functioning of the supply chain.
+The decentralized communication and infrastructure that supports Solana's operations.
 
-Modules/Components:
+### Modules:
 
-Smart Contracts: These govern transactions, wine certifications, ownership, provenance, and other supply chain activities (e.g., contracts for wine batch creation, purchase agreements).
+- Solana Validator Setup: Validators to confirm transactions and secure the supply chain network.
+- Data Propagation Infrastructure: Ensures fast and secure communication across Solana's network of validators and nodes.
+- Off-chain Data Integration: Integration with external data sources for provenance or certification data (e.g., weather, vineyard conditions, quality control).
 
-Requires coding (written in Rust or C, depending on the Solana program).
+  <br >
+  <br >
 
-Tokenization of Wine Assets: Representing wine bottles, batches, or crates as NFTs or fungible tokens on Solana.
+# 4. Incentive and Reward Mechanism
 
-Requires coding (SPL Token and SPL NFT implementations).
+To incentivize participation in the wine supply chain.
 
-Solana Consensus Mechanism: Leverages Proof-of-History (PoH) and Proof-of-Stake (PoS) to secure transactions.
+### Modules:
 
-Requires configuration (staking validators on Solana network).
+- Reward System: Incentivizes wine producers, distributors, and consumers for participating (e.g., rewarding participants in SOL tokens or wine-based NFTs).
+- Staking Rewards: Validators in the Solana network receive staking rewards.
+- Supply Chain Performance Metrics: Incentivize actors based on supply chain performance, such as on-time delivery or wine quality.
+  <br >
+  <br>
 
-# 3.
+# 5. Governance
 
-Network Layer: The decentralized communication and infrastructure that supports Solana's operations.
+Decentralized decision-making to guide the network and its participants.
 
-Modules/Components:
+### Modules:
 
-Solana Validator Setup: Validators to confirm transactions and secure the supply chain network.
+- DAO (Decentralized Autonomous Organization): Allows stakeholders (vineyard owners, distributors, consumers, etc.) to vote on key decisions like upgrades, rules, or changes in the supply chain.
+- Proposal and Voting System: For proposal submissions and decision-making via token-weighted voting.
+  <br >
+  <br >
 
-Requires configuration (validator node setup on Solana).
+# 6. Security
 
-Data Propagation Infrastructure: Ensures fast and secure communication across Solana's network of validators and nodes.
+Securing the wine supply chain through cryptographic methods and ensuring data integrity.
 
-Requires configuration (network setup for connecting to Solana's validator infrastructure).
+### Modules:
 
-Off-chain Data Integration: Integration with external data sources for provenance or certification data (e.g., weather, vineyard conditions, quality control).
+- Smart Contract Auditing: To ensure that all contract code is secure and free from vulnerabilities, especially in financial transactions like payments and reward distributions.
+- Data Encryption: Ensures data on the blockchain is secure and private. Sensitive data like consumer information or wine batch specifics need to be encrypted.
+- Identity and Authentication: Secure user access and transactions via Solana wallet and 2FA.
+- Certification Verification: Ensures wine certifications (organic, biodynamic, etc.) are legitimate and tamper-proof.
+  <br>
+  <br>
 
-Requires coding/configuration (API integrations with off-chain services or IoT sensors).
+# 7. Decentralized storage and off-chain Data:
 
-# 4.
+Decentralized data storage and management for the wine supply chain.
 
-Incentive Layer: Mechanisms to incentivize participation in the wine supply chain.
+### Modules:
 
-Modules/Components:
+- Decentralized Storage Solutions: Storing provenance data, quality control reports, and transaction history (using IPFS, Arweave, or Filecoin for decentralized storage).
+- Batch and Shipment Tracking: Storing information about wine batches, shipment logs, temperature monitoring, etc.
+- Off-chain Data Linking: Link off-chain data (e.g., vineyard conditions, certification records) to on-chain transactions.
 
-Reward System: Incentivizes wine producers, distributors, and consumers for participating (e.g., rewarding participants in SOL tokens or wine-based NFTs).
-
-Requires coding (smart contracts for reward distribution).
-
-Staking Rewards: Validators in the Solana network receive staking rewards.
-
-Requires configuration (staking setup and reward mechanism configuration).
-
-Supply Chain Performance Metrics: Incentivize actors based on supply chain performance, such as on-time delivery or wine quality.
-
-Requires coding (smart contracts for performance-based rewards).
-
-# 5.
-
-Governance Layer: Decentralized decision-making to guide the network and its participants.
-
-Modules/Components:
-
-DAO (Decentralized Autonomous Organization): Allows stakeholders (vineyard owners, distributors, consumers, etc.) to vote on key decisions like upgrades, rules, or changes in the supply chain.
-
-Requires coding/configuration (DAO setup on Solana or through a governance platform like Coral or Metaplex).
-
-Proposal and Voting System: For proposal submissions and decision-making via token-weighted voting.
-
-Requires coding (smart contracts for voting and proposals).
-
-# 6.
-
-Security Layer: Securing the wine supply chain through cryptographic methods and ensuring data integrity.
-
-Modules/Components:
-
-Smart Contract Auditing: To ensure that all contract code is secure and free from vulnerabilities, especially in financial transactions like payments and reward distributions.
-
-Requires auditing (manual or automated audit tools).
-
-Data Encryption: Ensures data on the blockchain is secure and private. Sensitive data like consumer information or wine batch specifics need to be encrypted.
-
-Requires coding (encryption of transaction data and off-chain integration).
-
-Identity and Authentication: Secure user access and transactions via Solana wallet and 2FA.
-
-Requires coding (authentication methods integrated with Solana wallet).
-
-Certification Verification: Ensures wine certifications (organic, biodynamic, etc.) are legitimate and tamper-proof.
-
-Requires coding/configuration (smart contract verification logic and integration with certification authorities).
-
-# 7.
-
-Data Layer: Decentralized data storage and management for the wine supply chain.
-
-Modules/Components:
-
-Decentralized Storage Solutions: Storing provenance data, quality control reports, and transaction history (using IPFS, Arweave, or Filecoin for decentralized storage).
-
-Requires configuration (storage setup with IPFS or Filecoin).
-
-Batch and Shipment Tracking: Storing information about wine batches, shipment logs, temperature monitoring, etc.
-
-Requires coding (integration with decentralized storage for batch and shipment data).
-
-Off-chain Data Linking: Link off-chain data (e.g., vineyard conditions, certification records) to on-chain transactions.
-
-Requires coding/configuration (Oracle service integration or off-chain API).
 <br>
 <br>
-
-# User journey and interactions
-
-- REGISTER
-- MONITOR
-
-REGISTER:
-
-Winery creates a unique digital twin (NFT) on Solana for each bottle.
-
-Metadata includes:
-
-- Grape origin, vintage
-- Bottle serial, production date
-- Certifier signature
-- Winery wallet address
-
-Using dApp winery sends a transaction to mint NFT (e.g., via Metaplex).
-Bottle gets an NFC tag / QR code / RFID linking to its on-chain identity.
-
-Single use vs Bulk/scale
-
-### Benefits to the stakeholders:
-
-Producers (Registered vineyard or wine manufacturer):
-
-- Prove authenticity to premium buyers
-- Sell at higher prices
-- Reduce counterfeiting losses
-- Market analytics from sensor data
-
-Distributors:
-
-- Transparency of product source & route
-- Better inventory tracking
-- Reduced disputes
-
-Retailers:
-
-- Trust = better margins
-- Reduced returns/fakes
-- Verified provenance for marketing
-
-End consumer:
-
-- Guaranteed authenticity
-- Full origin & journey traceability
-- Discover rare or premium wines easily
