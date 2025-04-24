@@ -6,8 +6,8 @@ pub mod error;
 pub mod instructions;
 pub mod state;
 
-use instructions::{consensus::*, contracts::*, factory::*};
-declare_id!("5rX13kKwWXDSbJjbsyZH4RYzwVc4kQed8ZgBgx7f3wJV");
+use instructions::factory::*;
+declare_id!("CvKn16TuEA8ugj6PCxwRVNSZJ47yTrv36xJA49ktWMco");
 
 #[program]
 pub mod grpx_protocols {
