@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label'
 import { UiWalletAccount, useWalletUi, useWalletUiCluster } from '@wallet-ui/react'
 import { address, Address, Lamports, lamportsToSol } from 'gill'
 import { ErrorBoundary } from 'next/dist/client/components/error-boundary'
+import { CreateCollectionForm } from '@/components/nfts/nft-data-access'
 
 export function AccountBalance({ address }: { address: Address }) {
   const query = useGetBalance({ address })
@@ -174,7 +175,6 @@ export function AccountTokens({ address }: { address: Address }) {
 export function AccountTransactions({ address }: { address: Address }) {
   const query = useGetSignatures({ address })
   const [showAll, setShowAll] = useState(false)
-
   const items = useMemo(() => {
     if (showAll) return query.data
     return query.data?.slice(0, 5)
@@ -244,6 +244,26 @@ export function AccountTransactions({ address }: { address: Address }) {
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+export function AccountNFTCollections() {
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between">
+        <h2 className="text-2xl font-bold">NFT Collections</h2>
+        <Button variant="outline">
+          <RefreshCw size={16} />
+        </Button>
+      </div>
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">Create NFT Collection</h1>
+        <p className="text-muted-foreground mb-8">
+          Fill out the form below to create a new NFT collection with your specified parameters.
+        </p>
+        <CreateCollectionForm />
+      </div>
     </div>
   )
 }

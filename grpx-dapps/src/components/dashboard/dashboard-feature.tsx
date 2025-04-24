@@ -1,4 +1,5 @@
 import { AppHero } from '@/components/app-hero'
+import { Store } from 'lucide-react'
 
 const links: { label: string; href: string }[] = [
   { label: 'Solana Docs', href: 'https://docs.solana.com/' },
@@ -11,10 +12,12 @@ const links: { label: string; href: string }[] = [
 export function DashboardFeature() {
   return (
     <div>
-      <AppHero title="gm" subtitle="Say hi to your new Solana app." />
+      <AppHero title={<Store size={100} className="mx-auto" />} subtitle="GRPX dMarkeplace" />
+
       <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
         <div className="space-y-2">
-          <p>Here are some helpful links to get you started.</p>
+          <p>👉 Marketplace features</p>
+
           {links.map((link, index) => (
             <div key={index}>
               <a

@@ -3,6 +3,7 @@ import './globals.css'
 import { AppProviders } from '@/components/app-providers'
 import { AppLayout } from '@/components/app-layout'
 import React from 'react'
+import { GeistSans } from 'geist/font/sans'
 
 export const metadata: Metadata = {
   title: 'Placeholder',
@@ -11,14 +12,14 @@ export const metadata: Metadata = {
 
 const links: { label: string; path: string }[] = [
   // More links...
-  { label: 'Home', path: '/' },
+  { label: 'Marketplace', path: '/' },
   { label: 'Account', path: '/account' },
 ]
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`antialiased`}>
+      <body className={`antialiased ${GeistSans.className}`}>
         <AppProviders>
           <AppLayout links={links}>{children}</AppLayout>
         </AppProviders>
