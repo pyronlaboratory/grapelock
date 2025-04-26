@@ -1,12 +1,8 @@
 'use client'
 
-import { useWallet } from '@solana/wallet-adapter-react'
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
 import { RefreshCw } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-
-import { useCluster } from '../cluster/cluster-data-access'
 import { ExplorerLink } from '../cluster/cluster-ui'
 import {
   useGetBalance,
@@ -22,9 +18,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AppModal } from '@/components/app-modal'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { CreateCollectionForm } from '../nft/nft-data-access'
+import { UiWalletAccount, useWalletUi, useWalletUiCluster } from '@wallet-ui/react'
+import { address, Address, Lamports, lamportsToSol } from 'gill'
+import { ErrorBoundary } from 'next/dist/client/components/error-boundary'
+import { CreateCollectionForm } from '@/components/nft/nft-data-access'
 
-export function AccountBalance({ address }: { address: PublicKey }) {
+export function AccountBalance({ address }: { address: Address }) {
   const query = useGetBalance({ address })
 
   return (
@@ -35,15 +34,15 @@ export function AccountBalance({ address }: { address: PublicKey }) {
 }
 
 export function AccountChecker() {
-  const { publicKey } = useWallet()
-  if (!publicKey) {
+  const { account } = useWalletUi()
+  if (!account) {
     return null
   }
-  return <AccountBalanceCheck address={publicKey} />
+  return <AccountBalanceCheck address={address(account.address)} />
 }
 
-export function AccountBalanceCheck({ address }: { address: PublicKey }) {
-  const { cluster } = useCluster()
+export function AccountBalanceCheck({ address }: { address: Address }) {
+  const { cluster } = useWalletUiCluster()
   const mutation = useRequestAirdrop({ address })
   const query = useGetBalance({ address })
 
@@ -59,27 +58,30 @@ export function AccountBalanceCheck({ address }: { address: PublicKey }) {
           </Button>
         }
       >
-        You are connected to <strong>{cluster.name}</strong> but your account is not found on this cluster.
+        You are connected to <strong>{cluster.label}</strong> but your account is not found on this cluster.
       </AppAlert>
     )
   }
   return null
 }
 
-export function AccountButtons({ address }: { address: PublicKey }) {
-  const { cluster } = useCluster()
+export function AccountButtons({ address }: { address: Address }) {
+  const { cluster } = useWalletUiCluster()
+  const { account } = useWalletUi()
   return (
     <div>
       <div className="space-x-2">
-        {cluster.network?.includes('mainnet') ? null : <ModalAirdrop address={address} />}
-        <ModalSend address={address} />
+        {cluster.urlOrMoniker === 'mainnet' ? null : <ModalAirdrop address={address} />}
+        <ErrorBoundary errorComponent={() => null}>
+          {account ? <ModalSend address={address} account={account} /> : null}
+        </ErrorBoundary>
         <ModalReceive address={address} />
       </div>
     </div>
   )
 }
 
-export function AccountTokens({ address }: { address: PublicKey }) {
+export function AccountTokens({ address }: { address: Address }) {
   const [showAll, setShowAll] = useState(false)
   const query = useGetTokenAccounts({ address })
   const client = useQueryClient()
@@ -132,7 +134,7 @@ export function AccountTokens({ address }: { address: PublicKey }) {
                     <TableCell>
                       <div className="flex space-x-2">
                         <span className="font-mono">
-                          <ExplorerLink label={ellipsify(pubkey.toString())} path={`account/${pubkey.toString()}`} />
+                          <ExplorerLink label={ellipsify(pubkey.toString())} address={pubkey.toString()} />
                         </span>
                       </div>
                     </TableCell>
@@ -141,7 +143,7 @@ export function AccountTokens({ address }: { address: PublicKey }) {
                         <span className="font-mono">
                           <ExplorerLink
                             label={ellipsify(account.data.parsed.info.mint)}
-                            path={`account/${account.data.parsed.info.mint.toString()}`}
+                            address={account.data.parsed.info.mint.toString()}
                           />
                         </span>
                       </div>
@@ -170,10 +172,9 @@ export function AccountTokens({ address }: { address: PublicKey }) {
   )
 }
 
-export function AccountTransactions({ address }: { address: PublicKey }) {
+export function AccountTransactions({ address }: { address: Address }) {
   const query = useGetSignatures({ address })
   const [showAll, setShowAll] = useState(false)
-
   const items = useMemo(() => {
     if (showAll) return query.data
     return query.data?.slice(0, 5)
@@ -212,12 +213,12 @@ export function AccountTransactions({ address }: { address: PublicKey }) {
                 {items?.map((item) => (
                   <TableRow key={item.signature}>
                     <TableHead className="font-mono">
-                      <ExplorerLink path={`tx/${item.signature}`} label={ellipsify(item.signature, 8)} />
+                      <ExplorerLink transaction={item.signature} label={ellipsify(item.signature, 8)} />
                     </TableHead>
                     <TableCell className="font-mono text-right">
-                      <ExplorerLink path={`block/${item.slot}`} label={item.slot.toString()} />
+                      <ExplorerLink block={item.slot.toString()} label={item.slot.toString()} />
                     </TableCell>
-                    <TableCell>{new Date((item.blockTime ?? 0) * 1000).toISOString()}</TableCell>
+                    <TableCell>{new Date((Number(item.blockTime) ?? 0) * 1000).toISOString()}</TableCell>
                     <TableCell className="text-right">
                       {item.err ? (
                         <span className="text-red-500" title={item.err.toString()}>
@@ -267,11 +268,11 @@ export function AccountNFTCollections() {
   )
 }
 
-function BalanceSol({ balance }: { balance: number }) {
-  return <span>{Math.round((balance / LAMPORTS_PER_SOL) * 100000) / 100000}</span>
+function BalanceSol({ balance }: { balance: Lamports }) {
+  return <span>{lamportsToSol(balance)}</span>
 }
 
-function ModalReceive({ address }: { address: PublicKey }) {
+function ModalReceive({ address }: { address: Address }) {
   return (
     <AppModal title="Receive">
       <p>Receive assets by sending them to your public key:</p>
@@ -280,7 +281,7 @@ function ModalReceive({ address }: { address: PublicKey }) {
   )
 }
 
-function ModalAirdrop({ address }: { address: PublicKey }) {
+function ModalAirdrop({ address }: { address: Address }) {
   const mutation = useRequestAirdrop({ address })
   const [amount, setAmount] = useState('2')
 
@@ -306,13 +307,12 @@ function ModalAirdrop({ address }: { address: PublicKey }) {
   )
 }
 
-function ModalSend({ address }: { address: PublicKey }) {
-  const wallet = useWallet()
-  const mutation = useTransferSol({ address })
+function ModalSend(props: { address: Address; account: UiWalletAccount }) {
+  const mutation = useTransferSol({ address: props.address, account: props.account })
   const [destination, setDestination] = useState('')
   const [amount, setAmount] = useState('1')
 
-  if (!address || !wallet.sendTransaction) {
+  if (!props.address || !props.account) {
     return <div>Wallet not connected</div>
   }
 
@@ -323,7 +323,7 @@ function ModalSend({ address }: { address: PublicKey }) {
       submitLabel="Send"
       submit={() => {
         mutation.mutateAsync({
-          destination: new PublicKey(destination),
+          destination: address(destination),
           amount: parseFloat(amount),
         })
       }}
