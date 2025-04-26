@@ -11,3 +11,9 @@ export function ellipsify(str = '', len = 4, delimiter = '..') {
 
   return strLen >= limit ? str.substring(0, len) + delimiter + str.substring(strLen - len, strLen) : str
 }
+
+export function getRandomAvatar() {
+  // You can customize the random source (this uses a free avatar API)
+  const randomId = Math.floor(Math.random() * 1000)
+  return `https://api.dicebear.com/7.x/thumbs/svg?seed=${randomId}`
+}
