@@ -14,13 +14,13 @@ import {
   Cluster,
 } from '@solana/web3.js'
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'
-import { GrpxProtocols } from '../target/types/grpx_protocols'
+import { GrpxDprotocols } from '../target/types/grpx_dprotocols'
 import { getExplorerLink } from '@solana-developers/helpers'
 import { BankrunProvider, startAnchor } from 'anchor-bankrun'
 import { AnchorWallet, useAnchorWallet } from '@solana/wallet-adapter-react'
 import { expect } from 'chai'
 
-const IDL = require('../target/idl/grpx_protocols.json')
+const IDL = require('../target/idl/grpx_dprotocols.json')
 const PROGRAM_ID = new PublicKey(IDL.address)
 const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
@@ -36,7 +36,7 @@ describe('grpx-protocols', async () => {
   let connection: Connection
   let wallet: Wallet | NodeWallet
   let provider: BankrunProvider | AnchorProvider
-  let program: Program<GrpxProtocols>
+  let program: Program<GrpxDprotocols>
   let mintAuthority: PublicKey
   let collection: Keypair
 
@@ -46,14 +46,14 @@ describe('grpx-protocols', async () => {
       const context = await startAnchor(
         '',
         [
-          { name: 'grpx_protocols', programId: PROGRAM_ID },
+          { name: 'grpx_dprotocols', programId: PROGRAM_ID },
           { name: 'token_metadata', programId: TOKEN_METADATA_PROGRAM_ID },
         ],
         [],
       )
       provider = new BankrunProvider(context)
       wallet = provider.wallet as NodeWallet
-      program = new Program<GrpxProtocols>(IDL, provider)
+      program = new Program<GrpxDprotocols>(IDL, provider)
     } else {
       connection = new Connection(process.env.RPC_URL!, 'confirmed') // new Connection(clusterApiUrl('devnet'), 'confirmed')
       const walletKeypair = loadKeypair(path.resolve(process.env.HOME || '', '.config/solana/id.json'))

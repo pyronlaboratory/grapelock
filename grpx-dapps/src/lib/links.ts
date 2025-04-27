@@ -116,21 +116,21 @@ export const links = {
       ],
     },
     {
-      title: 'Earnings',
-      url: '/earnings',
+      title: 'Wallet',
+      url: '/wallet',
       icon: Wallet,
       items: [
         {
-          title: 'Wallet',
-          url: '/earnings/wallet',
+          title: 'Earnings',
+          url: '/wallet/earnings',
         },
         {
           title: 'Transactions',
-          url: '/earnings/transactions',
+          url: '/wallet/transactions',
         },
         {
           title: 'Rewards',
-          url: '/earnings/rewards',
+          url: '/wallet/rewards',
         },
       ],
     },

@@ -10,7 +10,7 @@ use instructions::factory::*;
 declare_id!("CvKn16TuEA8ugj6PCxwRVNSZJ47yTrv36xJA49ktWMco");
 
 #[program]
-pub mod grpx_protocols {
+pub mod grpx_dprotocols {
     use super::*;
 
     // === Factory Instructions ===
