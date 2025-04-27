@@ -6,6 +6,7 @@ const ApiConfigSchema = z.object({
   port: z.coerce.number().int().positive(),
   solanaRpcEndpoint: z.string(),
   solanaSignerPath: z.string(),
+  off_chain_uri: z.string(),
 })
 
 export type ApiConfig = z.infer<typeof ApiConfigSchema>
@@ -13,14 +14,14 @@ export type ApiConfig = z.infer<typeof ApiConfigSchema>
 let config: ApiConfig | undefined
 
 export function getApiConfig(): ApiConfig {
-  if (config) {
-    return config
-  }
+  if (config) return config
+
   config = ApiConfigSchema.parse({
     corsOrigins: process.env.CORS_ORIGINS?.split(',') ?? [],
     solanaRpcEndpoint: process.env.SOLANA_RPC_ENDPOINT ?? 'devnet',
     solanaSignerPath: process.env.SOLANA_SIGNER_PATH ?? '~/.config/solana/id.json',
     port: process.env.PORT ?? 3000,
+    off_chain_uri: process.env.DATABASE,
   })
   return config
 }
