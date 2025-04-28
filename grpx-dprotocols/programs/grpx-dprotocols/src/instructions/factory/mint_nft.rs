@@ -26,12 +26,11 @@ pub struct MintNFT<'info> {
     )]
     pub mint: Account<'info, Mint>,
     #[account(
-        init,
-        payer = owner,
-        associated_token::mint = mint,
-        associated_token::authority = owner
+        seeds = [b"authority"],
+        bump,
     )]
-    pub destination: Account<'info, TokenAccount>,
+    /// CHECK: This is account is not initialized and is being used for signing purposes only
+    pub mint_authority: UncheckedAccount<'info>,
     #[account(mut)]
     /// CHECK: This account will be initialized by the metaplex program
     pub metadata: UncheckedAccount<'info>,
@@ -39,11 +38,12 @@ pub struct MintNFT<'info> {
     /// CHECK: This account will be initialized by the metaplex program
     pub master_edition: UncheckedAccount<'info>,
     #[account(
-        seeds = [b"authority"],
-        bump,
+        init,
+        payer = owner,
+        associated_token::mint = mint,
+        associated_token::authority = owner
     )]
-    /// CHECK: This is account is not initialized and is being used for signing purposes only
-    pub mint_authority: UncheckedAccount<'info>,
+    pub destination: Account<'info, TokenAccount>,
     #[account(mut)]
     pub collection_mint: Account<'info, Mint>,
     pub system_program: Program<'info, System>,

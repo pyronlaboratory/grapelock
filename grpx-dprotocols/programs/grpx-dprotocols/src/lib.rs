@@ -4,7 +4,6 @@ use anchor_lang::prelude::*;
 pub mod constants;
 pub mod error;
 pub mod instructions;
-pub mod state;
 
 use instructions::factory::*;
 declare_id!("CvKn16TuEA8ugj6PCxwRVNSZJ47yTrv36xJA49ktWMco");

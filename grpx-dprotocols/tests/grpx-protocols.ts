@@ -3,16 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import type NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet'
 import { AnchorProvider, Program, setProvider, Wallet } from '@coral-xyz/anchor'
-import {
-  PublicKey,
-  Keypair,
-  SystemProgram,
-  Connection,
-  clusterApiUrl,
-  Transaction,
-  VersionedTransaction,
-  Cluster,
-} from '@solana/web3.js'
+import { PublicKey, Keypair, SystemProgram, Connection, Cluster } from '@solana/web3.js'
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'
 import { GrpxDprotocols } from '../target/types/grpx_dprotocols'
 import { getExplorerLink } from '@solana-developers/helpers'
@@ -62,7 +53,7 @@ describe('grpx-protocols', async () => {
         commitment: 'processed',
       })
       setProvider(provider)
-      program = new Program<GrpxProtocols>(IDL, provider)
+      program = new Program<GrpxDprotocols>(IDL, provider)
     }
 
     mintAuthority = PublicKey.findProgramAddressSync([Buffer.from('authority')], program.programId)[0]

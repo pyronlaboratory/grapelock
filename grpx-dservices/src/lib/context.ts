@@ -1,7 +1,7 @@
 import { createSolanaClient, KeyPairSigner, SolanaClient } from 'gill'
 import { loadKeypairSignerFromFile } from 'gill/node'
-import { ApiConfig, getApiConfig } from './get-api-config.js'
-import { ApiLogger, log } from './api-logger.js'
+import { ApiConfig, getApiConfig } from './config.js'
+import { ApiLogger, log } from './logger.js'
 
 export interface ApiContext {
   client: SolanaClient

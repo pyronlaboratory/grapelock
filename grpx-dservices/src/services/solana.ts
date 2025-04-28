@@ -1,6 +1,13 @@
 import { LRUCache } from 'lru-cache'
-import { Blockhash } from 'gill'
-import { ApiContext } from './get-api-context.js'
+import { Blockhash, assertIsAddress, getMonikerFromGenesisHash, lamportsToSol } from 'gill'
+import { ApiContext } from '../lib/context.js'
+
+export async function getSolanaCluster({ client }: ApiContext) {
+  const genesis = await client.rpc.getGenesisHash().send()
+  const cluster = getMonikerFromGenesisHash(genesis)
+
+  return { cluster, genesis }
+}
 
 // We use a cache to avoid hitting the RPC endpoint too often.
 // See https://solana.stackexchange.com/a/9860/98 for more details.
@@ -26,4 +33,17 @@ const cache = new LRUCache<
 
 export async function getSolanaCachedBlockhash(context: ApiContext) {
   return await cache.fetch('latest-blockhash', { context })
+}
+
+export async function getSolanaBalance({ client }: ApiContext, address: string) {
+  assertIsAddress(address)
+  const balance = await client.rpc
+    .getBalance(address)
+    .send()
+    .then((res) => res.value)
+
+  return {
+    address,
+    balance: `${lamportsToSol(balance)} SOL`,
+  }
 }

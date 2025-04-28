@@ -16,10 +16,10 @@ use anchor_spl::{
 #[derive(Accounts)]
 pub struct CreateCollection<'info> {
     #[account(mut)]
-    user: Signer<'info>,
+    owner: Signer<'info>,
     #[account(
         init,
-        payer = user,
+        payer = owner,
         mint::decimals = 0,
         mint::authority = mint_authority,
         mint::freeze_authority = mint_authority,
@@ -39,9 +39,9 @@ pub struct CreateCollection<'info> {
     master_edition: UncheckedAccount<'info>,
     #[account(
         init,
-        payer = user,
+        payer = owner,
         associated_token::mint = mint,
-        associated_token::authority = user
+        associated_token::authority = owner
     )]
     destination: Account<'info, TokenAccount>,
     system_program: Program<'info, System>,
@@ -56,7 +56,7 @@ impl<'info> CreateCollection<'info> {
         let master_edition = &self.master_edition.to_account_info();
         let mint = &self.mint.to_account_info();
         let authority = &self.mint_authority.to_account_info();
-        let payer = &self.user.to_account_info();
+        let payer = &self.owner.to_account_info();
         let system_program = &self.system_program.to_account_info();
         let spl_token_program = &self.token_program.to_account_info();
         let spl_metadata_program = &self.token_metadata_program.to_account_info();

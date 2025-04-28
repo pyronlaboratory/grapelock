@@ -1,22 +1,35 @@
 import express from 'express'
 import cors from 'cors'
 
-import { errorResponse, successResponse } from './lib/api-response-helpers.js'
-import { getApiConfig } from './lib/get-api-config.js'
-import { getApiContext } from './lib/get-api-context.js'
-import { getSolanaBalance } from './lib/get-solana-balance.js'
-import { getSolanaCachedBlockhash } from './lib/get-solana-cached-blockhash.js'
-import { getSolanaCluster } from './lib/get-solana-cluster.js'
-import { getCollection } from './lib/get-collection.js'
-const mongoose = require('mongoose')
+import { default as apiRoutes } from './api/index.js'
+import { getApiConfig } from './lib/config.js'
+import { getApiContext } from './lib/context.js'
+import { errorResponse, successResponse } from './lib/helpers.js'
 
-const app = express()
+const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
+
 const { port, off_chain_uri, ...config } = getApiConfig()
 const context = await getApiContext()
 
+// === EXPRESS SETUP ===
+const app = express()
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || config.corsOrigins.includes(origin)) {
+        return cb(null, true)
+      }
+      cb(new Error('Not allowed by CORS'))
+    },
+    credentials: true,
+  }),
+)
+
 // === MONGODB CONNECTION ===
 const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } }
-
 const connectDb = async () => {
   try {
     await mongoose.connect(off_chain_uri, clientOptions)
@@ -26,112 +39,17 @@ const connectDb = async () => {
     process.exit(1)
   }
 }
-
 await connectDb()
-
 process.on('SIGINT', async () => {
   await mongoose.disconnect()
   console.log('✅ MongoDB disconnected on app termination')
   process.exit(0)
 })
-// === END MONGODB CONNECTION ===
 
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      if (!origin || config.corsOrigins.includes(origin)) {
-        return cb(null, true)
-      }
-      cb(new Error('Not allowed by CORS'))
-    },
-  }),
-)
-
+// === API Routes ===
+app.use('/api/v1', apiRoutes)
 app.get('/', (req, res) => {
   res.json(successResponse({ message: 'Welcome to Grpxdservices!' }))
-})
-
-app.get('/collections/:wallet', async (req, res) => {
-  try {
-    const collection = await getCollection(req.params.wallet)
-    if (!collection || collection.length === 0) {
-      res.status(404).json(errorResponse('Collections not found', 'COLLECTIONS_NOT_FOUND'))
-      return
-    }
-
-    res.json(successResponse(collection))
-  } catch (error) {
-    res.status(500).json(errorResponse('Error fetching collections', 'COLLECTIONS_ERROR'))
-  }
-})
-
-app.get('/balance/:address', async (req, res) => {
-  try {
-    const balance = await getSolanaBalance(context, req.params.address)
-    if (!balance) {
-      context.log.error(`Failed to retrieve balance for address: ${req.params.address}`)
-      res.status(500).json(errorResponse('Balance not retrieved', 'BALANCE_RETRIEVAL_FAILED'))
-      return
-    }
-    res.json(successResponse(balance))
-  } catch (error) {
-    context.log.error(`Error getting balance for address ${req.params.address}`, error)
-    res.status(500).json(errorResponse('Error getting balance', 'BALANCE_ERROR'))
-  }
-})
-
-app.get('/balance-signer', async (req, res) => {
-  try {
-    const balance = await getSolanaBalance(context, context.signer.address)
-    if (!balance) {
-      context.log.error(`Failed to retrieve balance for signer: ${context.signer.address}`)
-      res.status(500).json(errorResponse('Balance not retrieved', 'BALANCE_RETRIEVAL_FAILED'))
-      return
-    }
-    res.json(successResponse(balance))
-  } catch (error) {
-    context.log.error(`Error getting balance for signer ${context.signer.address}`, error)
-    res.status(500).json(errorResponse('Error getting balance', 'BALANCE_ERROR'))
-  }
-})
-
-app.get('/cluster', async (req, res) => {
-  try {
-    const result = await getSolanaCluster(context)
-    if (!result) {
-      context.log.error(`Failed to retrieve cluster`)
-      res.status(500).json(errorResponse('Cluster not retrieved', 'CLUSTER_RETRIEVAL_FAILED'))
-      return
-    }
-    res.json(successResponse(result))
-  } catch (error) {
-    context.log.error(`Error getting cluster`, error)
-    res.status(500).json(errorResponse('Error getting cluster', 'CLUSTER_ERROR'))
-  }
-})
-
-app.get('/latest-blockhash', async (req, res) => {
-  try {
-    const start = Date.now()
-    const blockhash = await getSolanaCachedBlockhash(context)
-
-    if (!blockhash) {
-      context.log.error(`Failed to retrieve blockhash`)
-      res.status(500).json(errorResponse('Blockhash not retrieved', 'BLOCKHASH_RETRIEVAL_FAILED'))
-      return
-    }
-
-    res.json(
-      successResponse({
-        ...blockhash,
-        ttl: blockhash.cachedAt + 1000 * 30 - Date.now(),
-        duration: Date.now() - start + 'ms',
-      }),
-    )
-  } catch (error) {
-    context.log.error(`Error getting blockhash`, error)
-    res.status(500).json(errorResponse('Error getting blockhash', 'BLOCKHASH_ERROR'))
-  }
 })
 
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -147,7 +65,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 
 app.listen(port, () => {
   context.log.info(`🐠 Listening on http://localhost:${port}`)
-  context.log.info(`🐠 Endpoint: ${config.solanaRpcEndpoint.split('?')[0]}`)
+  context.log.info(`🐠 RPC Endpoint: ${config.solanaRpcEndpoint.split('?')[0]}`)
   context.log.info(`🐠 Signer  : ${context.signer.address}`)
 })
 
