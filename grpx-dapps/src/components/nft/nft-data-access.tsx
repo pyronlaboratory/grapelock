@@ -64,13 +64,13 @@ export function CreateCollectionForm() {
   const connectedWallet = '8ZaDMHBgPVHGPJNGHzjfXXZwDCRQJzP54N8RBcSNBMXQ'
 
   return (
-    <Card className="w-full">
+    <Card className="w-full md:w-xl">
       <CardHeader>
         <CardTitle>Collection Details</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-8">
+          <TabsList className="grid grid-cols-3 mb-8 w-auto">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="creator">Creator Details</TabsTrigger>
             <TabsTrigger value="minting">Minting Parameters</TabsTrigger>
@@ -251,10 +251,9 @@ export function CreateCollectionForm() {
         </Tabs>
       </CardContent>
       <CardFooter className="flex flex-col items-start border-t pt-6">
-        <h3 className="text-sm font-medium">Form Progress</h3>
         <div className="w-full mt-2 h-2 bg-muted rounded-full overflow-hidden">
           <div
-            className="h-full bg-primary transition-all duration-300"
+            className="h-full bg-green-500 transition-all duration-300"
             style={{
               width: activeTab === 'basic' ? '33%' : activeTab === 'creator' ? '66%' : '100%',
             }}
