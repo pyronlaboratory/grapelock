@@ -21,7 +21,8 @@ export function getApiConfig(): ApiConfig {
     solanaRpcEndpoint: process.env.SOLANA_RPC_ENDPOINT ?? 'devnet',
     solanaSignerPath: process.env.SOLANA_SIGNER_PATH ?? '~/.config/solana/id.json',
     port: process.env.PORT ?? 3000,
-    off_chain_uri: process.env.DATABASE,
+    off_chain_uri: process.env.MONGODB_CLUSTER_URI,
+    database: process.env.DATABASE,
   })
   return config
 }

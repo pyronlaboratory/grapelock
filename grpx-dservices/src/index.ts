@@ -7,27 +7,34 @@ import { getApiContext } from './lib/get-api-context.js'
 import { getSolanaBalance } from './lib/get-solana-balance.js'
 import { getSolanaCachedBlockhash } from './lib/get-solana-cached-blockhash.js'
 import { getSolanaCluster } from './lib/get-solana-cluster.js'
+import { getCollection } from './lib/get-collection.js'
+const mongoose = require('mongoose')
 
 const app = express()
 const { port, off_chain_uri, ...config } = getApiConfig()
 const context = await getApiContext()
 
-const mongoose = require('mongoose')
-
+// === MONGODB CONNECTION ===
 const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } }
 
-async function run() {
+const connectDb = async () => {
   try {
-    // Create a Mongoose client with a MongoClientOptions object to set the Stable API version
     await mongoose.connect(off_chain_uri, clientOptions)
-    await mongoose.connection.db.admin().command({ ping: 1 })
-    console.log('Pinged your deployment. You successfully connected to MongoDB!')
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await mongoose.disconnect()
+    console.log('✅ Connected to MongoDB')
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err)
+    process.exit(1)
   }
 }
-run().catch(console.dir)
+
+await connectDb()
+
+process.on('SIGINT', async () => {
+  await mongoose.disconnect()
+  console.log('✅ MongoDB disconnected on app termination')
+  process.exit(0)
+})
+// === END MONGODB CONNECTION ===
 
 app.use(
   cors({
@@ -41,7 +48,21 @@ app.use(
 )
 
 app.get('/', (req, res) => {
-  res.json(successResponse({ message: 'Gm! Welcome to Grpxdservices!' }))
+  res.json(successResponse({ message: 'Welcome to Grpxdservices!' }))
+})
+
+app.get('/collections/:wallet', async (req, res) => {
+  try {
+    const collection = await getCollection(req.params.wallet)
+    if (!collection || collection.length === 0) {
+      res.status(404).json(errorResponse('Collections not found', 'COLLECTIONS_NOT_FOUND'))
+      return
+    }
+
+    res.json(successResponse(collection))
+  } catch (error) {
+    res.status(500).json(errorResponse('Error fetching collections', 'COLLECTIONS_ERROR'))
+  }
 })
 
 app.get('/balance/:address', async (req, res) => {
