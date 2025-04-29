@@ -22,7 +22,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AppModal } from '@/components/app-modal'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { CreateCollectionForm } from '../nft/nft-data-access'
 
 export function AccountBalance({ address }: { address: PublicKey }) {
   const query = useGetBalance({ address })
@@ -243,26 +242,6 @@ export function AccountTransactions({ address }: { address: PublicKey }) {
           )}
         </div>
       )}
-    </div>
-  )
-}
-
-export function AccountNFTCollections() {
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between">
-        <h2 className="text-2xl font-bold">NFT Collections</h2>
-        <Button variant="outline">
-          <RefreshCw size={16} />
-        </Button>
-      </div>
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Create NFT Collection</h1>
-        <p className="text-muted-foreground mb-8">
-          Fill out the form below to create a new NFT collection with your specified parameters.
-        </p>
-        <CreateCollectionForm />
-      </div>
     </div>
   )
 }

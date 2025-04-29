@@ -9,7 +9,7 @@ import { errorResponse, successResponse } from './lib/helpers.js'
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 
-const { port, off_chain_uri, ...config } = getApiConfig()
+const { apiPort, clusterUri, ...config } = getApiConfig()
 const context = await getApiContext()
 
 // === EXPRESS SETUP ===
@@ -32,17 +32,17 @@ app.use(
 const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } }
 const connectDb = async () => {
   try {
-    await mongoose.connect(off_chain_uri, clientOptions)
-    console.log('✅ Connected to MongoDB')
+    await mongoose.connect(clusterUri, clientOptions)
+    context.log.info('🌱 Connected to MongoDB')
   } catch (err) {
-    console.error('❌ MongoDB connection error:', err)
+    context.log.error('❌ MongoDB connection error:', err)
     process.exit(1)
   }
 }
 await connectDb()
 process.on('SIGINT', async () => {
   await mongoose.disconnect()
-  console.log('✅ MongoDB disconnected on app termination')
+  context.log.info('✅ MongoDB disconnected on app termination')
   process.exit(0)
 })
 
@@ -63,8 +63,8 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json(errorResponse('An unexpected error occurred', 'UNEXPECTED_ERROR'))
 })
 
-app.listen(port, () => {
-  context.log.info(`🐠 Listening on http://localhost:${port}`)
+app.listen(apiPort, () => {
+  context.log.info(`🐠 Listening on http://localhost:${apiPort}`)
   context.log.info(`🐠 RPC Endpoint: ${config.solanaRpcEndpoint.split('?')[0]}`)
   context.log.info(`🐠 Signer  : ${context.signer.address}`)
 })

@@ -91,7 +91,7 @@ describe('grpx-protocols', async () => {
     const tx = await program.methods
       .createCollection()
       .accountsPartial({
-        user: wallet.publicKey,
+        owner: wallet.publicKey,
         mint: collection.publicKey,
         mintAuthority,
         metadata,

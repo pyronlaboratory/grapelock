@@ -4,7 +4,7 @@ import { PublicKey } from '@solana/web3.js'
 import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { ExplorerLink } from '../cluster/cluster-ui'
-import { AccountBalance, AccountButtons, AccountNFTCollections, AccountTokens, AccountTransactions } from './account-ui'
+import { AccountBalance, AccountButtons, AccountTokens, AccountTransactions } from './account-ui'
 import { AppHero } from '../app-hero'
 import { ellipsify } from '@/lib/utils'
 
@@ -41,7 +41,6 @@ export default function AccountDetailFeature() {
       <div className="space-y-8">
         <AccountTokens address={address} />
         <AccountTransactions address={address} />
-        <AccountNFTCollections />
       </div>
     </div>
   )

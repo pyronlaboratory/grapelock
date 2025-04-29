@@ -1,6 +1,6 @@
 import AppLogo from './app-logo'
 import { WalletButton } from './solana/solana-provider'
-import HeroCard from './nft/nft-ui'
+import { DefaultContainer } from './nft/nft-ui'
 
 export default function AppLandingPage() {
   return (
@@ -10,7 +10,7 @@ export default function AppLandingPage() {
         <WalletButton />
       </div>
       <div className="container mx-auto py-8 text-center">
-        <HeroCard />
+        <DefaultContainer />
       </div>
     </>
   )
