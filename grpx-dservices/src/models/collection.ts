@@ -5,7 +5,7 @@ const CollectionSchema = new mongoose.Schema(
     collectionName: { type: String, required: true },
     collectionSymbol: { type: String, required: true },
     collectionDescription: { type: String },
-    collectionUri: { type: String },
+    collectionMedia: { type: String },
     collectionMetadataUri: { type: String },
     creatorAddress: { type: String, required: true },
     creatorShare: { type: Number, required: true, min: 0, max: 100 },
@@ -16,7 +16,7 @@ const CollectionSchema = new mongoose.Schema(
     masterEditionAddress: { type: String },
     status: {
       type: String,
-      enum: ['pending', 'processing', 'completed', 'failed', 'archive'],
+      enum: ['pending', 'processing', 'completed', 'failed', 'archived'],
       default: 'pending',
     },
     txSignature: { type: String },

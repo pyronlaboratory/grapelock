@@ -105,7 +105,7 @@ export function CreateCollectionForm() {
       collectionName: '',
       collectionSymbol: '',
       collectionDescription: '',
-      collectionUri: '',
+      collectionMedia: '',
       creatorAddress: wallet.publicKey?.toBase58(),
       creatorShare: 100,
       sellerFee: 500,
@@ -190,19 +190,19 @@ export function CreateCollectionForm() {
                 <div className="space-y-6">
                   <FormField
                     control={form.control}
-                    name="collectionUri"
+                    name="collectionMedia"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Collection URI</FormLabel>
+                        <FormLabel>Collection Media</FormLabel>
                         <FormUploadField
                           wallet={wallet}
                           value={field.value ?? ''}
                           onChange={field.onChange}
                           onBlur={field.onBlur}
-                          error={!!form.formState.errors.collectionUri}
+                          error={!!form.formState.errors.collectionMedia}
                           disabled={form.formState.isSubmitting}
                         />
-                        <FormDescription>Link to your collection metadata (JSON on Arweave/IPFS)</FormDescription>
+                        <FormDescription>Link to your collection image or html (Arweave/IPFS)</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
