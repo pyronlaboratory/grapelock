@@ -8,13 +8,14 @@ import { Collection } from '../models/collection.js'
 type JobStatus = 'queued' | 'processing' | 'completed' | 'failed'
 
 interface JobResponse {
+  jobId: string
   status: JobStatus
   result?: CollectionType // only if status === "completed"
 }
 
 const router = Router()
 
-router.get('/:jobId', async (req, res) => {
+router.get('/collection/:jobId', async (req, res) => {
   try {
     const job = await collectionQueue.getJob(req.params.jobId)
     if (!job) {
@@ -40,7 +41,7 @@ router.get('/:jobId', async (req, res) => {
       const doc = collectionId && (await Collection.findById(collectionId).lean())
       result = doc ? ({ ...doc, _id: doc._id.toString() } as CollectionType) : undefined
     }
-    res.json(successResponse<JobResponse>({ status, result }))
+    res.json(successResponse<JobResponse>({ jobId: req.params.jobId, status, result }))
   } catch (error) {
     res.status(500).json(errorResponse('Error fetching job details', 'JOB_LOOKUP_FAILED'))
   }

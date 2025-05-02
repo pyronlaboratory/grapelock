@@ -5,10 +5,9 @@ import { default as apiRoutes } from './api/index.js'
 import { getApiConfig } from './lib/config.js'
 import { getApiContext } from './lib/context.js'
 import { errorResponse, successResponse } from './lib/helpers.js'
+import { connectDb } from './lib/db.js'
 
-const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
-
 const { apiPort, clusterUri, ...config } = getApiConfig()
 const context = await getApiContext()
 
@@ -27,24 +26,7 @@ app.use(
     credentials: true,
   }),
 )
-
-// === MONGODB CONNECTION ===
-const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } }
-const connectDb = async () => {
-  try {
-    await mongoose.connect(clusterUri, clientOptions)
-    context.log.info('🌱 Connected to MongoDB')
-  } catch (err) {
-    context.log.error('❌ MongoDB connection error:', err)
-    process.exit(1)
-  }
-}
 await connectDb()
-process.on('SIGINT', async () => {
-  await mongoose.disconnect()
-  context.log.info('✅ MongoDB disconnected on app termination')
-  process.exit(0)
-})
 
 // === API Routes ===
 app.use('/api/v1', apiRoutes)

@@ -8,7 +8,8 @@
     "build": "tsc",
     "ci": "npm run build",
     "worker": "esrun src/queue/worker.ts",
-    "dev": "concurrently \"esrun --watch src/index.ts\" \"npm run worker\"",
+    "dev": "esrun --watch src/index.ts",
+    "dev:concurrent": "concurrently \"esrun --watch src/index.ts\" \"npm run worker\"",
     "docker:build": "docker build -t template-node-express:latest .",
     "docker:run": "docker run --rm --name template-node-express -p 3000:3000 --env-file .env -e SOLANA_SIGNER_PATH=keypair-signer.json -v ./keypair-signer.json:/srv/api/keypair-signer.json template-node-express:latest",
     "fmt": "prettier --write .",
@@ -24,6 +25,7 @@
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.25.1",
+    "@types/bs58": "^4.0.4",
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.1",
     "concurrently": "^9.1.2",
@@ -35,6 +37,7 @@
     "typescript-eslint": "^8.31.0"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
     "@irys/upload": "^0.0.15",
     "@irys/upload-solana": "^0.1.8",
     "@types/cors": "^2.8.17",

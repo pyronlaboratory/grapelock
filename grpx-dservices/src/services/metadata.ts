@@ -1,16 +1,32 @@
 import { uploadData } from './irys.js'
-import { failCollection } from './collection.js'
 import { Collection } from '../models/collection.js'
 import { CollectionType } from '../types/collection.types.js'
 import { getApiContext } from '../lib/context.js'
-
+export interface Metadata {
+  name: string
+  description: string
+  image: string // URI to image already uploaded
+  category: 'image'
+  external_url: string
+  attributes: Array<{
+    trait_type: string
+    value: string | number
+  }>
+  properties: {
+    files: Array<{
+      uri: string
+      type: string
+    }>
+  }
+}
 const context = await getApiContext()
 
 // TODO:
 // Extend to allow minting different catgory types
 export async function prepareMetadata(collection: CollectionType): Promise<CollectionType> {
   if (collection.collectionMetadataUri || collection.status !== 'processing') return collection
-  const _metadata = {
+
+  const _metadata: Metadata = {
     name: collection.collectionName,
     description: collection.collectionDescription || '',
     image: collection.collectionMedia || '', // URI to image already uploaded
@@ -37,8 +53,7 @@ export async function prepareMetadata(collection: CollectionType): Promise<Colle
   }
 
   try {
-    const metadata = JSON.stringify(_metadata)
-    const receipt = await uploadData(metadata)
+    const receipt = await uploadData(JSON.stringify(_metadata))
     const metadataUri = receipt ? `https://gateway.irys.xyz/${receipt?.id}` : ''
     const updatedCollection = await Collection.findByIdAndUpdate(
       collection._id,
@@ -52,7 +67,6 @@ export async function prepareMetadata(collection: CollectionType): Promise<Colle
     return updatedCollection!.toObject() as CollectionType
   } catch (error: any) {
     context.log.error('Error preparing metadata:', error)
-    await failCollection(collection._id.toString(), error.message || 'Unknown error during metadata upload')
     throw new Error('Failed to prepare metadata')
   }
 }

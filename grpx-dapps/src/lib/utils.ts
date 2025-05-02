@@ -15,15 +15,26 @@ export function ellipsify(str = '', len = 4, delimiter = '..') {
   return strLen >= limit ? str.substring(0, len) + delimiter + str.substring(strLen - len, strLen) : str
 }
 
+type Cluster = 'mainnet-beta' | 'devnet' | 'testnet' | 'custom' | 'localnet'
+
+export function getSolanaTxExplorerLink(txSignature: string = '', cluster: Cluster): string {
+  const baseUrl = 'https://explorer.solana.com/tx/'
+  const clusterParam = cluster === 'custom' ? '' : `?cluster=${cluster}`
+  return `${baseUrl}${txSignature}${clusterParam}`
+}
+
 export function getRandomAvatar() {
   // You can customize the random source (this uses a free avatar API)
   const randomId = Math.floor(Math.random() * 1000)
   return `https://api.dicebear.com/7.x/thumbs/svg?seed=${randomId}`
 }
 
+export function getCollectionIdenticon(seed: string) {
+  return `https://api.dicebear.com/9.x/identicon/svg?seed=${seed}`
+}
+
 // Function to upload file to Irys and return the URI
 export const uploadToIrys = async (file: File, wallet: any) => {
-  console.log('Uploading with wallet', wallet)
   try {
     const irysUploader = await getIrysUploader(wallet)
     const uploadedUri = await irysUploader.uploadFile(file)
@@ -34,6 +45,7 @@ export const uploadToIrys = async (file: File, wallet: any) => {
   }
 }
 
+// TODO: better type
 export async function getIrysUploader(wallet: any) {
   // Check if wallet has publicKey before trying to upload
   if (!wallet || !wallet.publicKey) {
@@ -47,4 +59,15 @@ export async function getIrysUploader(wallet: any) {
     console.error('Error connecting to Irys:', error)
     throw new Error('Error connecting to Irys')
   }
+}
+
+// use moment / date-fns
+export function formatDate(date: string | Date) {
+  if (!date) return ''
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  return dateObj.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
 }

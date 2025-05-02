@@ -10,32 +10,63 @@ import {
 import { prepareMetadata } from '../../services/metadata.js'
 import { CollectionType } from '../../types/collection.types.js'
 
+type JobResult = {
+  status: 'success' | 'failed'
+  jobId: string
+  collectionId?: string
+  txSignature?: string
+  mintAddress?: string
+  metadataAddress?: string
+  masterEditionAddress?: string
+  error?: string | any
+}
+
 const context = await getApiContext()
-export async function process(job: Job<any, any, string>) {
+export async function process(job: Job<any, any, string>): Promise<JobResult> {
   const { id, name, token, data } = job
-  context.log.info(`Executing ${name!} collection job | JOB_ID: ${id!} | JOB_TOKEN: ${token}`)
+  context.log.info(`⚙️ Executing ${name!} job | id: ${id!}`)
 
   let collection: CollectionType | undefined
   try {
-    collection = await processCollection(data)
-    if (!collection) {
-      context.log.error('Collection not found or failed to set to processing', id)
-      throw new Error('Collection not found or failed to set to processing')
-    }
+    // Mark processing
+    collection = await processCollection(data.id)
+    if (!collection) throw new Error('Collection not found or failed to set to processing')
 
+    // Process pipeline
     collection = await prepareMetadata(collection)
-    const solanaTx = await writeCollection(collection)
+    if (!collection.collectionMetadataUri) throw new Error('Collection metadata resources not found')
 
-    // await updateCollection(collection._id.toString(), solanaTx)
+    // Write transaction on Solana
+    const { mintAddress, metadataAddress, masterEditionAddress, txSignature } = await writeCollection(collection)
+
+    // Update offchain records and logs
+    await updateCollection(collection._id.toString(), {
+      mintAddress,
+      metadataAddress,
+      masterEditionAddress,
+      txSignature,
+    })
     await confirmCollection(collection._id.toString())
-
-    context.log.info(`Collection processed successfully | JOB_ID: ${id}`)
-    return 'Collection processed successfully'
+    context.log.info(`Collection processed successfully | job id: ${id}`)
+    return {
+      status: 'success',
+      jobId: id!,
+      collectionId: collection._id.toString(),
+      txSignature,
+      mintAddress,
+      metadataAddress,
+      masterEditionAddress,
+    }
   } catch (error: any) {
     context.log.error('Job processing failed:', error)
     if (collection?._id) {
       await failCollection(collection._id.toString(), error.message || 'Unknown error while processing collection job')
     }
-    throw new Error('Collection job failed')
+    return {
+      status: 'failed',
+      jobId: id!,
+      collectionId: collection?._id?.toString(),
+      error: error.message || 'Collection job failed',
+    }
   }
 }

@@ -29,12 +29,12 @@ export const links = {
           url: '/marketplace/collections',
         },
         {
-          title: 'My Listings',
-          url: '/marketplace/my-listings',
+          title: 'Manager',
+          url: '/marketplace/manager',
         },
         {
           title: 'Purchase History',
-          url: '/marketplace/purchase-history',
+          url: '/marketplace/history',
         },
       ],
     },

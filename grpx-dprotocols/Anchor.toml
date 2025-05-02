@@ -7,10 +7,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-grpx_dprotocols = "CvKn16TuEA8ugj6PCxwRVNSZJ47yTrv36xJA49ktWMco"
+grpx_dprotocols = "EY6rxjcbHnRPBJp7qerSbjvfvCU4yPnp2UsECiKPrALd"
 
 [programs.devnet]
-grpx_dprotocols = "CvKn16TuEA8ugj6PCxwRVNSZJ47yTrv36xJA49ktWMco"
+grpx_dprotocols = "EY6rxjcbHnRPBJp7qerSbjvfvCU4yPnp2UsECiKPrALd"
 
 [registry]
 url = "https://api.apr.dev"

@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { Types } from 'mongoose'
-
 export const objectIdSchema = z.custom<Types.ObjectId>((val) => val instanceof Types.ObjectId, {
   message: '_id must be a MongoDB ObjectId',
 })
@@ -25,10 +24,6 @@ export const collectionSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 })
-export type CollectionType = z.infer<typeof collectionSchema>
-export type CollectionStatusEnumType = z.infer<typeof collectionStatusEnum>
-
-// Create
 export const createCollectionSchema = z.object({
   collectionName: z.string().min(1, 'Collection name is required'),
   collectionSymbol: z.string().min(1, 'Collection symbol is required'),
@@ -39,4 +34,6 @@ export const createCollectionSchema = z.object({
   sellerFee: z.coerce.number().min(0).max(10000, 'Fee must be between 0 and 10000 basis points'),
   maxSupply: z.coerce.number().min(0, 'Max supply must be 0 or greater'),
 })
+export type CollectionType = z.infer<typeof collectionSchema>
+export type CollectionStatusEnumType = z.infer<typeof collectionStatusEnum>
 export type CreateCollectionType = z.infer<typeof createCollectionSchema>

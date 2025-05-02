@@ -13,6 +13,15 @@ use anchor_spl::{
     token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct MetadataArgs {
+    pub name: String,
+    pub symbol: String,
+    pub description: String,
+    pub uri: String,
+    pub seller_fee_basis_points: u16,
+    pub creator_share: u8,
+}
 #[derive(Accounts)]
 pub struct CreateCollection<'info> {
     #[account(mut)]
@@ -51,7 +60,11 @@ pub struct CreateCollection<'info> {
 }
 
 impl<'info> CreateCollection<'info> {
-    pub fn create_collection(&mut self, bumps: &CreateCollectionBumps) -> Result<()> {
+    pub fn create_collection(
+        &mut self,
+        bumps: &CreateCollectionBumps,
+        metadata_args: MetadataArgs,
+    ) -> Result<()> {
         let metadata = &self.metadata.to_account_info();
         let master_edition = &self.master_edition.to_account_info();
         let mint = &self.mint.to_account_info();
@@ -77,7 +90,7 @@ impl<'info> CreateCollection<'info> {
         let creator = vec![Creator {
             address: self.mint_authority.key().clone(),
             verified: true,
-            share: 100,
+            share: metadata_args.creator_share,
         }];
 
         let metadata_account = CreateMetadataAccountV3Cpi::new(
@@ -93,10 +106,10 @@ impl<'info> CreateCollection<'info> {
             },
             CreateMetadataAccountV3InstructionArgs {
                 data: DataV2 {
-                    name: "DummyCollection".to_owned(),
-                    symbol: "DC".to_owned(),
-                    uri: "".to_owned(),
-                    seller_fee_basis_points: 0,
+                    name: metadata_args.name,
+                    symbol: metadata_args.symbol,
+                    uri: metadata_args.uri,
+                    seller_fee_basis_points: metadata_args.seller_fee_basis_points,
                     creators: Some(creator),
                     collection: None,
                     uses: None,

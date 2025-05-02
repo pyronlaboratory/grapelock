@@ -5,7 +5,7 @@ import { getApiContext } from '../lib/context.js'
 const { redisConnection } = getApiConfig()
 const context = await getApiContext()
 
-const collectionQueue = new Queue('collection', { connection: { url: redisConnection } })
-context.log.info(`⏳ New Queue ${collectionQueue.name} created successfully`)
+const collectionQueue = new Queue('collection_queue', { connection: { url: redisConnection } })
+context.log.info(`⏳ New ${collectionQueue.name} created successfully`)
 
 export { collectionQueue }

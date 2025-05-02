@@ -1,47 +1,61 @@
+import path from 'path'
+import * as fs from 'fs'
+
+import { Readable } from 'stream'
 import { Uploader } from '@irys/upload'
 import { UploadResponse } from '@irys/upload-core'
 import { Solana } from '@irys/upload-solana'
+import { Metadata } from './metadata.js'
 import { getApiContext } from '../lib/context.js'
 
-let irysUploaderInstance: Awaited<ReturnType<ReturnType<typeof Uploader>['withWallet']>> | null = null
 const context = await getApiContext()
+let irysUploaderInstance: Awaited<ReturnType<ReturnType<typeof Uploader>['withWallet']>> | null = null
 async function getIrysUploader() {
   if (!irysUploaderInstance) {
-    irysUploaderInstance = await Uploader(Solana).withWallet(process.env.PRIVATE_KEY!)
+    try {
+      const privateKey = JSON.parse(fs.readFileSync(path.resolve(process.env.SOLANA_SIGNER_PATH!), 'utf-8'))
+      irysUploaderInstance = await Uploader(Solana).withWallet(privateKey)
+    } catch (error) {
+      context.log.error('Error while creating uploader', error)
+    }
   }
   return irysUploaderInstance
 }
-const uploadData = async (data: string): Promise<UploadResponse | undefined> => {
+const uploadData = async (data: string | Buffer | Readable): Promise<UploadResponse | undefined> => {
   const irysUploader = await getIrysUploader()
+  if (!irysUploader) return
   try {
     const receipt = await irysUploader.upload(data)
-    context.log.info(`Data uploaded ==> https://gateway.irys.xyz/${receipt.id}`)
+    context.log.info(`💾 Data uploaded ==> https://gateway.irys.xyz/${receipt.id}`)
     return receipt
   } catch (error) {
     context.log.error('Error when uploading ', error)
   }
 }
-export { uploadData }
-// TODO --
-// Finish inactive functions / upload file and folder
-const uploadFile = async () => {
+const uploadFile = async (data: Metadata | Object): Promise<UploadResponse | undefined> => {
   const irysUploader = await getIrysUploader()
-  const fileToUpload = './myImage.png'
-  const tags = [{ name: 'application-id', value: 'MyNFTDrop' }]
+  if (!irysUploader) return
   try {
-    const receipt = await irysUploader.uploadFile(fileToUpload, { tags: tags })
-    console.log(`File uploaded ==> https://gateway.irys.xyz/${receipt.id}`)
-  } catch (e) {
-    console.log('Error when uploading ', e)
+    const file = new Blob([JSON.stringify(data)], { type: 'application/json' })
+    const path = URL.createObjectURL(file)
+    const tags = [{ name: 'application-id', value: 'GrpxMetadata' }]
+    const receipt = await irysUploader.uploadFile(path, { tags })
+    context.log.info(`File uploaded ==> https://gateway.irys.xyz/${receipt.id}`)
+    return receipt
+  } catch (error) {
+    context.log.error('Error when uploading ', error)
   }
 }
+export { uploadData, uploadFile }
+
 // When uploading a folder, files can be accessed
 // either directly at https://gateway.irys.xyz/:transactionId
 // or https://gateway.irys.xyz/:manifestId/:fileName
 const uploadFolder = async () => {
   const irysUploader = await getIrysUploader()
-  const folderToUpload = './my-images/' // Path to folder
+  if (!irysUploader) return
   try {
+    const folderToUpload = './my-images/' // Path to folder
     const receipt = await irysUploader.uploadFolder('./' + folderToUpload, {
       indexFile: '', // Optional index file (file the user will load when accessing the manifest)
       batchSize: 50, // Number of items to upload at once
@@ -55,6 +69,7 @@ const uploadFolder = async () => {
 }
 const fundAccount = async () => {
   const irysUploader = await getIrysUploader()
+  if (!irysUploader) return
   try {
     const fundTx = await irysUploader.fund(irysUploader.utils.toAtomic(0.05))
     console.log(`Successfully funded ${irysUploader.utils.fromAtomic(fundTx.quantity)} ${irysUploader.token}`)
