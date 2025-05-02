@@ -34,7 +34,7 @@ export default function ErrorScreen({
         )} */}
         <Link
           href="/"
-          className="mt-6 flex items-center gap-2 px-6 py-2 bg-sidebar-primary/50 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          className="mt-6 flex items-center text-sm gap-2 px-6 py-2 bg-sidebar-primary text-white rounded-lg hover:bg-sidebar-primary/90 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home</span>
