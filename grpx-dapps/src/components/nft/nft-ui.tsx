@@ -1,4 +1,4 @@
-import React, { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from 'react'
+import React, { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useState } from 'react'
 import api, { ApiResponse } from '@/lib/api'
 
 import { useWallet } from '@solana/wallet-adapter-react'
@@ -65,7 +65,6 @@ const statusConfigMap = {
     icon?: React.ReactNode
   }
 >
-
 interface CollectionTableProps {
   collections: CollectionType[]
   onViewCollection: (collection: CollectionType) => void
@@ -141,6 +140,7 @@ const mockWine: WineType = {
   transactionCount: 3,
   verificationStatus: 'Verified',
 }
+
 export const DefaultContainer: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'details' | 'chain'>('details')
   const { connected } = useWalletUi()
@@ -166,33 +166,13 @@ export function GetStarted() {
         Create a master edition to start publishing on the marketplace
       </p>
 
-      <AppModal
-        title="Start Creating"
-        size="sm"
-        variant="default"
+      <CreateCollectionModal
+        label={'Start Creating'}
+        classes={
+          'w-full h-12 -bottom-15 relative overflow-hidden bg-background hover:bg-green-500 text-yellow-600 hover:text-black transition-colors cursor-pointer group'
+        }
         shineEffect
-        classes="w-full h-12 -bottom-15 relative overflow-hidden bg-background hover:bg-green-500 text-yellow-600 hover:text-black transition-colors cursor-pointer group"
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 30 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="fixed inset-0 bg-background/80 z-40"
-        >
-          <div className="max-w-sm md:max-w-2xl mx-auto relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
-            <DialogClose asChild>
-              <button
-                className="cursor-pointer absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </DialogClose>
-            <CreateCollectionForm />
-          </div>
-        </motion.div>
-      </AppModal>
+      />
     </div>
   )
 }
@@ -465,24 +445,75 @@ export function CreateCollectionForm() {
     </Card>
   )
 }
+export function CreateCollectionModal({
+  label = '🌱 Create New',
+  classes = '',
+  shineEffect = false,
+}: {
+  label?: string
+  classes?: string
+  shineEffect?: boolean
+}) {
+  return (
+    <AppModal title={label} size="sm" variant="default" shineEffect={shineEffect} classes={classes}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 30 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="fixed inset-0 bg-background/80 z-40"
+      >
+        <div className="max-w-sm md:max-w-2xl mx-auto relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
+          <DialogClose asChild>
+            <button
+              className="cursor-pointer absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </DialogClose>
+          <CreateCollectionForm />
+        </div>
+      </motion.div>
+    </AppModal>
+  )
+}
+export function CollectionStatusBadge({ status }: CollectionStatusBadgeProps) {
+  const config = statusConfigMap[status] ?? {
+    label: status,
+    variant: 'secondary',
+  }
+  return (
+    <Badge variant={config.variant}>
+      {config.icon && <span>{config.icon}</span>}
+      {config.label}
+    </Badge>
+  )
+}
+
 export function CollectionTable({ collections, onViewCollection }: CollectionTableProps) {
   return (
     <div className="overflow-x-auto rounded-lg shadow border border-accent my-8">
       <table className="min-w-full divide-y divide-accent">
         <thead className="bg-primary-foreground">
           <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th
+              scope="col"
+              className="min-w-lg px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
               Collection
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Created
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Status
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
+              Created
             </th>
+
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            ></th>
           </tr>
         </thead>
         <tbody className="bg-accent-background divide-y divide-accent">
@@ -503,19 +534,20 @@ export function CollectionTable({ collections, onViewCollection }: CollectionTab
                   </div>
                   <div className="ml-4">
                     <div>
-                      <div className="text-sm font-medium text-neutral-300 text-pretty">
+                      <div className="text-sm font-medium text-neutral-400 text-pretty">
                         {collection.collectionName}
                       </div>
-                      <div className="text-sm text-neutral-500 font-semibold">{collection.collectionSymbol}</div>
+                      <div className="text-sm text-neutral-600 font-semibold">{collection.collectionSymbol}</div>
                     </div>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-neutral-400 text-sm text-pretty">
-                {formatDate(collection.createdAt)}
-              </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-neutral-400">
                 <CollectionStatusBadge status={collection.status} />
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-neutral-400 text-sm text-pretty">
+                {formatDate(collection.createdAt)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div className="flex space-x-2">
@@ -529,18 +561,6 @@ export function CollectionTable({ collections, onViewCollection }: CollectionTab
         </tbody>
       </table>
     </div>
-  )
-}
-export function CollectionStatusBadge({ status }: CollectionStatusBadgeProps) {
-  const config = statusConfigMap[status] ?? {
-    label: status,
-    variant: 'secondary',
-  }
-  return (
-    <Badge variant={config.variant}>
-      {config.icon && <span>{config.icon}</span>}
-      {config.label}
-    </Badge>
   )
 }
 export function CollectionDetails({ collection, nfts, onBack, onCreateNFT }: CollectionDetailsProps) {
@@ -738,13 +758,3 @@ export function NFTCard({ nft }: NFTCardProps) {
     </div>
   )
 }
-
-// export function trackCollectionJob(jobId: string) {
-//   localStorage.setItem('activeJobId', jobId)
-//   let currentStatus = 'queued'
-
-//   let toastId = toast('Job queued and waiting to start...', {
-//     description: Tracking Job #${jobId},
-//     id: 'job-toast',
-//   })
-// }
