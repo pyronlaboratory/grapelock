@@ -1,11 +1,11 @@
-import React, { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from 'react'
+import React, { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useState } from 'react'
 import api, { ApiResponse } from '@/lib/api'
 
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useWalletUi } from '@wallet-ui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { ChevronRight, ChevronLeft, Info, Flame, X, Eye, MoreHorizontal, ArrowLeft, PlusCircle } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Info, Flame, X, MoreHorizontal, Plus, FileQuestion } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,7 +20,7 @@ import { createCollectionFormSchema } from '../../schemas/collection'
 import { AppModal } from '../app-modal'
 import { motion } from 'framer-motion'
 import { DialogClose } from '../ui/dialog'
-import { ellipsify, formatDate, getCollectionIdenticon, getRandomAvatar } from '@/lib/utils'
+import { formatDate, getCollectionIdenticon, getRandomAvatar } from '@/lib/utils'
 import { Badge, badgeVariants } from '../ui/badge'
 
 import { CheckCircle, Clock, XCircle, FileArchive, Loader2 } from 'lucide-react'
@@ -65,18 +65,12 @@ const statusConfigMap = {
     icon?: React.ReactNode
   }
 >
-
 interface CollectionTableProps {
   collections: CollectionType[]
   onViewCollection: (collection: CollectionType) => void
 }
-interface CollectionDetailsProps {
-  collection: CollectionType
-  nfts: any // NFTType[];
-  onBack: () => void
-  onCreateNFT: () => void
-}
-interface EmptyCollectionProps {
+
+interface EmptyGridProps {
   collection: CollectionType
   onCreateNFT: () => void
 }
@@ -87,60 +81,6 @@ interface NFTCardProps {
   nft: any //NFT
 }
 
-type WineType = any
-type SupplyChainStep = any
-
-const mockSupplyChain: SupplyChainStep[] = [
-  { stage: 'Harvest', date: '2019-09-15', location: 'Bordeaux, France', verifier: 'Chateau Margaux', complete: true },
-  {
-    stage: 'Production',
-    date: '2019-10-05',
-    location: 'Bordeaux, France',
-    verifier: 'Chateau Margaux',
-    complete: true,
-  },
-  { stage: 'Bottling', date: '2022-03-18', location: 'Bordeaux, France', verifier: 'Chateau Margaux', complete: true },
-  { stage: 'Authentication', date: '2022-03-20', location: 'Bordeaux, France', verifier: 'VinTrust', complete: true },
-  {
-    stage: 'Export',
-    date: '2022-04-10',
-    location: 'Bordeaux, France',
-    verifier: 'Wine Export Authority',
-    complete: true,
-  },
-  { stage: 'Import', date: '2022-04-25', location: 'New York, USA', verifier: 'US Wine Imports', complete: true },
-  {
-    stage: 'Distribution',
-    date: '2022-05-15',
-    location: 'New York, USA',
-    verifier: 'Premium Wine Distributors',
-    complete: true,
-  },
-  {
-    stage: 'Current Owner',
-    date: '2022-06-01',
-    location: 'New York, USA',
-    verifier: 'Blockchain Verified',
-    complete: true,
-  },
-]
-const mockWine: WineType = {
-  id: 'cm-2015-0042',
-  name: 'Chateau Margaux Grand Vin',
-  vintage: 2015,
-  region: 'Bordeaux, France',
-  vineyard: 'Chateau Margaux',
-  varietal: 'Cabernet Sauvignon, Merlot Blend',
-  authenticatedDate: '2022-03-20',
-  bottleNumber: 42,
-  totalBottles: 12000,
-  price: 1250,
-  imageUrl: 'https://images.pexels.com/photos/2912108/pexels-photo-2912108.jpeg',
-  rarity: 'Rare',
-  currentOwner: '8xft7UHPqPCwFm8NtjYxLF9RdmGDs8sUZqzspNQmZA2L',
-  transactionCount: 3,
-  verificationStatus: 'Verified',
-}
 export const DefaultContainer: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'details' | 'chain'>('details')
   const { connected } = useWalletUi()
@@ -166,33 +106,13 @@ export function GetStarted() {
         Create a master edition to start publishing on the marketplace
       </p>
 
-      <AppModal
-        title="Start Creating"
-        size="sm"
-        variant="default"
+      <CreateCollectionModal
+        label={'Start Creating'}
+        classes={
+          'w-full h-12 -bottom-15 relative overflow-hidden bg-background hover:bg-green-500 text-yellow-600 hover:text-black transition-colors cursor-pointer group'
+        }
         shineEffect
-        classes="w-full h-12 -bottom-15 relative overflow-hidden bg-background hover:bg-green-500 text-yellow-600 hover:text-black transition-colors cursor-pointer group"
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 30 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="fixed inset-0 bg-background/80 z-40"
-        >
-          <div className="max-w-sm md:max-w-2xl mx-auto relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
-            <DialogClose asChild>
-              <button
-                className="cursor-pointer absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </DialogClose>
-            <CreateCollectionForm />
-          </div>
-        </motion.div>
-      </AppModal>
+      />
     </div>
   )
 }
@@ -465,6 +385,51 @@ export function CreateCollectionForm() {
     </Card>
   )
 }
+export function CreateCollectionModal({
+  label = '🌱 Create New',
+  classes = '',
+  shineEffect = false,
+}: {
+  label?: string
+  classes?: string
+  shineEffect?: boolean
+}) {
+  return (
+    <AppModal title={label} size="sm" variant="default" shineEffect={shineEffect} classes={classes}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 30 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="fixed inset-0 bg-background/80 z-40"
+      >
+        <div className="max-w-sm md:max-w-2xl mx-auto relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
+          <DialogClose asChild>
+            <button
+              className="cursor-pointer absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </DialogClose>
+          <CreateCollectionForm />
+        </div>
+      </motion.div>
+    </AppModal>
+  )
+}
+export function CollectionStatusBadge({ status }: CollectionStatusBadgeProps) {
+  const config = statusConfigMap[status] ?? {
+    label: status,
+    variant: 'secondary',
+  }
+  return (
+    <Badge variant={config.variant}>
+      {config.icon && <span>{config.icon}</span>}
+      {config.label}
+    </Badge>
+  )
+}
 export function CollectionTable({ collections, onViewCollection }: CollectionTableProps) {
   return (
     <div className="overflow-x-auto rounded-lg shadow border border-accent my-8">
@@ -475,14 +440,16 @@ export function CollectionTable({ collections, onViewCollection }: CollectionTab
               Collection
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Created
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Status
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
+              Created
             </th>
+
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            ></th>
           </tr>
         </thead>
         <tbody className="bg-accent-background divide-y divide-accent">
@@ -503,19 +470,20 @@ export function CollectionTable({ collections, onViewCollection }: CollectionTab
                   </div>
                   <div className="ml-4">
                     <div>
-                      <div className="text-sm font-medium text-neutral-300 text-pretty">
+                      <div className="text-sm font-medium text-neutral-400 text-pretty">
                         {collection.collectionName}
                       </div>
-                      <div className="text-sm text-neutral-500 font-semibold">{collection.collectionSymbol}</div>
+                      <div className="text-sm text-neutral-600 font-semibold">{collection.collectionSymbol}</div>
                     </div>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-neutral-400 text-sm text-pretty">
-                {formatDate(collection.createdAt)}
-              </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-neutral-400">
                 <CollectionStatusBadge status={collection.status} />
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-neutral-400 text-sm text-pretty">
+                {formatDate(collection.createdAt)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div className="flex space-x-2">
@@ -531,88 +499,36 @@ export function CollectionTable({ collections, onViewCollection }: CollectionTab
     </div>
   )
 }
-export function CollectionStatusBadge({ status }: CollectionStatusBadgeProps) {
-  const config = statusConfigMap[status] ?? {
-    label: status,
-    variant: 'secondary',
-  }
+export function CollectionHeader({ collection }: { collection: CollectionType }) {
   return (
-    <Badge variant={config.variant}>
-      {config.icon && <span>{config.icon}</span>}
-      {config.label}
-    </Badge>
+    <div className="bg-background/40 rounded-lg shadow overflow-hidden mb-8 border-accent border">
+      <div className="relative h-64">
+        <img
+          src={collection?.collectionMedia || getCollectionIdenticon(collection?._id)}
+          alt={collection?.collectionName}
+          className="w-full h-full object-cover"
+        />
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+
+        <div className="absolute bottom-0 left-0 p-6 text-white">
+          <div className="flex items-center space-x-3 mb-2">
+            <h1 className="text-2xl font-bold">{collection?.collectionName}</h1>
+            <span className="text-xs bg-white/20 px-2 py-1 rounded-md backdrop-blur-sm">
+              {collection?.collectionSymbol}
+            </span>
+          </div>
+          <p className="mt-1 text-accent-background">{collection?.collectionDescription}</p>
+        </div>
+      </div>
+    </div>
   )
 }
-export function CollectionDetails({ collection, nfts, onBack, onCreateNFT }: CollectionDetailsProps) {
+export function CollectionGallery({ nfts, collection, onCreateNFT }: any) {
   return (
-    <div className="animate-fadeIn">
-      <div className="mb-6 flex items-center justify-between">
-        <button onClick={onBack} className="flex items-center text-gray-300 hover:text-gray-900 transition">
-          <ArrowLeft size={18} className="mr-1" />
-          <span>Back to Collections</span>
-        </button>
-
-        <Button onClick={onCreateNFT} size="sm" className="">
-          <PlusCircle size={16} className="mr-1" />
-          Create NFT
-        </Button>
-      </div>
-
-      <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
-        <div className="relative h-48 bg-gray-200">
-          <img
-            src={collection?.collectionMedia || getCollectionIdenticon(collection?._id)}
-            alt={collection?.collectionName}
-            className="w-full h-full object-cover"
-          />
-
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-
-          <div className="absolute bottom-0 left-0 p-6 text-white">
-            <div className="flex items-center space-x-3 mb-2">
-              <h1 className="text-2xl font-bold">{collection?.collectionName}</h1>
-              <span className="text-sm bg-white/20 px-2 py-1 rounded-md backdrop-blur-sm">
-                {collection?.collectionSymbol}
-              </span>
-            </div>
-            <CollectionStatusBadge status={collection?.status} />
-          </div>
-        </div>
-
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Creator</h3>
-              <p className="mt-1">{ellipsify(collection?.creatorAddress)}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Max Supply</h3>
-              <p className="mt-1">{collection?.maxSupply}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Created</h3>
-              <p className="mt-1">{formatDate(collection?.createdAt)}</p>
-            </div>
-          </div>
-
-          {collection?.collectionDescription && (
-            <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-500">Description</h3>
-              <p className="mt-1 text-gray-900">{collection?.collectionDescription}</p>
-            </div>
-          )}
-
-          {collection?.errorMessage && (
-            <div className="mt-6 p-3 bg-red-50 border border-red-200 rounded-md">
-              <h3 className="text-sm font-medium text-red-800">Error Message</h3>
-              <p className="mt-1 text-red-700">{collection?.errorMessage}</p>
-            </div>
-          )}
-        </div>
-      </div>
-
+    <div className="p-6">
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900">NFTs in this Collection</h2>
+        <h2 className="text-lg font-semibold text-secondary-background">Factory collection</h2>
         <p className="text-gray-600">
           {nfts.length
             ? `Showing ${nfts.length} NFT${nfts.length !== 1 ? 's' : ''}`
@@ -620,35 +536,33 @@ export function CollectionDetails({ collection, nfts, onBack, onCreateNFT }: Col
         </p>
       </div>
 
-      {nfts.length > 0 ? (
-        <NFTGrid nfts={nfts} />
-      ) : (
-        <EmptyCollection collection={collection} onCreateNFT={onCreateNFT} />
-      )}
+      {nfts.length > 0 ? <NFTGrid nfts={nfts} /> : <EmptyGrid collection={collection} onCreateNFT={onCreateNFT} />}
     </div>
   )
 }
 
-export function EmptyCollection({ collection, onCreateNFT }: EmptyCollectionProps) {
+export function EmptyGrid({ collection, onCreateNFT }: EmptyGridProps) {
   return (
     <div className="text-center py-12">
-      <div className="mx-auto h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center">
-        <PlusCircle className="h-12 w-12 text-gray-400" />
+      <div className="mx-auto h-24 w-24 bg-accent rounded-full flex items-center justify-center">
+        <FileQuestion className="h-12 w-12 text-gray-400" />
       </div>
-      <h3 className="mt-4 text-lg font-medium text-gray-900">No NFTs in this collection</h3>
-      <p className="mt-1 text-sm text-gray-500">
+      <h3 className="mt-4 text-lg font-medium text-accent-background">No NFTs in this collection</h3>
+      <p className="mt-1 text-sm text-neutral-500">
         Get started by creating your first NFT in the {collection?.collectionName} collection.
       </p>
       <div className="mt-6">
-        <Button onClick={onCreateNFT} className="inline-flex items-center">
-          <PlusCircle className="mr-2 h-4 w-4" />
+        <Button
+          onClick={onCreateNFT}
+          className="inline-flex items-center bg-accent-foreground dark:bg-accent text-primary-foreground dark:text-primary hover:bg-black hover:text-accent-background dark:hover:bg-sidebar-primary/90 dark:hover:text-primary"
+        >
+          <Plus className="mr-2 h-4 w-4" />
           Create New NFT
         </Button>
       </div>
     </div>
   )
 }
-
 export function NFTGrid({ nfts }: NFTGridProps) {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -658,7 +572,6 @@ export function NFTGrid({ nfts }: NFTGridProps) {
     </div>
   )
 }
-
 export function NFTCard({ nft }: NFTCardProps) {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -738,13 +651,3 @@ export function NFTCard({ nft }: NFTCardProps) {
     </div>
   )
 }
-
-// export function trackCollectionJob(jobId: string) {
-//   localStorage.setItem('activeJobId', jobId)
-//   let currentStatus = 'queued'
-
-//   let toastId = toast('Job queued and waiting to start...', {
-//     description: Tracking Job #${jobId},
-//     id: 'job-toast',
-//   })
-// }
