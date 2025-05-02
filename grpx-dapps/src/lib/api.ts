@@ -2,13 +2,18 @@
 
 import { BASE_API_URL, defaultHeaders } from './constants'
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
-type BodyType = object | string | FormData | Blob | ArrayBufferView | URLSearchParams | null
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+export type BodyType = object | string | FormData | Blob | ArrayBufferView | URLSearchParams | null
 
-type FetchOptions = {
+export type FetchOptions = {
   method?: HttpMethod
   headers?: HeadersInit
   body?: BodyType
+}
+
+export type ApiResponse<T> = {
+  success: boolean
+  data: T
 }
 
 async function api<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {

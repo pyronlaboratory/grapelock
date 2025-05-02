@@ -39,9 +39,10 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={fallbackAvatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">
-                  <img src={fallbackAvatar} alt="fallback" className="h-full w-full object-cover rounded-lg" />
+                  CN
+                  {/* <img src={fallbackAvatar} alt="fallback" className="h-full w-full object-cover rounded-lg" /> */}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">

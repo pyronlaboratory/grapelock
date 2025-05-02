@@ -4,21 +4,34 @@ import { ReactNode } from 'react'
 
 export function AppModal({
   children,
+  classes,
   title,
   submit,
   submitDisabled,
   submitLabel,
+  shineEffect,
+  size,
+  variant,
 }: {
   children: ReactNode
-  title: string
+  title: string | ReactNode
   submit?: () => void
   submitDisabled?: boolean
   submitLabel?: string
+  classes?: string
+  shineEffect?: boolean
+  size?: 'sm' | 'lg' | 'default' | 'icon' | null | undefined
+  variant?: 'outline' | 'default'
 }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">{title}</Button>
+        <Button size={size} variant={variant} className={classes}>
+          {title}
+          {shineEffect && (
+            <span className="absolute top-0 left-[-75%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/60 to-transparent transform skew-x-[-20deg] shine-effect" />
+          )}
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>

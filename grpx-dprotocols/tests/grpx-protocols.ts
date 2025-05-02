@@ -1,14 +1,16 @@
 import 'dotenv/config'
 import fs from 'fs'
 import path from 'path'
-import type NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet'
-import { AnchorProvider, Program, setProvider, Wallet } from '@coral-xyz/anchor'
+
+import { AnchorProvider, Program, setProvider, Wallet, web3 } from '@coral-xyz/anchor'
 import { PublicKey, Keypair, SystemProgram, Connection, Cluster } from '@solana/web3.js'
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'
 import { GrpxDprotocols } from '../target/types/grpx_dprotocols'
-import { getExplorerLink } from '@solana-developers/helpers'
+
 import { BankrunProvider, startAnchor } from 'anchor-bankrun'
-import { AnchorWallet, useAnchorWallet } from '@solana/wallet-adapter-react'
+import type NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet'
+
+import { getExplorerLink } from '@solana-developers/helpers'
 import { expect } from 'chai'
 
 const IDL = require('../target/idl/grpx_dprotocols.json')
@@ -46,18 +48,36 @@ describe('grpx-protocols', async () => {
       wallet = provider.wallet as NodeWallet
       program = new Program<GrpxDprotocols>(IDL, provider)
     } else {
+      console.log('Connecting to ', process.env.RPC_URL)
       connection = new Connection(process.env.RPC_URL!, 'confirmed') // new Connection(clusterApiUrl('devnet'), 'confirmed')
       const walletKeypair = loadKeypair(path.resolve(process.env.HOME || '', '.config/solana/id.json'))
       wallet = new Wallet(walletKeypair)
       provider = new AnchorProvider(connection, wallet, {
-        commitment: 'processed',
+        commitment: 'confirmed',
       })
       setProvider(provider)
       program = new Program<GrpxDprotocols>(IDL, provider)
     }
-
+    console.log(program.programId.toBase58())
     mintAuthority = PublicKey.findProgramAddressSync([Buffer.from('authority')], program.programId)[0]
     collection = Keypair.generate()
+
+    const lamportsNeeded = 1 * web3.LAMPORTS_PER_SOL
+    const balance = await connection?.getBalance(wallet.publicKey)
+    console.log('Wallet Balance:', balance / web3.LAMPORTS_PER_SOL, 'SOL')
+
+    if (balance < lamportsNeeded && process.env.CLUSTER === 'local') {
+      console.log('Low balance, requesting airdrop...')
+      //   const [latestBlockhash, airdropSig] = await Promise.all([
+      //     connection.getLatestBlockhash(),
+      //     connection.requestAirdrop(wallet.publicKey, lamportsNeeded),
+      //   ])
+      //   await connection.confirmTransaction({ signature: airdropSig, ...latestBlockhash }, 'confirmed')
+
+      const airdropSig = await connection.requestAirdrop(wallet.publicKey, lamportsNeeded)
+      await connection.confirmTransaction(airdropSig, 'confirmed')
+      console.log('Airdrop completed.')
+    }
   })
 
   const getMetadata = async (mint: PublicKey): Promise<PublicKey> => {
@@ -89,9 +109,16 @@ describe('grpx-protocols', async () => {
     console.log('Destination Assoc. Token Account: ', destination.toBase58())
 
     const tx = await program.methods
-      .createCollection()
+      .createCollection({
+        name: 'Unique',
+        symbol: 'SYM',
+        description: '',
+        uri: '',
+        sellerFeeBasisPoints: 500,
+        creatorShare: 100,
+      })
       .accountsPartial({
-        user: wallet.publicKey,
+        owner: wallet.publicKey,
         mint: collection.publicKey,
         mintAuthority,
         metadata,
@@ -104,11 +131,12 @@ describe('grpx-protocols', async () => {
       })
       .signers([collection])
       .rpc({
-        skipPreflight: true,
+        skipPreflight: false,
+        commitment: 'confirmed',
       })
 
     const cluster = (process.env.CLUSTER === 'local' ? 'localnet' : process.env.CLUSTER) as Cluster | 'localnet'
-    console.log(`\nCreated Collection 📦! NFT Minted: TxID - ${getExplorerLink('transaction', tx, cluster)}`)
+    console.log(`\nCreated Collection NFT: TxID - ${getExplorerLink('transaction', tx, cluster)}`)
 
     if (process.env.CLUSTER !== 'local') {
       const accountInfo = await connection.getAccountInfo(destination)

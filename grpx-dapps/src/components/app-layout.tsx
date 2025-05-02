@@ -18,7 +18,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
-      <Toaster position="top-left" />
+      <Toaster position="top-right" />
     </ThemeProvider>
   )
 }

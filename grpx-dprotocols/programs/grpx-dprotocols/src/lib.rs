@@ -6,15 +6,18 @@ pub mod error;
 pub mod instructions;
 
 use instructions::factory::*;
-declare_id!("CvKn16TuEA8ugj6PCxwRVNSZJ47yTrv36xJA49ktWMco");
+declare_id!("EY6rxjcbHnRPBJp7qerSbjvfvCU4yPnp2UsECiKPrALd");
 
 #[program]
 pub mod grpx_dprotocols {
     use super::*;
 
     // === Factory Instructions ===
-    pub fn create_collection(ctx: Context<CreateCollection>) -> Result<()> {
-        ctx.accounts.create_collection(&ctx.bumps)
+    pub fn create_collection(
+        ctx: Context<CreateCollection>,
+        metadata_args: MetadataArgs,
+    ) -> Result<()> {
+        ctx.accounts.create_collection(&ctx.bumps, metadata_args)
     }
 
     pub fn mint_nft(ctx: Context<MintNFT>) -> Result<()> {
