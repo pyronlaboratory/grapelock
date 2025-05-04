@@ -26,7 +26,10 @@ export const collectionSchema = z.object({
 })
 export const createCollectionFormSchema = z.object({
   collectionName: z.string().min(1, 'Collection name is required'),
-  collectionSymbol: z.string().min(1, 'Collection symbol is required'),
+  collectionSymbol: z
+    .string()
+    .min(1, 'Collection symbol is required')
+    .max(3, 'Collection symbol must be 3 characters or less'),
   collectionDescription: z.string().optional(),
   collectionMedia: z.string().optional(),
   creatorAddress: z.string(),

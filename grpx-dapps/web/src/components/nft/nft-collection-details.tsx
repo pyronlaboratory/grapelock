@@ -4,16 +4,15 @@ import { Button } from '../ui/button'
 import { Separator } from '../ui/separator'
 import { QRCodeSVG } from 'qrcode.react'
 import { CollectionType } from '@/schemas/collection'
-import { CollectionGallery, CollectionHeader, CollectionStatusBadge } from './nft-ui'
+import { CollectionGallery, CollectionHeader, CollectionStatusBadge, NFTMintingModal } from './nft-ui'
 
 interface CollectionDetailsProps {
   collection: CollectionType
   nfts: any // NFTType[];
   onBack: () => void
-  onCreateNFT: () => void
 }
 
-export function CollectionDetails({ collection, nfts, onBack, onCreateNFT }: CollectionDetailsProps) {
+export function CollectionDetails({ collection, nfts, onBack }: CollectionDetailsProps) {
   return (
     <div className="animate-fadeIn relative">
       <div className="mb-8 flex items-center justify-between">
@@ -25,13 +24,9 @@ export function CollectionDetails({ collection, nfts, onBack, onCreateNFT }: Col
             <span>Main Gallery</span>
           </button> */}
 
-        <Button
-          onClick={onCreateNFT}
-          size="sm"
-          className="absolute -top-8 right-0 bg-blue-600 dark:bg-sidebar-primary text-primary-foreground dark:text-primary hover:bg-black hover:text-accent-background dark:hover:bg-sidebar-primary/90 dark:hover:text-primary px-6 h-[36px] rounded-lg"
-        >
-          ✨ Mint NFT
-        </Button>
+        <div className="absolute -top-8 right-0 rounded-xl">
+          <NFTMintingModal classes="bg-accent text-neutral-400 hover:bg-primary-foreground hover:text-primary px-6 h-[36px] rounded-lg  bg-blue-600 dark:bg-sidebar-primary text-primary-foreground dark:text-primary hover:bg-black hover:text-accent-background dark:hover:bg-sidebar-primary/90 dark:hover:text-primary" />
+        </div>
       </div>
 
       <CollectionHeader collection={collection} />
@@ -42,8 +37,8 @@ export function CollectionDetails({ collection, nfts, onBack, onCreateNFT }: Col
           <h3 className="text-sm font-medium text-gray-400">
             <span>Last updated</span>
           </h3>
-          <div className=" flex flex-row items-center gap-2">
-            <CalendarCheck2 className="h-5 w-5" />
+          <div className="text-sm flex flex-row items-center gap-2">
+            <CalendarCheck2 className="h-4 w-4" />
             <p className="mt-1">{formatDate(collection?.createdAt)}</p>
           </div>
         </div>
@@ -154,7 +149,7 @@ export function CollectionDetails({ collection, nfts, onBack, onCreateNFT }: Col
         </div>
       )}
 
-      <CollectionGallery collection={collection} nfts={nfts} onCreateNFT={onCreateNFT} />
+      <CollectionGallery collection={collection} nfts={nfts} />
     </div>
   )
 }

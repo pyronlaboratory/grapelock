@@ -1,9 +1,10 @@
 'use client'
-import { CollectionType } from '@/schemas/collection'
 import { useState } from 'react'
-import { CollectionTable, CreateCollectionModal } from './nft-ui'
+import { CollectionType } from '@/schemas/collection'
+import { CreateCollectionModal } from './nft-ui'
 import { CollectionDetails } from './nft-collection-details'
 import { mockNFTs } from '@/lib/mocks'
+import { CollectionTable } from './data-table/nft-collection-table'
 
 interface NFTCollectionManagerProps {
   collections: CollectionType[]
@@ -11,7 +12,10 @@ interface NFTCollectionManagerProps {
 
 export function NFTCollectionManager({ collections }: NFTCollectionManagerProps) {
   const [selectedCollection, setSelectedCollection] = useState<CollectionType | null>(null)
-  const [isCreatingNFT, setIsCreatingNFT] = useState(false)
+
+  const getNFTsForCollection = (collectionId: string) => {
+    return mockNFTs[collectionId] || []
+  }
 
   const handleViewCollection = (collection: CollectionType) => {
     setSelectedCollection(collection)
@@ -20,28 +24,18 @@ export function NFTCollectionManager({ collections }: NFTCollectionManagerProps)
 
   const handleBackToCollections = () => {
     setSelectedCollection(null)
-    setIsCreatingNFT(false)
   }
 
-  const handleCreateNFT = () => {
-    setIsCreatingNFT(true)
-    alert('NFT creation functionality would be implemented here')
-    setIsCreatingNFT(false)
-  }
-
-  const getNFTsForCollection = (collectionId: string) => {
-    return mockNFTs[collectionId] || []
-  }
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold text-primary">Collections Manager</h1>
+
       {/* consider adding separate views */}
       {selectedCollection ? (
         <CollectionDetails
           collection={selectedCollection!}
           nfts={getNFTsForCollection(selectedCollection!?._id)}
           onBack={handleBackToCollections}
-          onCreateNFT={handleCreateNFT}
         />
       ) : (
         <div className="relative">
