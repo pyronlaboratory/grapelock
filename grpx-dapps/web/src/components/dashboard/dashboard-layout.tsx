@@ -22,11 +22,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbItem key="marketplace" className="hidden md:block">
                   <BreadcrumbLink href="#">Marketplace</BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
+                <BreadcrumbSeparator key="separator" className="hidden md:block" />
+                <BreadcrumbItem key="all-collections">
                   <BreadcrumbPage>All Collections</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>

@@ -139,9 +139,9 @@ export function NFTMintingModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 30 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="fixed inset-0 bg-background/80 z-100"
+        className="fixed inset-0 bg-background/80 z-100 "
       >
-        <div className="min-w-4xl mx-auto relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-background p-4 rounded-xl">
+        <div className="mx-auto relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-background p-4 rounded-xl">
           <DialogClose asChild>
             <button
               className="cursor-pointer absolute top-6 right-4 p-2 rounded-full hover:bg-muted transition-colors"
@@ -333,7 +333,7 @@ export function NFTCard({ nft }: NFTCardProps) {
 }
 export function NFTTypeSelection({ handleTypeSelection }: any) {
   return (
-    <div className="max-w-4xl mx-auto p-8">
+    <div className="min-w-4xl mx-auto p-8">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="bg-accent dark:bg-purple-950 p-2 rounded-lg">
@@ -347,7 +347,7 @@ export function NFTTypeSelection({ handleTypeSelection }: any) {
       </div>
 
       <Card className="mb-0 shadow-none !bg-transparent gap-2 border-none p-0">
-        <CardHeader className="mb-0 px-0">
+        {/* <CardHeader className="mb-0 px-0">
           <CardTitle className="flex justify-between text-pretty w-full text-secondary-background">
             <CardDescription>Choose the type of wine product you want to register as an NFT</CardDescription>
             <Badge
@@ -357,7 +357,7 @@ export function NFTTypeSelection({ handleTypeSelection }: any) {
               Preview Mode
             </Badge>
           </CardTitle>
-        </CardHeader>
+        </CardHeader> */}
         <CardContent className="space-y-8 px-0">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card
@@ -431,14 +431,25 @@ export function NFTTypeSelection({ handleTypeSelection }: any) {
             </Card>
           </div>
 
-          <Alert className="bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200 border-blue-200">
+          {/* <Alert className="bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200 border-blue-200">
             <Info className="h-4 w-4" />
             <AlertTitle>Not sure which to choose?</AlertTitle>
             <AlertDescription className="text-primary">
               Choose “Individual Bottle” for premium wines with unique features. Collection Bundles are ideal for
               multiple items that share the same properties or are shipped together.
             </AlertDescription>
-          </Alert>
+          </Alert> */}
+          <div className="border-1 text-sm text-white border-sidebar-primary-foreground dark:border-sidebar-primary bg-blue-400/80 p-4 rounded-md">
+            <strong className="flex gap-4 mb-2 tracking-normal">
+              <Info className="h-5 w-5" />
+              Not sure which to choose?
+            </strong>
+
+            <p className="text-white">
+              Choose “Individual Bottle” for premium wines with unique features. Collection Bundles are ideal for
+              multiple items that share the same properties or are shipped together.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

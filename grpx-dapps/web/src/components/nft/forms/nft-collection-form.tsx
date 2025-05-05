@@ -78,7 +78,7 @@ export function NFTCollectionForm() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <TabsContent value="metadata">
                 <div className="space-y-6">
-                  <div className="flex gap-8 items-baseline">
+                  <div className="flex gap-6 items-baseline">
                     <FormField
                       control={form.control}
                       name="collectionName"
@@ -149,13 +149,13 @@ export function NFTCollectionForm() {
 
               <TabsContent value="minting">
                 <div className="space-y-6">
-                  <div className="text-sm text-sidebar-accent border-sidebar-primary bg-blue-400/80 p-4 rounded-md">
+                  <div className="border-1 text-sm text-sidebar-accent border-sidebar-primary-foreground dark:border-sidebar-primary bg-blue-400/80 p-4 rounded-md">
                     <strong className="flex gap-4 mb-2 tracking-normal">
                       <Info className="h-5 w-5" />
                       Minting Authority
                     </strong>
 
-                    <p className="text-neutral-650">
+                    <p className="text-white dark:text-black">
                       The wallet used to create the collection controls the minting process and can mint new NFTs. Once
                       minted, NFTs can be transferred or sold, and the minting authority cannot manage them.
                     </p>
