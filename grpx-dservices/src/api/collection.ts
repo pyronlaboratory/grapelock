@@ -5,7 +5,7 @@ import { errorResponse, successResponse } from '../lib/helpers.js'
 import { validate } from '../middlewares/validate.js'
 import { getCollection, registerCollection } from '../services/collection.js'
 import { collectionQueue } from '../queue/index.js'
-import { CollectionType, createCollectionSchema } from '../types/collection.types.js'
+import { CollectionResource, createCollectionSchema } from '../types/collection.types.js'
 
 const router = Router()
 
@@ -23,8 +23,8 @@ router.get('/:pubicKey', async (req, res) => {
 })
 router.post('/', validate(createCollectionSchema), async (req, res) => {
   try {
-    const collection: CollectionType = await registerCollection(req.body)
-    const job = await collectionQueue.add('create_collection', { id: collection._id })
+    const collection: CollectionResource = await registerCollection(req.body)
+    const job = await collectionQueue.add('create_collection', { id: collection._id }, { attempts: 2 })
     res.status(202).json(successResponse({ data: collection, jobStatus: 'queued', jobId: job.id }))
   } catch (error) {
     res.status(500).json(errorResponse('Error creating collection', 'COLLECTION_CREATION_FAILED'))

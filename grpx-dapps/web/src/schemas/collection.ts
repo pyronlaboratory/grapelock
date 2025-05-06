@@ -1,9 +1,8 @@
 import { z } from 'zod'
-import { Types } from 'mongoose'
-export const objectIdSchema = z.custom<Types.ObjectId>((val) => val instanceof Types.ObjectId, {
-  message: '_id must be a MongoDB ObjectId',
+export const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, {
+  message: '_id must be a 24-char hex string',
 })
-export const collectionStatus = z.enum(['pending', 'processing', 'completed', 'failed', 'archived'])
+export const collectionStatusEnum = z.enum(['pending', 'processing', 'completed', 'failed', 'archived'])
 export const collectionSchema = z.object({
   _id: objectIdSchema, // from MongoDB
   collectionName: z.string(),
@@ -14,24 +13,32 @@ export const collectionSchema = z.object({
   creatorAddress: z.string(),
   sellerFeeBasisPoints: z.number().min(0).max(10000),
   maxSupply: z.number().min(0),
-  mintAddress: z.string().nullable().optional(),
+  mintAddress: z.string().nullable().optional(), // collectionMint
   metadataAddress: z.string().nullable().optional(),
   masterEditionAddress: z.string().nullable().optional(),
-  status: collectionStatus,
+  status: collectionStatusEnum,
   txSignature: z.string().nullable().optional(),
   errorMessage: z.string().nullable().optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()),
+  __v: z.number().optional(),
 })
-export const createCollectionSchema = z.object({
+export const createCollectionFormSchema = z.object({
   collectionName: z.string().min(1, 'Collection name is required'),
-  collectionSymbol: z.string().min(1, 'Collection symbol is required'),
+  collectionSymbol: z
+    .string()
+    .min(1, 'Collection symbol is required')
+    .max(3, 'Collection symbol must be 3 characters or less'),
   collectionDescription: z.string().optional(),
   collectionMedia: z.string().optional(),
   creatorAddress: z.string(),
   sellerFeeBasisPoints: z.coerce.number().min(0).max(10000, 'Fee must be between 0 and 10000 basis points'),
   maxSupply: z.coerce.number().min(0, 'Max supply must be 0 or greater'),
 })
-export type CollectionResource = z.infer<typeof collectionSchema>
-export type CollectionStatus = z.infer<typeof collectionStatus>
-export type CreateCollectionResource = z.infer<typeof createCollectionSchema>
+export const collectionsResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.array(collectionSchema),
+})
+export type CollectionType = z.infer<typeof collectionSchema>
+export type CollectionStatusEnumType = z.infer<typeof collectionStatusEnum>
+export type CreateCollectionFormType = z.infer<typeof createCollectionFormSchema>

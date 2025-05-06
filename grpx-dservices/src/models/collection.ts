@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-const CollectionSchema = new mongoose.Schema(
+const collectionSchema = new mongoose.Schema(
   {
     collectionName: { type: String, required: true },
     collectionSymbol: { type: String, required: true },
@@ -8,8 +8,7 @@ const CollectionSchema = new mongoose.Schema(
     collectionMedia: { type: String },
     collectionMetadataUri: { type: String },
     creatorAddress: { type: String, required: true },
-    creatorShare: { type: Number, required: true, min: 0, max: 100 },
-    sellerFee: { type: Number, required: true, min: 0, max: 10000 },
+    sellerFeeBasisPoints: { type: Number, required: true, min: 0, max: 10000 },
     maxSupply: { type: Number, required: true, min: 0 },
     mintAddress: { type: String },
     metadataAddress: { type: String },
@@ -27,4 +26,4 @@ const CollectionSchema = new mongoose.Schema(
   },
 )
 
-export const Collection = mongoose.model('collections', CollectionSchema)
+export const Collection = mongoose.model('collections', collectionSchema)
