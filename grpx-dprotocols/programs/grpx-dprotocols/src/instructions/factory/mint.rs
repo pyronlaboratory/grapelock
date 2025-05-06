@@ -1,3 +1,4 @@
+use crate::instructions::shared::MetadataArgs;
 use anchor_lang::prelude::*;
 use anchor_spl::metadata::mpl_token_metadata::{
     instructions::{
@@ -5,27 +6,17 @@ use anchor_spl::metadata::mpl_token_metadata::{
         CreateMasterEditionV3InstructionArgs, CreateMetadataAccountV3Cpi,
         CreateMetadataAccountV3CpiAccounts, CreateMetadataAccountV3InstructionArgs,
     },
-    types::{CollectionDetails, Creator, DataV2},
+    types::{Collection, Creator, DataV2},
 };
 use anchor_spl::{
     associated_token::AssociatedToken,
     metadata::Metadata,
     token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
-
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct MetadataArgs {
-    pub name: String,
-    pub symbol: String,
-    pub description: String,
-    pub uri: String,
-    pub seller_fee_basis_points: u16,
-    pub creator_share: u8,
-}
 #[derive(Accounts)]
-pub struct CreateCollection<'info> {
+pub struct MintCollectionNFT<'info> {
     #[account(mut)]
-    owner: Signer<'info>,
+    pub owner: Signer<'info>,
     #[account(
         init,
         payer = owner,
@@ -33,36 +24,38 @@ pub struct CreateCollection<'info> {
         mint::authority = mint_authority,
         mint::freeze_authority = mint_authority,
     )]
-    mint: Account<'info, Mint>,
+    pub mint: Account<'info, Mint>,
     #[account(
         seeds = [b"authority"],
         bump,
     )]
-    /// CHECK: This account is not initialized and is being used for signing purposes only
+    /// CHECK: This is account is not initialized and is being used for signing purposes only
     pub mint_authority: UncheckedAccount<'info>,
     #[account(mut)]
     /// CHECK: This account will be initialized by the metaplex program
-    metadata: UncheckedAccount<'info>,
+    pub metadata: UncheckedAccount<'info>,
     #[account(mut)]
     /// CHECK: This account will be initialized by the metaplex program
-    master_edition: UncheckedAccount<'info>,
+    pub master_edition: UncheckedAccount<'info>,
     #[account(
         init,
         payer = owner,
         associated_token::mint = mint,
         associated_token::authority = owner
     )]
-    destination: Account<'info, TokenAccount>,
-    system_program: Program<'info, System>,
-    token_program: Program<'info, Token>,
-    associated_token_program: Program<'info, AssociatedToken>,
-    token_metadata_program: Program<'info, Metadata>,
+    pub destination: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub collection_mint: Account<'info, Mint>,
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub token_metadata_program: Program<'info, Metadata>,
 }
 
-impl<'info> CreateCollection<'info> {
-    pub fn create_collection(
+impl<'info> MintCollectionNFT<'info> {
+    pub fn mint(
         &mut self,
-        bumps: &CreateCollectionBumps,
+        bumps: &MintCollectionNFTBumps,
         metadata_args: MetadataArgs,
     ) -> Result<()> {
         let metadata = &self.metadata.to_account_info();
@@ -88,9 +81,9 @@ impl<'info> CreateCollection<'info> {
         msg!("Collection NFT minted!");
 
         let creator = vec![Creator {
-            address: self.mint_authority.key().clone(),
+            address: self.mint_authority.key(),
             verified: true,
-            share: metadata_args.creator_share,
+            share: 100,
         }];
 
         let metadata_account = CreateMetadataAccountV3Cpi::new(
@@ -111,15 +104,17 @@ impl<'info> CreateCollection<'info> {
                     uri: metadata_args.uri,
                     seller_fee_basis_points: metadata_args.seller_fee_basis_points,
                     creators: Some(creator),
-                    collection: None,
+                    collection: Some(Collection {
+                        verified: false,
+                        key: self.collection_mint.key(),
+                    }),
                     uses: None,
                 },
                 is_mutable: true,
-                collection_details: Some(CollectionDetails::V1 { size: 0 }),
+                collection_details: None,
             },
         );
         metadata_account.invoke_signed(signer_seeds)?;
-        msg!("Metadata Account created!");
 
         let master_edition_account = CreateMasterEditionV3Cpi::new(
             spl_metadata_program,
@@ -139,7 +134,6 @@ impl<'info> CreateCollection<'info> {
             },
         );
         master_edition_account.invoke_signed(signer_seeds)?;
-        msg!("Master Edition Account created");
 
         Ok(())
     }

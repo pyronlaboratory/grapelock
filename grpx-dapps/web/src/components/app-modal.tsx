@@ -13,6 +13,8 @@ export function AppModal({
   shineEffect,
   size,
   variant,
+  open,
+  onOpenChange,
 }: {
   children: ReactNode
   title: string | ReactNode
@@ -23,9 +25,11 @@ export function AppModal({
   shineEffect?: boolean
   size?: 'sm' | 'lg' | 'default' | 'icon' | null | undefined
   variant?: 'outline' | 'default'
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button size={size} variant={variant} className={classes}>
           {title}

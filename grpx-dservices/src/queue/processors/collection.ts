@@ -1,14 +1,9 @@
 import { Job } from 'bullmq'
 import { getApiContext } from '../../lib/context.js'
-import {
-  confirmCollection,
-  failCollection,
-  processCollection,
-  updateCollection,
-  writeCollection,
-} from '../../services/collection.js'
+import { confirmCollection, failCollection, processCollection, updateCollection } from '../../services/collection.js'
 import { prepareMetadata } from '../../services/metadata.js'
-import { CollectionType } from '../../types/collection.types.js'
+import { CollectionResource } from '../../types/collection.types.js'
+import { dispatch } from '../../services/transactions.js'
 
 type JobResult = {
   status: 'success' | 'failed'
@@ -22,22 +17,44 @@ type JobResult = {
 }
 
 const context = await getApiContext()
-export async function process(job: Job<any, any, string>): Promise<JobResult> {
+export async function processCollectionJob(job: Job<any, any, string>): Promise<JobResult> {
   const { id, name, token, data } = job
   context.log.info(`⚙️ Executing ${name!} job | id: ${id!}`)
 
-  let collection: CollectionType | undefined
+  let collection: CollectionResource | undefined
   try {
     // Mark processing
     collection = await processCollection(data.id)
     if (!collection) throw new Error('Collection not found or failed to set to processing')
 
     // Process pipeline
-    collection = await prepareMetadata(collection)
-    if (!collection.collectionMetadataUri) throw new Error('Collection metadata resources not found')
+    const resource = {
+      name: collection?.collectionName ?? '',
+      description: collection?.collectionDescription ?? '',
+      image: collection?.collectionMedia ?? '',
+      // animationUrl: collection?.collectionAnimationUrl ?? '',
+      // externalUrl: collection?.collectionExternalUrl ?? '',
+      // attributes: collection?.collectionAttributes ?? '',
+    }
+    const metadataUri = await prepareMetadata(resource)
+    if (!metadataUri) throw new Error('Collection metadata resources not found')
+
+    await updateCollection(collection._id.toString(), {
+      collectionMetadataUri: metadataUri,
+    })
 
     // Write transaction on Solana
-    const { mintAddress, metadataAddress, masterEditionAddress, txSignature } = await writeCollection(collection)
+    const { mintAddress, metadataAddress, masterEditionAddress, txSignature } = await dispatch({
+      type: 'create',
+      payload: {
+        name: collection.collectionName ?? '',
+        symbol: collection.collectionSymbol ?? '',
+        description: collection.collectionDescription ?? '',
+        uri: collection.collectionMetadataUri ?? '',
+        sellerFeeBasisPoints: collection.sellerFeeBasisPoints ?? 0,
+      },
+    })
+    if (!txSignature) throw new Error('Collection transaction signature not found')
 
     // Update offchain records and logs
     await updateCollection(collection._id.toString(), {
@@ -58,7 +75,7 @@ export async function process(job: Job<any, any, string>): Promise<JobResult> {
       masterEditionAddress,
     }
   } catch (error: any) {
-    context.log.error('Job processing failed:', error)
+    context.log.error('Collection job processing failed:', error)
     if (collection?._id) {
       await failCollection(collection._id.toString(), error.message || 'Unknown error while processing collection job')
     }

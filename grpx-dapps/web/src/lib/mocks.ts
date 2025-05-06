@@ -9,7 +9,6 @@ export const mockCollections: CollectionType[] = [
     collectionMedia:
       'https://images.pexels.com/photos/1169754/pexels-photo-1169754.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     creatorAddress: '0x1234567890abcdef1234567890abcdef12345678',
-    creatorShare: 10,
     sellerFee: 500, // 5%
     maxSupply: 100,
     mintAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
@@ -28,7 +27,6 @@ export const mockCollections: CollectionType[] = [
     collectionMedia:
       'https://images.pexels.com/photos/2179483/pexels-photo-2179483.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     creatorAddress: '0x2345678901abcdef2345678901abcdef23456789',
-    creatorShare: 15,
     sellerFee: 750, // 7.5%
     maxSupply: 50,
     mintAddress: '0xbcdef1234567890abcdef1234567890abcdef123',
@@ -45,7 +43,6 @@ export const mockCollections: CollectionType[] = [
     collectionSymbol: 'ADRM',
     collectionDescription: 'Abstract art pieces representing dream sequences.',
     creatorAddress: '0x3456789012abcdef3456789012abcdef34567890',
-    creatorShare: 5,
     sellerFee: 250, // 2.5%
     maxSupply: 200,
     status: 'pending',
@@ -60,7 +57,6 @@ export const mockCollections: CollectionType[] = [
     collectionMedia:
       'https://images.pexels.com/photos/3075993/pexels-photo-3075993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     creatorAddress: '0x4567890123abcdef4567890123abcdef45678901',
-    creatorShare: 8,
     sellerFee: 450, // 4.5%
     maxSupply: 75,
     status: 'processing',
@@ -74,7 +70,6 @@ export const mockCollections: CollectionType[] = [
     collectionDescription: 'A collection featuring mythical creatures from various cultures.',
     collectionMedia: null,
     creatorAddress: '0x5678901234abcdef5678901234abcdef56789012',
-    creatorShare: 12,
     sellerFee: 600, // 6%
     maxSupply: 150,
     status: 'failed',

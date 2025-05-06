@@ -58,6 +58,7 @@ const mockWine: WineType = {
   transactionCount: 3,
   verificationStatus: 'Verified',
 }
+
 export function useGetCollections(publicKey: string) {
   return useQuery({
     queryKey: ['get-collections', publicKey],
@@ -68,5 +69,6 @@ export function useGetCollections(publicKey: string) {
     },
     enabled: !!publicKey,
     staleTime: 60_000,
+    retry: false,
   })
 }

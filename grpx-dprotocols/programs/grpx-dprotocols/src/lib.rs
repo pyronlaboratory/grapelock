@@ -1,30 +1,29 @@
 #![allow(unexpected_cfgs)]
 
 use anchor_lang::prelude::*;
+
 pub mod constants;
 pub mod error;
 pub mod instructions;
 
 use instructions::factory::*;
-declare_id!("EY6rxjcbHnRPBJp7qerSbjvfvCU4yPnp2UsECiKPrALd");
+use instructions::shared::MetadataArgs;
 
+declare_id!("GHMkgYRXD5zosBjEePwZ3fdxTwdMF5XhCZhFqVQcM9sQ");
 #[program]
 pub mod grpx_dprotocols {
     use super::*;
 
     // === Factory Instructions ===
-    pub fn create_collection(
-        ctx: Context<CreateCollection>,
-        metadata_args: MetadataArgs,
-    ) -> Result<()> {
-        ctx.accounts.create_collection(&ctx.bumps, metadata_args)
+    pub fn create(ctx: Context<CreateCollectionNFT>, metadata_args: MetadataArgs) -> Result<()> {
+        ctx.accounts.create(&ctx.bumps, metadata_args)
     }
 
-    pub fn mint_nft(ctx: Context<MintNFT>) -> Result<()> {
-        ctx.accounts.mint_nft(&ctx.bumps)
+    pub fn mint(ctx: Context<MintCollectionNFT>, metadata_args: MetadataArgs) -> Result<()> {
+        ctx.accounts.mint(&ctx.bumps, metadata_args)
     }
 
-    pub fn verify_collection(ctx: Context<VerifyCollectionMint>) -> Result<()> {
-        ctx.accounts.verify_collection(&ctx.bumps)
+    pub fn verify(ctx: Context<VerifyCollectionNFT>) -> Result<()> {
+        ctx.accounts.verify(&ctx.bumps)
     }
 }

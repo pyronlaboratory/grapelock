@@ -10,6 +10,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { DashboardSidebar } from './dashboard-sidebar'
+import React from 'react'
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -33,7 +34,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </Breadcrumb>
           </div>
         </header>
-        {children}
+
+        {React.Children.map(children, (child, index) => child && <div key={index}>{child}</div>)}
       </SidebarInset>
     </SidebarProvider>
   )

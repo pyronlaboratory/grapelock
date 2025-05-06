@@ -5,6 +5,7 @@ import path from 'path'
 import { AnchorProvider, Program, setProvider, Wallet, web3 } from '@coral-xyz/anchor'
 import { PublicKey, Keypair, SystemProgram, Connection, Cluster } from '@solana/web3.js'
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'
+import { ASSOCIATED_PROGRAM_ID } from '@coral-xyz/anchor/dist/cjs/utils/token'
 import { GrpxDprotocols } from '../target/types/grpx_dprotocols'
 
 import { BankrunProvider, startAnchor } from 'anchor-bankrun'
@@ -31,7 +32,9 @@ describe('grpx-protocols', async () => {
   let provider: BankrunProvider | AnchorProvider
   let program: Program<GrpxDprotocols>
   let mintAuthority: PublicKey
-  let collection: Keypair
+
+  let collectionMint: Keypair
+  let mint: Keypair
 
   before(async () => {
     const CLUSTER = process.env.CLUSTER
@@ -60,7 +63,9 @@ describe('grpx-protocols', async () => {
     }
     console.log(program.programId.toBase58())
     mintAuthority = PublicKey.findProgramAddressSync([Buffer.from('authority')], program.programId)[0]
-    collection = Keypair.generate()
+
+    collectionMint = Keypair.generate()
+    mint = Keypair.generate()
 
     const lamportsNeeded = 1 * web3.LAMPORTS_PER_SOL
     const balance = await connection?.getBalance(wallet.publicKey)
@@ -94,32 +99,31 @@ describe('grpx-protocols', async () => {
   }
 
   it('Create NFT Collection', async () => {
-    console.log('Collection Mint Key: ', collection.publicKey.toBase58())
+    console.log('Collection Mint Key: ', collectionMint.publicKey.toBase58())
 
-    const metadata = await getMetadata(collection.publicKey)
+    const metadata = await getMetadata(collectionMint.publicKey)
     expect(metadata).to.not.be.null
     console.log('Collection Metadata Account: ', metadata.toBase58())
 
-    const masterEdition = await getMasterEdition(collection.publicKey)
+    const masterEdition = await getMasterEdition(collectionMint.publicKey)
     expect(masterEdition).to.not.be.null
     console.log('Master Edition Account: ', masterEdition.toBase58())
 
-    const destination = getAssociatedTokenAddressSync(collection.publicKey, wallet.payer.publicKey)
+    const destination = getAssociatedTokenAddressSync(collectionMint.publicKey, wallet.payer.publicKey)
     expect(destination).to.not.be.null
     console.log('Destination Assoc. Token Account: ', destination.toBase58())
 
     const tx = await program.methods
-      .createCollection({
+      .create({
         name: 'Unique',
         symbol: 'SYM',
         description: '',
         uri: '',
         sellerFeeBasisPoints: 500,
-        creatorShare: 100,
       })
       .accountsPartial({
         owner: wallet.publicKey,
-        mint: collection.publicKey,
+        mint: collectionMint.publicKey,
         mintAuthority,
         metadata,
         masterEdition,
@@ -129,7 +133,7 @@ describe('grpx-protocols', async () => {
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
       })
-      .signers([collection])
+      .signers([collectionMint])
       .rpc({
         skipPreflight: false,
         commitment: 'confirmed',
@@ -143,5 +147,49 @@ describe('grpx-protocols', async () => {
       expect(accountInfo).to.not.be.null
       expect(accountInfo.data.length).to.be.greaterThan(0)
     }
+  })
+
+  it('Mint NFT Collection', async () => {
+    console.log('Mint Key: ', mint.publicKey.toBase58())
+
+    const metadata = await getMetadata(mint.publicKey)
+    expect(metadata).to.not.be.null
+    console.log('Metadata Account: ', metadata.toBase58())
+
+    const masterEdition = await getMasterEdition(mint.publicKey)
+    expect(masterEdition).to.not.be.null
+    console.log('Master Edition: ', masterEdition.toBase58())
+
+    const destination = getAssociatedTokenAddressSync(mint.publicKey, wallet.payer.publicKey)
+    console.log('Destination Assoc. Token Account:', destination.toBase58())
+
+    const tx = await program.methods
+      .mint({
+        name: 'UniqueMint',
+        symbol: 'MNT',
+        description: '',
+        uri: '',
+        sellerFeeBasisPoints: 100,
+      })
+      .accountsPartial({
+        owner: wallet.publicKey,
+        destination,
+        metadata,
+        masterEdition,
+        mint: mint.publicKey,
+        mintAuthority,
+        collectionMint: collectionMint.publicKey,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+      })
+      .signers([mint])
+      .rpc({
+        skipPreflight: false,
+        commitment: 'confirmed',
+      })
+    console.log('\nNFT Minted! Your transaction signature', tx)
+    console.table(tx)
   })
 })

@@ -11,10 +11,9 @@ export const collectionSchema = z.object({
   collectionMedia: z.string().nullable().optional(),
   collectionMetadataUri: z.string().nullable().optional(),
   creatorAddress: z.string(),
-  creatorShare: z.number().min(0).max(100),
-  sellerFee: z.number().min(0).max(10000),
+  sellerFeeBasisPoints: z.number().min(0).max(10000),
   maxSupply: z.number().min(0),
-  mintAddress: z.string().nullable().optional(),
+  mintAddress: z.string().nullable().optional(), // collectionMint
   metadataAddress: z.string().nullable().optional(),
   masterEditionAddress: z.string().nullable().optional(),
   status: collectionStatusEnum,
@@ -33,8 +32,7 @@ export const createCollectionFormSchema = z.object({
   collectionDescription: z.string().optional(),
   collectionMedia: z.string().optional(),
   creatorAddress: z.string(),
-  creatorShare: z.coerce.number().min(0).max(100, 'Share must be between 0 and 100'),
-  sellerFee: z.coerce.number().min(0).max(10000, 'Fee must be between 0 and 10000 basis points'),
+  sellerFeeBasisPoints: z.coerce.number().min(0).max(10000, 'Fee must be between 0 and 10000 basis points'),
   maxSupply: z.coerce.number().min(0, 'Max supply must be 0 or greater'),
 })
 export const collectionsResponseSchema = z.object({

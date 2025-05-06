@@ -1,23 +1,29 @@
-{
-  "address": "EY6rxjcbHnRPBJp7qerSbjvfvCU4yPnp2UsECiKPrALd",
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/grpx_dprotocols.json`.
+ */
+export type GrpxDprotocols = {
+  "address": "GHMkgYRXD5zosBjEePwZ3fdxTwdMF5XhCZhFqVQcM9sQ",
   "metadata": {
-    "name": "grpx_dprotocols",
+    "name": "grpxDprotocols",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
   "instructions": [
     {
-      "name": "create_collection",
+      "name": "create",
       "discriminator": [
-        156,
-        251,
-        92,
-        54,
-        233,
-        2,
-        16,
-        82
+        24,
+        30,
+        200,
+        40,
+        5,
+        28,
+        7,
+        119
       ],
       "accounts": [
         {
@@ -31,7 +37,7 @@
           "signer": true
         },
         {
-          "name": "mint_authority",
+          "name": "mintAuthority",
           "pda": {
             "seeds": [
               {
@@ -56,7 +62,7 @@
           "writable": true
         },
         {
-          "name": "master_edition",
+          "name": "masterEdition",
           "writable": true
         },
         {
@@ -150,44 +156,44 @@
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "associated_token_program",
+          "name": "associatedTokenProgram",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          "name": "token_metadata_program",
+          "name": "tokenMetadataProgram",
           "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
         }
       ],
       "args": [
         {
-          "name": "metadata_args",
+          "name": "metadataArgs",
           "type": {
             "defined": {
-              "name": "MetadataArgs"
+              "name": "metadataArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "mint_nft",
+      "name": "mint",
       "discriminator": [
-        211,
+        51,
         57,
-        6,
-        167,
-        15,
-        219,
-        35,
-        251
+        225,
+        47,
+        182,
+        146,
+        137,
+        166
       ],
       "accounts": [
         {
@@ -201,7 +207,7 @@
           "signer": true
         },
         {
-          "name": "mint_authority",
+          "name": "mintAuthority",
           "pda": {
             "seeds": [
               {
@@ -226,7 +232,7 @@
           "writable": true
         },
         {
-          "name": "master_edition",
+          "name": "masterEdition",
           "writable": true
         },
         {
@@ -320,39 +326,48 @@
           }
         },
         {
-          "name": "collection_mint",
+          "name": "collectionMint",
           "writable": true
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "associated_token_program",
+          "name": "associatedTokenProgram",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          "name": "token_metadata_program",
+          "name": "tokenMetadataProgram",
           "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "metadataArgs",
+          "type": {
+            "defined": {
+              "name": "metadataArgs"
+            }
+          }
+        }
+      ]
     },
     {
-      "name": "verify_collection",
+      "name": "verify",
       "discriminator": [
-        56,
-        113,
-        101,
-        253,
-        79,
-        55,
-        122,
-        169
+        133,
+        161,
+        141,
+        48,
+        120,
+        198,
+        88,
+        150
       ],
       "accounts": [
         {
@@ -367,7 +382,7 @@
           "name": "mint"
         },
         {
-          "name": "mint_authority",
+          "name": "mintAuthority",
           "pda": {
             "seeds": [
               {
@@ -388,25 +403,25 @@
           }
         },
         {
-          "name": "collection_mint"
+          "name": "collectionMint"
         },
         {
-          "name": "collection_metadata",
+          "name": "collectionMetadata",
           "writable": true
         },
         {
-          "name": "collection_master_edition"
+          "name": "collectionMasterEdition"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "sysvar_instruction",
+          "name": "sysvarInstruction",
           "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
-          "name": "token_metadata_program",
+          "name": "tokenMetadataProgram",
           "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
         }
       ],
@@ -416,23 +431,23 @@
   "errors": [
     {
       "code": 6000,
-      "name": "Unauthorized",
+      "name": "unauthorized",
       "msg": "Unauthorized action."
     },
     {
       "code": 6001,
-      "name": "InvalidMetadata",
+      "name": "invalidMetadata",
       "msg": "Invalid wine metadata."
     },
     {
       "code": 6002,
-      "name": "AlreadyVerified",
+      "name": "alreadyVerified",
       "msg": "Collection already verified."
     }
   ],
   "types": [
     {
-      "name": "MetadataArgs",
+      "name": "metadataArgs",
       "type": {
         "kind": "struct",
         "fields": [
@@ -453,15 +468,11 @@
             "type": "string"
           },
           {
-            "name": "seller_fee_basis_points",
+            "name": "sellerFeeBasisPoints",
             "type": "u16"
-          },
-          {
-            "name": "creator_share",
-            "type": "u8"
           }
         ]
       }
     }
   ]
-}
+};

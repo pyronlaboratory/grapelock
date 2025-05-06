@@ -8,7 +8,7 @@ use anchor_spl::metadata::{MasterEditionAccount, MetadataAccount};
 use anchor_spl::{metadata::Metadata, token::Mint};
 
 #[derive(Accounts)]
-pub struct VerifyCollectionMint<'info> {
+pub struct VerifyCollectionNFT<'info> {
     pub authority: Signer<'info>,
     #[account(mut)]
     pub metadata: Account<'info, MetadataAccount>,
@@ -30,8 +30,8 @@ pub struct VerifyCollectionMint<'info> {
     pub token_metadata_program: Program<'info, Metadata>,
 }
 
-impl<'info> VerifyCollectionMint<'info> {
-    pub fn verify_collection(&mut self, bumps: &VerifyCollectionMintBumps) -> Result<()> {
+impl<'info> VerifyCollectionNFT<'info> {
+    pub fn verify(&mut self, bumps: &VerifyCollectionNFTBumps) -> Result<()> {
         let metadata = &self.metadata.to_account_info();
         let authority = &self.mint_authority.to_account_info();
         let collection_mint = &self.collection_mint.to_account_info();

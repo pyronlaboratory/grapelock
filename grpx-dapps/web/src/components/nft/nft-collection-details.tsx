@@ -83,12 +83,8 @@ export function CollectionDetails({ collection, nfts, onBack }: CollectionDetail
 
           <div className="gap-2 flex flex-col w-full">
             <div className="border-b w-full px-2 py-4">
-              <h3 className="text-sm font-medium text-gray-500">Creator Share</h3>
-              <p className="mt-1">{collection?.creatorShare}</p>
-            </div>
-            <div className="border-b w-full px-2 py-4">
               <h3 className="text-sm font-medium text-gray-500">Seller Fee Basis Points</h3>
-              <p className="mt-1">{collection?.sellerFee}</p>
+              <p className="mt-1">{collection?.sellerFeeBasisPoints}</p>
             </div>
             <div className="w-full px-2 py-4">
               <h3 className="text-sm font-medium text-gray-500">Max Supply</h3>

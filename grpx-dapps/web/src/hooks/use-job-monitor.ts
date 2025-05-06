@@ -79,7 +79,11 @@ export function useJobMonitor() {
   }
 
   const dequeue = (jobId: string) => {
-    setJobs((prev) => prev.filter((job) => job.jobId !== jobId))
+    setJobs((prev) => {
+      const updated = prev.filter((job) => job.jobId !== jobId)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated)) // force localStorage sync
+      return updated
+    })
   }
 
   const flush = () => {
@@ -100,8 +104,10 @@ export function useJobMonitor() {
             window.open(`${getSolanaTxExplorerLink(job.result.txSignature, cluster.network ?? 'localnet')}`, '_blank'),
         },
       })
+      dequeue(job.jobId)
     } else if (job.status === 'failed') {
       toast.error(`Job failed: ${job.errorMessage || 'Unknown error'}`)
+      dequeue(job.jobId)
     } else if (job.status === 'processing') {
       toast(`Job ${job.jobId} is processing..`, { duration: 2000 })
     }

@@ -5,7 +5,7 @@ import { Readable } from 'stream'
 import { Uploader } from '@irys/upload'
 import { UploadResponse } from '@irys/upload-core'
 import { Solana } from '@irys/upload-solana'
-import { Metadata } from './metadata.js'
+import { TokenMetadata } from './metadata.js'
 import { getApiContext } from '../lib/context.js'
 
 const context = await getApiContext()
@@ -32,7 +32,7 @@ const uploadData = async (data: string | Buffer | Readable): Promise<UploadRespo
     context.log.error('Error when uploading ', error)
   }
 }
-const uploadFile = async (data: Metadata | Object): Promise<UploadResponse | undefined> => {
+const uploadFile = async (data: TokenMetadata | Object): Promise<UploadResponse | undefined> => {
   const irysUploader = await getIrysUploader()
   if (!irysUploader) return
   try {
