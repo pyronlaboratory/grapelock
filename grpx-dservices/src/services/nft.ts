@@ -1,7 +1,21 @@
 import { NFT } from '../models/nft.js'
-import { MintNFTResource, NFTResource, nftSchema } from '../types/nft.types.js'
+import {
+  FullNFTResource,
+  MintNFTResource,
+  NFTBeaconReadingResource,
+  NFTBeaconResource,
+  NFTPhysicalAssetResource,
+  NFTResource,
+  nftSchema,
+  NFTTagResource,
+  objectIdSchema,
+} from '../types/nft.types.js'
 import { getApiContext } from '../lib/context.js'
 import mongoose, { Types } from 'mongoose'
+import { PhysicalAsset } from '../models/physical_asset.js'
+import { Tag } from '../models/tags.js'
+import { Beacon } from '../models/beacon.js'
+import { BeaconReading } from '../models/beacon_reading.js'
 
 const context = await getApiContext()
 
@@ -28,6 +42,51 @@ export async function getCollectionMintAddressForNFT(nftId: string): Promise<str
   }
 
   return collection.mintAddress
+}
+
+export async function getNFTs(collectionId: string) {
+  if (!mongoose.Types.ObjectId.isValid(collectionId)) {
+    throw new Error('Invalid Collection ID format')
+  }
+
+  return await NFT.find({ collectionId }).lean()
+}
+
+export async function getNFTById(nftId: string): Promise<FullNFTResource | null> {
+  if (!mongoose.Types.ObjectId.isValid(nftId)) {
+    throw new Error('Invalid NFT ID format')
+  }
+
+  const nft = await NFT.findById(nftId).lean()
+  if (!nft) return null
+
+  const [physicalAsset, tags, beacons] = await Promise.all([
+    PhysicalAsset.findOne({ nftId: nftId }).lean() as Promise<NFTPhysicalAssetResource | null>,
+    Tag.find({ productId: nftId }).lean() as Promise<NFTTagResource[]>,
+    Beacon.find({ productId: nftId }).lean() as Promise<NFTBeaconResource[]>,
+  ])
+
+  const beaconsWithReadings = await Promise.all(
+    (beacons || []).map(async (beacon: NFTBeaconResource) => {
+      const readings = (await BeaconReading.find({
+        sensorId: beacon._id,
+      }).lean()) as Required<NFTBeaconReadingResource>[]
+      return { ...beacon, readings }
+    }),
+  )
+
+  return {
+    ...nft,
+    nftAttributes: (nft.nftAttributes || [])
+      .filter((attr) => attr.trait_type && attr.value)
+      .map((attr) => ({
+        trait_type: attr.trait_type as string,
+        value: attr.value as string,
+      })),
+    physicalAsset: physicalAsset || null,
+    tags: tags || [],
+    beacons: beaconsWithReadings || [],
+  }
 }
 
 export async function registerNFT(payload: MintNFTResource): Promise<NFTResource> {

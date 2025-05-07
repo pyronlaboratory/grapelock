@@ -3,7 +3,7 @@ import { Router } from 'express'
 
 import { errorResponse, successResponse } from '../lib/helpers.js'
 import { validate } from '../middlewares/validate.js'
-import { getCollection, registerCollection } from '../services/collection.js'
+import { getCollections, registerCollection } from '../services/collection.js'
 import { collectionQueue } from '../queue/index.js'
 import { CollectionResource, createCollectionSchema } from '../types/collection.types.js'
 
@@ -11,12 +11,12 @@ const router = Router()
 
 router.get('/:pubicKey', async (req, res) => {
   try {
-    const collection = await getCollection(req.params.pubicKey)
-    if (!collection || collection.length === 0) {
+    const collections = await getCollections(req.params.pubicKey)
+    if (!collections || collections.length === 0) {
       res.status(404).json(errorResponse('Collections not found', 'COLLECTIONS_NOT_FOUND'))
       return
     }
-    res.json(successResponse(collection))
+    res.json(successResponse(collections))
   } catch (error) {
     res.status(500).json(errorResponse('Error fetching collections', 'COLLECTIONS_ERROR'))
   }

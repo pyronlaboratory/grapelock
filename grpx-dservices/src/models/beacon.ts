@@ -27,7 +27,7 @@ const beaconSchema = new mongoose.Schema(
     alertThresholds: alertThresholdSchema,
     status: {
       type: String,
-      enum: ['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'ERROR'],
+      enum: ['inactive', 'active', 'low_battery', 'offline', 'error', 'maintenance', 'decommissioned'],
     },
     location: locationSchema,
   },

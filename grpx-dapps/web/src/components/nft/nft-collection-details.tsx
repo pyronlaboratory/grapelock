@@ -3,16 +3,17 @@ import { AlertCircle, CalendarCheck2, Copy, ShieldCheck } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Separator } from '../ui/separator'
 import { QRCodeSVG } from 'qrcode.react'
-import { CollectionType } from '@/schemas/collection'
+import { CollectionResource } from '@/schemas/collection'
 import { CollectionGallery, CollectionHeader, CollectionStatusBadge, NFTMintingModal } from './nft-ui'
+import { useGetNFTs } from './nft-data-access'
 
 interface CollectionDetailsProps {
-  collection: CollectionType
-  nfts: any // NFTType[];
+  collection: CollectionResource
   onBack: () => void
 }
 
-export function CollectionDetails({ collection, nfts, onBack }: CollectionDetailsProps) {
+export function CollectionDetails({ collection, onBack }: CollectionDetailsProps) {
+  const { data: nfts = [], isLoading, error: nftsError } = useGetNFTs(collection._id.toString())
   return (
     <div className="animate-fadeIn relative">
       <div className="mb-8 flex items-center justify-between">
@@ -145,7 +146,12 @@ export function CollectionDetails({ collection, nfts, onBack }: CollectionDetail
         </div>
       )}
 
+      {/* {nftsError && (
+        <div className="text-red-500 mt-4 text-center">Failed to load NFTs. {JSON.stringify(nftsError)}</div>
+      )} */}
       <CollectionGallery collection={collection} nfts={nfts} />
+
+      {isLoading && <div className="mt-4 text-center text-gray-500">Loading NFTs...</div>}
     </div>
   )
 }

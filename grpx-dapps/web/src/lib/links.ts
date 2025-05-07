@@ -29,11 +29,11 @@ export const links = {
           url: '/marketplace/collections',
         },
         {
-          title: 'Manager',
-          url: '/marketplace/manager',
+          title: 'Asset Manager',
+          url: '/marketplace/asset-manager',
         },
         {
-          title: 'Purchase History',
+          title: 'Trade History',
           url: '/marketplace/history',
         },
       ],

@@ -1,3 +1,4 @@
+'use client'
 import React, { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useState } from 'react'
 import { useWalletUi } from '@wallet-ui/react'
 
@@ -14,13 +15,15 @@ import {
   XCircle,
   FileArchive,
   Loader2,
+  ShieldCheck,
+  ScanQrCode,
 } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge, badgeVariants } from '../ui/badge'
 import { VariantProps } from 'class-variance-authority'
 import { Card, CardDescription, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CollectionStatusEnumType, CollectionType } from '@/schemas/collection'
+import { CollectionStatus, CollectionResource } from '@/schemas/collection'
 import { DialogClose } from '../ui/dialog'
 
 import { AppModal } from '../app-modal'
@@ -28,18 +31,17 @@ import { NFTCollectionForm } from './forms/nft-collection-form'
 import { NFTMintingForm } from './forms/nft-minting-form'
 import { getCollectionIdenticon, getRandomAvatar } from '@/lib/utils'
 import { motion } from 'framer-motion'
+import { NFTResource } from '@/schemas/nft'
+import Link from 'next/link'
+import { Switch } from '../ui/switch'
+import { format } from 'date-fns'
 
 interface EmptyGridProps {
-  collection: CollectionType
+  collection: CollectionResource
 }
-interface NFTGridProps {
-  nfts: any //NFT[]
-}
-interface NFTCardProps {
-  nft: any //NFT
-}
+
 interface CollectionStatusBadgeProps {
-  status: CollectionStatusEnumType
+  status: CollectionStatus
 }
 const statusConfigMap = {
   pending: {
@@ -68,7 +70,7 @@ const statusConfigMap = {
     icon: <FileArchive className="size-3.5 text-gray-400" />,
   },
 } satisfies Record<
-  CollectionStatusEnumType,
+  CollectionStatus,
   {
     label: string
     variant: VariantProps<typeof badgeVariants>['variant']
@@ -224,7 +226,7 @@ export function CollectionStatusBadge({ status }: CollectionStatusBadgeProps) {
   )
 }
 // TODO: Refactor
-export function CollectionHeader({ collection }: { collection: CollectionType }) {
+export function CollectionHeader({ collection }: { collection: CollectionResource }) {
   return (
     <div className="bg-background/40 rounded-lg shadow overflow-hidden mb-8 border-accent border">
       <div className="relative h-64">
@@ -251,7 +253,7 @@ export function CollectionHeader({ collection }: { collection: CollectionType })
 }
 export function CollectionGallery({ nfts, collection }: any) {
   return (
-    <div className="p-6">
+    <div className="px-2 mt-8">
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-secondary-background">Factory collection</h2>
         <p className="text-gray-600">
@@ -265,16 +267,16 @@ export function CollectionGallery({ nfts, collection }: any) {
     </div>
   )
 }
-export function NFTGrid({ nfts }: NFTGridProps) {
+export function NFTGrid({ nfts }: { nfts: NFTResource[] }) {
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
       {nfts.map((nft: any) => (
         <NFTCard key={nft._id} nft={nft} />
       ))}
     </div>
   )
 }
-export function NFTCard({ nft }: NFTCardProps) {
+export function NFTCard({ nft }: { nft: NFTResource }) {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'VERIFIED':
@@ -291,65 +293,39 @@ export function NFTCard({ nft }: NFTCardProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden transition duration-200 hover:shadow-md">
-      <div className="h-40 overflow-hidden">
-        <img
-          src={nft.image || getRandomAvatar()}
-          alt={nft.name}
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-        />
-      </div>
-      <div className="p-4">
-        <div className="flex justify-between items-start">
-          <h3 className="text-lg font-medium text-gray-900 truncate">{nft.name}</h3>
-          <Badge variant={getStatusBadgeVariant(nft.status)}>{nft.status}</Badge>
+    <div className="bg-white rounded-lg shadow overflow-hidden transition duration-200 hover:shadow-md cursor-pointer">
+      <Link href={`/marketplace/asset-manager/${nft._id}`}>
+        <div className="h-40 overflow-hidden">
+          <img
+            src={nft.nftMedia || getCollectionIdenticon(nft._id)}
+            alt={nft.nftName}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          />
         </div>
-        <p className="mt-1 text-sm text-gray-500 line-clamp-2">{nft.description || 'No description available'}</p>
-
-        {nft.attributes && nft.attributes.length > 0 && (
-          <div className="mt-3">
-            <h4 className="text-xs font-medium text-gray-500 uppercase">Attributes</h4>
-            <div className="mt-1 flex flex-wrap gap-2">
-              {nft.attributes.slice(0, 3).map(
-                (
-                  attr: {
-                    trait_type:
-                      | string
-                      | number
-                      | bigint
-                      | boolean
-                      | ReactElement<unknown, string | JSXElementConstructor<any>>
-                      | Iterable<ReactNode>
-                      | ReactPortal
-                      | Promise<
-                          | string
-                          | number
-                          | bigint
-                          | boolean
-                          | ReactPortal
-                          | ReactElement<unknown, string | JSXElementConstructor<any>>
-                          | Iterable<ReactNode>
-                          | null
-                          | undefined
-                        >
-                      | null
-                      | undefined
-                    value: any
-                  },
-                  index: Key | null | undefined,
-                ) => (
-                  <div key={index} className="px-2 py-1 bg-gray-100 rounded text-xs">
-                    <span className="font-medium">{attr.trait_type}:</span> {String(attr.value)}
-                  </div>
-                ),
-              )}
-              {nft.attributes.length > 3 && (
-                <div className="px-2 py-1 bg-gray-100 rounded text-xs">+{nft.attributes.length - 3} more</div>
-              )}
-            </div>
+        <div className="p-4">
+          <div className="flex justify-between items-start">
+            <h3 className="text-lg font-medium text-gray-900 truncate">{nft.nftName}</h3>
+            <Badge variant={getStatusBadgeVariant(nft.status)}>{nft.status}</Badge>
           </div>
-        )}
-      </div>
+          <p className="mt-1 text-sm text-gray-500 line-clamp-2">{nft.nftDescription || 'No description available'}</p>
+
+          {nft.nftAttributes && nft.nftAttributes.length > 0 && (
+            <div className="mt-3">
+              <h4 className="text-xs font-medium text-gray-500 uppercase">Attributes</h4>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {nft.nftAttributes.slice(0, 3).map((attribute, index) => (
+                  <div key={index} className="px-2 py-1 bg-gray-100 rounded text-xs">
+                    <span className="font-medium">{attribute?.trait_type}:</span> {String(attribute?.value)}
+                  </div>
+                ))}
+                {nft.nftAttributes.length > 3 && (
+                  <div className="px-2 py-1 bg-gray-100 rounded text-xs">+{nft.nftAttributes.length - 3} more</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </Link>
     </div>
   )
 }
@@ -475,6 +451,79 @@ export function NFTTypeSelection({ handleTypeSelection }: any) {
         </CardContent>
       </Card>
     </div>
+  )
+}
+export function NFTTags({ tags }: any) {
+  const [isVerified, setIsVerified] = useState(false)
+
+  // Use the first tag if available, or create a sample one
+  const sampleTag =
+    tags && tags.length > 0
+      ? tags[0]
+      : {
+          _id: 'sample',
+          chipId: 'NFC12345',
+          manufacturer: 'ChipSecure',
+          status: 'active',
+          lastVerifiedAt: new Date(),
+          verificationCount: 1,
+        }
+  return (
+    <>
+      <Card className="px-6 py-4 rounded-md bg-accent-background gap-0">
+        <div className="flex items-baseline justify-between mb-2">
+          <CardTitle className="text-base">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              Verification
+            </div>
+          </CardTitle>
+          <Switch checked={isVerified} onCheckedChange={setIsVerified} aria-label="Toggle verification" />
+        </div>
+
+        <CardContent className="p-0">
+          {isVerified ? (
+            <div className=" rounded-md p-3 bg-black/50 mt-4">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <p className="text-sm font-medium mb-1 flex "># {sampleTag.chipId}</p>
+                  <p className="text-xs text-muted-foreground tracking-normal">{sampleTag.manufacturer}</p>
+                </div>
+
+                {/* <Badge variant="primary">Verified</Badge> */}
+              </div>
+              <div className="flex flex-row gap-2">
+                <Check className="text-green-400 h-4 w-4" />
+                <p className="text-xs text-muted-foreground/80 text-right ">
+                  Last verified on {format(new Date(sampleTag.lastVerifiedAt), 'MMM d, yyyy')}
+                </p>
+              </div>
+              {/* <p className="text-xs text-muted-foreground">Verification count: {sampleTag.verificationCount}</p> */}
+            </div>
+          ) : (
+            <div className="bg-background/50 rounded-lg p-4 flex flex-col items-center text-center gap-3">
+              <div className="bg-muted/30 p-3 rounded-full">
+                <ScanQrCode className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div className="space-y-2 max-w-xs">
+                <p className="text-sm text-muted-foreground  mx-auto">
+                  Scan your NFC card using our mobile dApp to confirm authenticity
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+        {!isVerified && (
+          <p className="text-xs text-muted-foreground/60 mt-16 text-center">
+            Don't have the app? Download it{' '}
+            <a href="#" className="text-primary underline underline-offset-2">
+              here
+            </a>{' '}
+            or use the Toggle switch below to simulate verification.
+          </p>
+        )}
+      </Card>
+    </>
   )
 }
 export const DefaultContainer: React.FC = () => {

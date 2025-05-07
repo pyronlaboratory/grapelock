@@ -5,7 +5,7 @@ import { getApiContext } from '../lib/context.js'
 
 const context = await getApiContext()
 
-export async function getCollection(publicKey: string) {
+export async function getCollections(publicKey: string) {
   return await Collection.find({ creatorAddress: publicKey }).lean()
 }
 

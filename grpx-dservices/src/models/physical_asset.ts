@@ -41,11 +41,11 @@ const physicalAssetSchema = new mongoose.Schema(
     weight: weightSchema,
     status: {
       type: String,
-      enum: ['MANUFACTURED', 'IN_TRANSIT', 'DELIVERED', 'VERIFIED'],
+      enum: ['unlinked', 'linked', 'verified', 'degraded', 'in_transit', 'delivered', 'consumed', 'cancelled'],
     },
-    containedItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'nftPhysicals' }],
+    containedItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'physical_assets' }],
   },
   { timestamps: true },
 )
 
-export const PhysicalAsset = mongoose.model('rwas', physicalAssetSchema)
+export const PhysicalAsset = mongoose.model('physical_assets', physicalAssetSchema)

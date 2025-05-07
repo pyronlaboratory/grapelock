@@ -18,7 +18,7 @@ const tagSchema = new mongoose.Schema(
     verificationCount: Number,
     status: {
       type: String,
-      enum: ['ACTIVE', 'TAMPERED', 'DEACTIVATED'],
+      enum: ['inactive', 'active', 'tampered', 'deactivated', 'decommissioned'],
     },
     tamperHistory: [tamperHistorySchema],
   },
