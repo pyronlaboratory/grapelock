@@ -12,6 +12,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
     "@hookform/resolvers": "^5.0.1",
     "@irys/web-upload": "^0.0.15",
     "@irys/web-upload-solana": "^0.1.8",
@@ -39,6 +40,7 @@
     "@tanstack/react-query": "^5.74.4",
     "@wallet-ui/react": "1.1.0-canary-20250415034938",
     "@wallet-ui/tailwind": "1.1.0-canary-20250415034938",
+    "bn.js": "^5.2.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

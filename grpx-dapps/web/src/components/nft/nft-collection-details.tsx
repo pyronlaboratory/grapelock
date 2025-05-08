@@ -13,7 +13,8 @@ interface CollectionDetailsProps {
 }
 
 export function CollectionDetails({ collection, onBack }: CollectionDetailsProps) {
-  const { data: nfts = [], isLoading, error: nftsError } = useGetNFTs(collection._id.toString())
+  const { data: nfts = [], isLoading, error: nftsError } = useGetNFTs(collection._id)
+
   return (
     <div className="animate-fadeIn relative">
       <div className="mb-8 flex items-center justify-between">
@@ -26,7 +27,10 @@ export function CollectionDetails({ collection, onBack }: CollectionDetailsProps
           </button> */}
 
         <div className="absolute -top-8 right-0 rounded-xl">
-          <NFTMintingModal classes="bg-accent text-neutral-400 hover:bg-primary-foreground hover:text-primary px-6 h-[36px] rounded-lg  bg-blue-600 dark:bg-sidebar-primary text-primary-foreground dark:text-primary hover:bg-black hover:text-accent-background dark:hover:bg-sidebar-primary/90 dark:hover:text-primary" />
+          <NFTMintingModal
+            data={collection._id}
+            classes="bg-accent text-neutral-400 hover:bg-primary-foreground hover:text-primary px-6 h-[36px] rounded-lg  bg-blue-600 dark:bg-sidebar-primary text-primary-foreground dark:text-primary hover:bg-black hover:text-accent-background dark:hover:bg-sidebar-primary/90 dark:hover:text-primary"
+          />
         </div>
       </div>
 

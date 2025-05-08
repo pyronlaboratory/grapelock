@@ -199,7 +199,7 @@ export const nftsResponseSchema = z.object({
 })
 export const nftDetailsResponseSchema = z.object({
   success: z.boolean(),
-  data: z.array(extendedNftSchema),
+  data: extendedNftSchema,
 })
 export const mintNFTFormSchema = z.object({
   nftType: nftTypeEnum,
