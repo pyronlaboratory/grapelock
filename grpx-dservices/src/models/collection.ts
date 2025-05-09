@@ -15,7 +15,7 @@ const collectionSchema = new mongoose.Schema(
     masterEditionAddress: { type: String },
     status: {
       type: String,
-      enum: ['pending', 'processing', 'completed', 'failed', 'archived'],
+      enum: ['pending', 'processing', 'published', 'failed', 'archived'],
       default: 'pending',
     },
     txSignature: { type: String },

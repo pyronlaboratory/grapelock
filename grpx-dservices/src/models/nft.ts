@@ -24,6 +24,7 @@ const nftSchema = new mongoose.Schema(
     ],
     sellerFeeBasisPoints: { type: Number, required: true },
     maxSupply: { type: Number, required: true },
+    creatorAddress: { type: String },
     mintAddress: { type: String },
     metadataAddress: { type: String },
     masterEditionAddress: { type: String },

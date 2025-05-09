@@ -1,6 +1,6 @@
 import { Job } from 'bullmq'
 import { getApiContext } from '../../lib/context.js'
-import { confirmNFT, failNFT, getCollectionMintAddressForNFT, processNFT, updateNFT } from '../../services/nft.js'
+import { mintNFT, failNFT, getCollectionMintAddressForNFT, processNFT, updateNFT } from '../../services/nft.js'
 import { NFTResource } from '../../types/nft.types.js'
 import { prepareMetadata } from '../../services/metadata.js'
 import { dispatch } from '../../services/transactions.js'
@@ -18,7 +18,7 @@ type JobResult = {
 
 const context = await getApiContext()
 
-export async function processMintingJob(job: Job<any, any, string>) {
+export async function processMintingJob(job: Job<any, any, string>): Promise<JobResult> {
   const { id, name, token, data } = job
   context.log.info(`⚙️ Executing ${name!} job | id: ${id!}`)
 
@@ -69,7 +69,7 @@ export async function processMintingJob(job: Job<any, any, string>) {
       masterEditionAddress,
       txSignature,
     })
-    await confirmNFT(nft._id.toString())
+    await mintNFT(nft._id.toString())
     context.log.info(`NFT minted successfully | job id: ${id}`)
     return {
       status: 'success',
@@ -88,7 +88,7 @@ export async function processMintingJob(job: Job<any, any, string>) {
     return {
       status: 'failed',
       jobId: id!,
-      collectionId: nft?._id?.toString(),
+      nftId: nft?._id?.toString(),
       error: error.message || 'NFT job failed',
     }
   }

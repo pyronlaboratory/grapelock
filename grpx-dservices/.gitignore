@@ -4,3 +4,6 @@ node_modules
 dist
 keypair-*.json
 dist
+
+.cache
+test-ledger

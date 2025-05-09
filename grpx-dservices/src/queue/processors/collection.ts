@@ -1,6 +1,6 @@
 import { Job } from 'bullmq'
 import { getApiContext } from '../../lib/context.js'
-import { confirmCollection, failCollection, processCollection, updateCollection } from '../../services/collection.js'
+import { publishCollection, failCollection, processCollection, updateCollection } from '../../services/collection.js'
 import { prepareMetadata } from '../../services/metadata.js'
 import { CollectionResource } from '../../types/collection.types.js'
 import { dispatch } from '../../services/transactions.js'
@@ -63,11 +63,11 @@ export async function processCollectionJob(job: Job<any, any, string>): Promise<
       masterEditionAddress,
       txSignature,
     })
-    await confirmCollection(collection._id.toString())
+    await publishCollection(collection._id.toString())
     context.log.info(`Collection processed successfully | job id: ${id}`)
     return {
       status: 'success',
-      jobId: id!,
+      jobId: id ?? 'unknown',
       collectionId: collection._id.toString(),
       txSignature,
       mintAddress,

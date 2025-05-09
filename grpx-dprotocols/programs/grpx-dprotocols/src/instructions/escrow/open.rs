@@ -12,13 +12,17 @@ use anchor_spl::{
 pub struct OpenEscrowContract<'info> {
     #[account(mut)]
     pub maker: Signer<'info>,
-
+    // #[account(
+    //     mut,
+    //     seeds = [b"maker", id.to_le_bytes().as_ref()],
+    //     bump
+    // )]
+    // /// CHECK: PDA used for signing, not initialized
+    // pub maker: UncheckedAccount<'info>,
     #[account(mint::token_program = token_program)]
     pub token_mint_a: InterfaceAccount<'info, Mint>,
-
     #[account(mint::token_program = token_program)]
     pub token_mint_b: InterfaceAccount<'info, Mint>,
-
     #[account(
         mut,
         associated_token::mint = token_mint_a,
@@ -26,7 +30,6 @@ pub struct OpenEscrowContract<'info> {
         associated_token::token_program = token_program
     )]
     pub maker_token_account_a: InterfaceAccount<'info, TokenAccount>,
-
     #[account(
         init,
         payer = maker,
@@ -35,7 +38,6 @@ pub struct OpenEscrowContract<'info> {
         bump
     )]
     pub offer: Account<'info, Offer>,
-
     #[account(
         init,
         payer = maker,
@@ -44,17 +46,23 @@ pub struct OpenEscrowContract<'info> {
         associated_token::token_program = token_program
     )]
     pub vault: InterfaceAccount<'info, TokenAccount>,
-
-    pub associated_token_program: Program<'info, AssociatedToken>,
-    pub token_program: Interface<'info, TokenInterface>,
+    // #[account(mut)]
+    // pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
 // Move the tokens from the maker's ATA to the vault
 pub fn send_offered_tokens_to_vault(
     context: &Context<OpenEscrowContract>,
     token_a_offered_amount: u64,
+    // maker_bump: u8,
 ) -> Result<()> {
+    // let offer_id_bytes = context.accounts.offer.id.to_le_bytes();
+    // let maker_seeds = &[b"maker", offer_id_bytes.as_ref(), &[maker_bump]];
+    // let signer_seeds = &[&maker_seeds[..]];
+
     transfer_tokens(
         &context.accounts.maker_token_account_a,
         &context.accounts.vault,
@@ -62,6 +70,7 @@ pub fn send_offered_tokens_to_vault(
         &context.accounts.token_mint_a,
         &context.accounts.maker,
         &context.accounts.token_program,
+        // signer_seeds,
     )
 }
 
