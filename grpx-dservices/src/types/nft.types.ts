@@ -68,7 +68,7 @@ export const nftSchema = z.object({
   batchSize: z.number().optional().nullable(),
   batchType: z.string().optional().nullable(),
   collectionId: objectIdSchema,
-  creatorAddress: z.string().optional(),
+  creatorAddress: z.string(),
   sellerFeeBasisPoints: z.number().min(0).max(10000),
   maxSupply: z.number().min(0),
   status: nftStatusEnum,
@@ -213,7 +213,7 @@ export const mintNFTSchema = z.object({
   batchSize: z.number().optional().nullable(),
   batchType: z.string().optional().nullable(),
   collectionId: z.string().optional(),
-  creatorAddress: z.string().optional(),
+  creatorAddress: z.string(),
   sellerFeeBasisPoints: z.coerce.number().min(0).max(10000, 'Fee must be between 0 and 10000 basis points'),
   maxSupply: z.coerce.number().min(0, 'Max supply must be 0 or greater'),
 })

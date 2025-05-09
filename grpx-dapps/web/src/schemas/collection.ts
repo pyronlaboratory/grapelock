@@ -2,7 +2,7 @@ import { z } from 'zod'
 export const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, {
   message: '_id must be a 24-char hex string',
 })
-export const collectionStatusEnum = z.enum(['pending', 'processing', 'completed', 'failed', 'archived'])
+export const collectionStatusEnum = z.enum(['pending', 'processing', 'published', 'failed', 'archived'])
 export const collectionSchema = z.object({
   _id: objectIdSchema, // from MongoDB
   collectionName: z.string(),

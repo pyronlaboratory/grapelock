@@ -1,9 +1,14 @@
 import { Job } from 'bullmq'
 import { getApiContext } from '../../lib/context.js'
-import { publishCollection, failCollection, processCollection, updateCollection } from '../../services/collection.js'
+import {
+  publishCollection,
+  failCollection,
+  processCollection,
+  updateCollection,
+  dispatch,
+} from '../../services/collection.js'
 import { prepareMetadata } from '../../services/metadata.js'
 import { CollectionResource } from '../../types/collection.types.js'
-import { dispatch } from '../../services/transactions.js'
 
 type JobResult = {
   status: 'success' | 'failed'
@@ -45,14 +50,11 @@ export async function processCollectionJob(job: Job<any, any, string>): Promise<
 
     // Write transaction on Solana
     const { mintAddress, metadataAddress, masterEditionAddress, txSignature } = await dispatch({
-      type: 'create',
-      payload: {
-        name: collection.collectionName ?? '',
-        symbol: collection.collectionSymbol ?? '',
-        description: collection.collectionDescription ?? '',
-        uri: collection.collectionMetadataUri ?? '',
-        sellerFeeBasisPoints: collection.sellerFeeBasisPoints ?? 0,
-      },
+      name: collection.collectionName ?? '',
+      symbol: collection.collectionSymbol ?? '',
+      description: collection.collectionDescription ?? '',
+      uri: collection.collectionMetadataUri ?? '',
+      sellerFeeBasisPoints: collection.sellerFeeBasisPoints ?? 0,
     })
     if (!txSignature) throw new Error('Collection transaction signature not found')
 

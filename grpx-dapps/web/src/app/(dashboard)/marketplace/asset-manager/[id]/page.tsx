@@ -33,9 +33,9 @@ export default async function NFTDetailsPage({ params }: { params: Promise<{ id:
 
         <NFTSaleModal
           nftId={parsed.data._id}
-          nftCreatorAddress={parsed.data.creatorAddress || 'EpmGcK3Uc73ncnnTn2a5gRnCuz1C8UsqKRdpkt4WJbRj'}
-          nftMintAddress={parsed.data.mintAddress || ''}
-          isVerified={true}
+          nftCreatorAddress={parsed.data.creatorAddress}
+          nftMintAddress={parsed.data.mintAddress}
+          isVerified={parsed.data.status === 'minted'}
         />
       </div>
 

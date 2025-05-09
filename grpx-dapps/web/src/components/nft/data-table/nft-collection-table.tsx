@@ -1,11 +1,11 @@
 import { formatDate, getCollectionIdenticon } from '@/lib/utils'
-import { CollectionType } from '@/schemas/collection'
+import { CollectionResource } from '@/schemas/collection'
 import { CollectionStatusBadge } from '../nft-ui'
 import { MoreHorizontal } from 'lucide-react'
 
 interface CollectionTableProps {
-  collections: CollectionType[]
-  onViewCollection: (collection: CollectionType) => void
+  collections: CollectionResource[]
+  onViewCollection: (collection: CollectionResource) => void
 }
 
 export function CollectionTable({ collections, onViewCollection }: CollectionTableProps) {

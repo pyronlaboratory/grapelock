@@ -44,15 +44,6 @@ export function FormUploadField({ wallet, value, onChange, onBlur, error, disabl
       setPreviewUrl(fileReader.result as string)
     }
     fileReader.readAsDataURL(file)
-
-    // // Simulate upload completion after delay
-    // setTimeout(() => {
-    //   // In a real implementation, this would be the URI returned from the upload service
-    //   const mockUploadedUri = `https://arweave.net/${Math.random().toString(36).substring(2, 10)}`
-    //   onChange(mockUploadedUri)
-    //   setIsUploading(false)
-    // }, 1500)
-
     try {
       const uploadedUri = await uploadToIrys(file, wallet)
       onChange(`https://gateway.irys.xyz/${uploadedUri.id}`)

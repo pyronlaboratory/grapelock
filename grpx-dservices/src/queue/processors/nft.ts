@@ -1,9 +1,15 @@
 import { Job } from 'bullmq'
 import { getApiContext } from '../../lib/context.js'
-import { mintNFT, failNFT, getCollectionMintAddressForNFT, processNFT, updateNFT } from '../../services/nft.js'
+import {
+  mintNFT,
+  failNFT,
+  getCollectionMintAddressForNFT,
+  processNFT,
+  updateNFT,
+  dispatch,
+} from '../../services/nft.js'
 import { NFTResource } from '../../types/nft.types.js'
 import { prepareMetadata } from '../../services/metadata.js'
-import { dispatch } from '../../services/transactions.js'
 
 type JobResult = {
   status: 'success' | 'failed'
@@ -50,15 +56,12 @@ export async function processMintingJob(job: Job<any, any, string>): Promise<Job
     // Write transaction on Solana
     const collectionMint = await getCollectionMintAddressForNFT(nft._id.toString())
     const { mintAddress, metadataAddress, masterEditionAddress, txSignature } = await dispatch({
-      type: 'mint',
-      payload: {
-        name: nftName ?? '',
-        symbol: nftSymbol ?? '',
-        description: nftDescription ?? '',
-        uri: metadataUri ?? '',
-        sellerFeeBasisPoints: sellerFeeBasisPoints ?? 0,
-        collectionMintKey: collectionMint,
-      },
+      name: nftName ?? '',
+      symbol: nftSymbol ?? '',
+      description: nftDescription ?? '',
+      uri: metadataUri ?? '',
+      sellerFeeBasisPoints: sellerFeeBasisPoints ?? 0,
+      collectionMintAddress: collectionMint,
     })
     if (!txSignature) throw new Error('Minting transaction signature not found')
 

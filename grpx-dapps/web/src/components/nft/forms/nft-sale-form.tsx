@@ -17,8 +17,8 @@ export function NFTSaleModal({
 }: {
   isVerified: boolean
   nftId: string
-  nftMintAddress: string
-  nftCreatorAddress: string
+  nftCreatorAddress?: string
+  nftMintAddress?: string | null
 }) {
   const [price, setPrice] = useState('')
   const mutation = useMakeOffer()
@@ -32,8 +32,8 @@ export function NFTSaleModal({
 
     try {
       await mutation.mutateAsync({
-        nftMintAddress,
-        creatorAddress: nftCreatorAddress,
+        nftMintAddress: nftMintAddress || '',
+        creatorAddress: nftCreatorAddress || '',
         sellingPrice: parseFloat(price),
       })
 
@@ -54,7 +54,7 @@ export function NFTSaleModal({
       classes={`font-semibold mb-6 text-primary/20 hover:!text-primary/40 ${
         isVerified
           ? '!cursor-pointer !bg-green-400 hover:!bg-green-300 !text-green-950 hover:!text-green-800'
-          : '!cursor-not-allowed'
+          : '!cursor-not-allowed text-black hover:!text-black/80'
       }`}
       title="Ready for Sale"
       submitDisabled={mutation.isPending}
@@ -98,8 +98,13 @@ export function NFTSaleModal({
               <span className="text-xs text-muted-foreground">Asset Mint</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-xs font-medium">{ellipsify(nftMintAddress)}</span>
-              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => copyToClipboard(nftMintAddress)}>
+              <span className="text-xs font-medium">{ellipsify(nftMintAddress || '...')}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5"
+                onClick={() => copyToClipboard(nftMintAddress || 'nada')}
+              >
                 <Copy className="h-3 w-3" />
                 <span className="sr-only">Copy address</span>
               </Button>
@@ -116,7 +121,7 @@ export function NFTSaleModal({
                 variant="ghost"
                 size="icon"
                 className="h-5 w-5"
-                onClick={() => copyToClipboard(nftCreatorAddress)}
+                onClick={() => copyToClipboard(nftCreatorAddress || 'nada')}
               >
                 <Copy className="h-3 w-3" />
                 <span className="sr-only">Copy address</span>
