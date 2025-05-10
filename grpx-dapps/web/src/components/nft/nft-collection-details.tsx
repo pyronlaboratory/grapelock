@@ -49,7 +49,7 @@ export function CollectionDetails({ collection, onBack }: CollectionDetailsProps
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 grid-flow-row auto-rows-max">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-8 grid-flow-row auto-rows-max">
         <div className="flex flex-col sm:flex-row gap-8 bg-sidebar border rounded-xl px-8 py-6">
           <div>
             <h3 className="text-sm font-medium text-gray-500">Creator</h3>
@@ -133,6 +133,15 @@ export function CollectionDetails({ collection, onBack }: CollectionDetailsProps
               <h3 className="text-sm font-medium text-gray-500">Master Edition Account</h3>
               <p className="mt-1 flex gap-4 items-center">
                 {ellipsify(collection?.masterEditionAddress!)}
+                <Copy className="h-4 w-4" />
+              </p>
+            </div>
+          </div>
+          <div className="gap-8 flex flex-col">
+            <div className="bg-sidebar border w-full rounded-xl px-8 py-4">
+              <h3 className="text-sm font-medium text-gray-500">Destination Token Account</h3>
+              <p className="mt-1 flex gap-4 items-center">
+                {ellipsify(collection?.destinationAddress!)}
                 <Copy className="h-4 w-4" />
               </p>
             </div>

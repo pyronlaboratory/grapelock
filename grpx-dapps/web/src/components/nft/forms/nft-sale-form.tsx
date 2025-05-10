@@ -8,6 +8,8 @@ import { ellipsify } from '@/lib/utils'
 import { Check, Copy, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { useWallet } from '@solana/wallet-adapter-react'
+import api, { ApiResponse } from '@/lib/api'
+import { OfferResource } from '@/schemas/offer'
 
 export function NFTSaleModal({
   isVerified,
@@ -20,6 +22,7 @@ export function NFTSaleModal({
   nftCreatorAddress?: string
   nftMintAddress?: string | null
 }) {
+  const [open, setOpen] = useState(false)
   const [price, setPrice] = useState('')
   const mutation = useMakeOffer()
   const wallet = useWallet()
@@ -31,13 +34,34 @@ export function NFTSaleModal({
     }
 
     try {
-      await mutation.mutateAsync({
+      const response = await mutation.mutateAsync({
         nftMintAddress: nftMintAddress || '',
         creatorAddress: nftCreatorAddress || '',
         sellingPrice: parseFloat(price),
       })
+      // const response = {
+      //   offer: '8dtxDPVNDhkMiuFagSeQjAZGyM5RY1iqSbFYjcPFEP3Z',
+      //   vault: 'FzbUZE4vHyjeeoKFBuX9sG3endRGeJvFbQND5nXHGoEt',
+      //   signature: '3Djwx3yfDZxQukCTjaCdWEeqB832ZhaAzyrPZzEDa1cvHnvPuFbmJ4WJVhoaT7YCEa52c2PYAytMui33q9gBW5gK',
+      // }
+      if (!response) return toast.error('Failed to list NFT for sale. Please try again.')
 
-      toast.success('NFT successfully listed for sale!')
+      const { data: offer } = await api<ApiResponse<{ data: OfferResource; success: boolean }>>('offers', {
+        method: 'POST',
+        body: {
+          nftId,
+          nftMintAddress,
+          sellingPrice: parseFloat(price),
+          producerAddress: nftCreatorAddress || wallet.publicKey?.toBase58(),
+          offerAddress: response.offer,
+          vaultAddress: response.vault,
+          txSignature: response.signature,
+        },
+      })
+      if (offer.data.status === 'open') {
+        toast.success(`NFT successfully listed for sale!`)
+        setOpen(false)
+      }
     } catch (error) {
       console.error('Error listing NFT for sale:', error)
       toast.error('Failed to list NFT for sale. Please try again.')
@@ -51,6 +75,8 @@ export function NFTSaleModal({
 
   return (
     <AppModal
+      open={open}
+      onOpenChange={setOpen}
       classes={`font-semibold mb-6 text-primary/20 hover:!text-primary/40 ${
         isVerified
           ? '!cursor-pointer !bg-green-400 hover:!bg-green-300 !text-green-950 hover:!text-green-800'
@@ -88,14 +114,16 @@ export function NFTSaleModal({
               value={price}
               className="pr-12 h-10"
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">SOL</div>
+            <div className="text-xs absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+              SOL
+            </div>
           </div>
         </div>
 
         <div className="rounded-md border p-3 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground">Asset Mint</span>
+              <span className="text-xs text-muted-foreground">Asset Mint Address</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-xs font-medium">{ellipsify(nftMintAddress || '...')}</span>

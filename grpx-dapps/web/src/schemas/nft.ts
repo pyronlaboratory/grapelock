@@ -67,6 +67,7 @@ export const nftSchema = z.object({
   sellerFeeBasisPoints: z.number().min(0).max(10000),
   maxSupply: z.number().min(0),
   status: nftStatusEnum,
+  destinationAddress: z.string().nullable().optional(),
   mintAddress: z.string().nullable().optional(),
   metadataAddress: z.string().nullable().optional(),
   masterEditionAddress: z.string().nullable().optional(),

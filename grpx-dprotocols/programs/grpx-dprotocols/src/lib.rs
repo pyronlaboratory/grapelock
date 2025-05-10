@@ -12,7 +12,7 @@ pub use error::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("GHMkgYRXD5zosBjEePwZ3fdxTwdMF5XhCZhFqVQcM9sQ");
+declare_id!("FALK1GNsbCnYSfGGTvuuK6ncSQ17oGtfqTF4GiBJ5imS");
 #[program]
 pub mod grpx_dprotocols {
     use super::*;
@@ -32,31 +32,34 @@ pub mod grpx_dprotocols {
 
     // === Escrow Instructions ===
     pub fn open(
-        context: Context<OpenEscrowContract>,
+        ctx: Context<MakeOffer>,
         id: u64,
         token_a_offered_amount: u64,
-        token_b_wanted_amount: u64,
+        token_b_desired_amount: u64,
     ) -> Result<()> {
-        instructions::open::send_offered_tokens_to_vault(&context, token_a_offered_amount)?;
-        instructions::open::save_offer(context, id, token_b_wanted_amount)
+        ctx.accounts
+            .open_contract(id, token_b_desired_amount, &ctx.bumps)?;
+        ctx.accounts.deposit_to_vault(token_a_offered_amount)?;
+
+        Ok(())
     }
 
-    pub fn accept(context: Context<AcceptOffer>) -> Result<()> {
-        instructions::accept::send_wanted_tokens_to_vault(&context)?;
-        instructions::accept::transfer_nft_to_taker(context)
+    // pub fn accept(ctx: Context<AcceptOffer>) -> Result<()> {
+    //     instructions::accept::send_wanted_tokens_to_vault(&ctx)?;
+    //     instructions::accept::transfer_nft_to_taker(ctx)
+    // }
+
+    pub fn confirm(ctx: Context<ConfirmDelivery>) -> Result<()> {
+        instructions::confirm::validate_offer_state_confirm(&ctx)?;
+        instructions::confirm::send_payment_to_maker(&ctx)?;
+        instructions::confirm::complete_and_close_vault(ctx)
     }
 
-    pub fn confirm(context: Context<ConfirmDelivery>) -> Result<()> {
-        instructions::confirm::validate_offer_state_confirm(&context)?;
-        instructions::confirm::send_payment_to_maker(&context)?;
-        instructions::confirm::complete_and_close_vault(context)
-    }
-
-    pub fn refund(context: Context<RefundRequest>) -> Result<()> {
-        instructions::refund::validate_offer_state_refund(&context)?;
-        instructions::refund::return_payment_to_taker(&context)?;
-        instructions::refund::return_nft_to_maker(&context)?;
-        instructions::refund::refund_and_close_vault(context)
+    pub fn refund(ctx: Context<RefundRequest>) -> Result<()> {
+        instructions::refund::validate_offer_state_refund(&ctx)?;
+        instructions::refund::return_payment_to_taker(&ctx)?;
+        instructions::refund::return_nft_to_maker(&ctx)?;
+        instructions::refund::refund_and_close_vault(ctx)
     }
 }
 

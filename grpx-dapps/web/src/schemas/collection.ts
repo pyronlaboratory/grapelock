@@ -13,6 +13,7 @@ export const collectionSchema = z.object({
   creatorAddress: z.string(),
   sellerFeeBasisPoints: z.number().min(0).max(10000),
   maxSupply: z.number().min(0),
+  destinationAddress: z.string().nullable().optional(), // collectionMint
   mintAddress: z.string().nullable().optional(), // collectionMint
   metadataAddress: z.string().nullable().optional(),
   masterEditionAddress: z.string().nullable().optional(),

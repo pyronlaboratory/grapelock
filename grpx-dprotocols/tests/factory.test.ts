@@ -31,8 +31,8 @@ describe('grpx-protocols/factory', async () => {
   let wallet: Wallet | NodeWallet
   let provider: BankrunProvider | AnchorProvider
   let program: Program<GrpxDprotocols>
-  let mintAuthority: PublicKey
 
+  let mintAuthority: PublicKey
   let collectionMint: Keypair
   let mint: Keypair
 

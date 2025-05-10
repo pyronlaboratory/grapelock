@@ -15,6 +15,7 @@ type JobResult = {
   jobId: string
   collectionId?: string
   txSignature?: string
+  destinationAddress?: string
   mintAddress?: string
   metadataAddress?: string
   masterEditionAddress?: string
@@ -49,7 +50,7 @@ export async function processCollectionJob(job: Job<any, any, string>): Promise<
     })
 
     // Write transaction on Solana
-    const { mintAddress, metadataAddress, masterEditionAddress, txSignature } = await dispatch({
+    const { destinationAddress, mintAddress, metadataAddress, masterEditionAddress, txSignature } = await dispatch({
       name: collection.collectionName ?? '',
       symbol: collection.collectionSymbol ?? '',
       description: collection.collectionDescription ?? '',
@@ -60,6 +61,7 @@ export async function processCollectionJob(job: Job<any, any, string>): Promise<
 
     // Update offchain records and logs
     await updateCollection(collection._id.toString(), {
+      destinationAddress,
       mintAddress,
       metadataAddress,
       masterEditionAddress,
@@ -72,6 +74,7 @@ export async function processCollectionJob(job: Job<any, any, string>): Promise<
       jobId: id ?? 'unknown',
       collectionId: collection._id.toString(),
       txSignature,
+      destinationAddress,
       mintAddress,
       metadataAddress,
       masterEditionAddress,

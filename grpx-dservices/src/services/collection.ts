@@ -9,7 +9,7 @@ import { PublicKey, Keypair, SystemProgram, Connection } from '@solana/web3.js'
 import { AnchorProvider, Program, setProvider, Wallet } from '@coral-xyz/anchor'
 import { GrpxDprotocols } from '../bridge/grpx_dprotocols.js'
 
-import { loadKeypair } from '../lib/util.js'
+import { loadKeypair } from '../lib/utils.js'
 import path from 'path'
 
 const IDL = require('../bridge/grpx_dprotocols.json')
@@ -113,6 +113,7 @@ export async function dispatch({
   uri: string
   sellerFeeBasisPoints: number
 }): Promise<{
+  destinationAddress: string
   mintAddress: string
   metadataAddress: string
   masterEditionAddress: string
@@ -185,6 +186,7 @@ export async function dispatch({
       })
     context.log.info(JSON.stringify({ tx }))
     return {
+      destinationAddress: destination.toBase58(),
       mintAddress: mint.publicKey.toBase58(),
       metadataAddress: metadata.toBase58(),
       masterEditionAddress: masterEdition.toBase58(),

@@ -17,13 +17,19 @@ import { Tag } from '../models/tags.js'
 import { Beacon } from '../models/beacon.js'
 import { BeaconReading } from '../models/beacon_reading.js'
 
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'
+import {
+  TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountInstruction,
+  createTransferInstruction,
+  getAssociatedTokenAddress,
+  getAssociatedTokenAddressSync,
+} from '@solana/spl-token'
 import { TOKEN_METADATA_PROGRAM_ID, getMasterEdition, getMetadata } from './solana.js'
-import { PublicKey, Keypair, SystemProgram, Connection } from '@solana/web3.js'
+import { PublicKey, Keypair, SystemProgram, Connection, Transaction } from '@solana/web3.js'
 import { AnchorProvider, Program, setProvider, Wallet } from '@coral-xyz/anchor'
 import { GrpxDprotocols } from '../bridge/grpx_dprotocols.js'
 
-import { loadKeypair } from '../lib/util.js'
+import { loadKeypair } from '../lib/utils.js'
 import path from 'path'
 import { ASSOCIATED_PROGRAM_ID } from '@coral-xyz/anchor/dist/cjs/utils/token.js'
 
@@ -110,6 +116,7 @@ export async function registerNFT(payload: MintNFTResource): Promise<NFTResource
       // creatorAddress: payload.creatorAddress,
       status: 'pending',
       mintAddress: null,
+      destinationAddress: null,
       metadataAddress: null,
       masterEditionAddress: null,
       txSignature: null,
@@ -148,6 +155,7 @@ export async function processNFT(id: string): Promise<NFTResource | undefined> {
 
 export async function updateNFT(id: string, updates: Partial<NFTResource>) {
   try {
+    console.log(updates)
     await NFT.findByIdAndUpdate(id, {
       ...updates,
       updatedAt: new Date(),
@@ -189,6 +197,7 @@ export async function dispatch({
   symbol,
   description,
   uri,
+  creatorAddress,
   sellerFeeBasisPoints,
   collectionMintAddress,
 }: {
@@ -196,9 +205,11 @@ export async function dispatch({
   symbol: string
   description: string
   uri: string
+  creatorAddress: string
   sellerFeeBasisPoints: number
   collectionMintAddress: string
 }): Promise<{
+  destinationAddress: string
   mintAddress: string
   metadataAddress: string
   masterEditionAddress: string
@@ -271,7 +282,24 @@ export async function dispatch({
         commitment: 'confirmed',
       })
     context.log.info(JSON.stringify({ tx }))
+
+    const recipientPublicKey = new PublicKey(creatorAddress)
+    const recipientAta = await getAssociatedTokenAddress(mint.publicKey, recipientPublicKey)
+
+    const recipientAccountInfo = await connection.getAccountInfo(recipientAta)
+    const ataInstructions = !recipientAccountInfo
+      ? [createAssociatedTokenAccountInstruction(wallet.publicKey, recipientAta, recipientPublicKey, mint.publicKey)]
+      : []
+
+    const transferInstruction = createTransferInstruction(destination, recipientAta, wallet.publicKey, 1)
+
+    // Send the transaction
+    const transferTx = new Transaction().add(...ataInstructions, transferInstruction)
+    const txSig = await provider.sendAndConfirm(transferTx, [])
+    context.log.info(`NFT transferred to ${recipientPublicKey.toBase58()}: ${txSig}`)
+
     return {
+      destinationAddress: destination.toBase58(),
       mintAddress: mint.publicKey.toBase58(),
       metadataAddress: metadata.toBase58(),
       masterEditionAddress: masterEdition.toBase58(),

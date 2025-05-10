@@ -10,6 +10,7 @@ const collectionSchema = new mongoose.Schema(
     creatorAddress: { type: String, required: true },
     sellerFeeBasisPoints: { type: Number, required: true, min: 0, max: 10000 },
     maxSupply: { type: Number, required: true, min: 0 },
+    destinationAddress: { type: String },
     mintAddress: { type: String },
     metadataAddress: { type: String },
     masterEditionAddress: { type: String },

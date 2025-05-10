@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/grpx_dprotocols.json`.
  */
 export type GrpxDprotocols = {
-  "address": "GHMkgYRXD5zosBjEePwZ3fdxTwdMF5XhCZhFqVQcM9sQ",
+  "address": "FALK1GNsbCnYSfGGTvuuK6ncSQ17oGtfqTF4GiBJ5imS",
   "metadata": {
     "name": "grpxDprotocols",
     "version": "0.1.0",
@@ -13,312 +13,6 @@ export type GrpxDprotocols = {
     "description": "Created with Anchor"
   },
   "instructions": [
-    {
-      "name": "accept",
-      "discriminator": [
-        65,
-        150,
-        70,
-        216,
-        133,
-        6,
-        107,
-        4
-      ],
-      "accounts": [
-        {
-          "name": "taker",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "maker",
-          "writable": true,
-          "relations": [
-            "offer"
-          ]
-        },
-        {
-          "name": "tokenMintA",
-          "relations": [
-            "offer"
-          ]
-        },
-        {
-          "name": "tokenMintB",
-          "relations": [
-            "offer"
-          ]
-        },
-        {
-          "name": "takerTokenAccountA",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "taker"
-              },
-              {
-                "kind": "account",
-                "path": "tokenProgram"
-              },
-              {
-                "kind": "account",
-                "path": "tokenMintA"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "takerTokenAccountB",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "taker"
-              },
-              {
-                "kind": "account",
-                "path": "tokenProgram"
-              },
-              {
-                "kind": "account",
-                "path": "tokenMintB"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "vaultTokenAccountB",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "offer"
-              },
-              {
-                "kind": "account",
-                "path": "tokenProgram"
-              },
-              {
-                "kind": "account",
-                "path": "tokenMintB"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "offer",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  111,
-                  102,
-                  102,
-                  101,
-                  114
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "maker"
-              },
-              {
-                "kind": "account",
-                "path": "offer.id",
-                "account": "offer"
-              }
-            ]
-          }
-        },
-        {
-          "name": "vault",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "offer"
-              },
-              {
-                "kind": "account",
-                "path": "tokenProgram"
-              },
-              {
-                "kind": "account",
-                "path": "tokenMintA"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "associatedTokenProgram",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-        },
-        {
-          "name": "tokenProgram"
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
-    },
     {
       "name": "confirm",
       "discriminator": [
@@ -690,8 +384,7 @@ export type GrpxDprotocols = {
       "accounts": [
         {
           "name": "owner",
-          "writable": true,
-          "signer": true
+          "writable": true
         },
         {
           "name": "mint",
@@ -1014,15 +707,15 @@ export type GrpxDprotocols = {
           }
         },
         {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        },
-        {
           "name": "tokenProgram"
         },
         {
           "name": "associatedTokenProgram",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -1035,7 +728,7 @@ export type GrpxDprotocols = {
           "type": "u64"
         },
         {
-          "name": "tokenBWantedAmount",
+          "name": "tokenBDesiredAmount",
           "type": "u64"
         }
       ]
@@ -1526,8 +1219,14 @@ export type GrpxDprotocols = {
             "type": "pubkey"
           },
           {
-            "name": "tokenBWantedAmount",
+            "name": "tokenAOfferedAmount",
             "type": "u64"
+          },
+          {
+            "name": "tokenBDesiredAmount",
+            "type": {
+              "option": "u64"
+            }
           },
           {
             "name": "status",

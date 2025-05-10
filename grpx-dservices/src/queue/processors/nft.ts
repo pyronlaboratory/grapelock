@@ -16,6 +16,7 @@ type JobResult = {
   jobId: string
   nftId?: string
   txSignature?: string
+  destinationAddress?: string
   mintAddress?: string
   metadataAddress?: string
   masterEditionAddress?: string
@@ -55,11 +56,12 @@ export async function processMintingJob(job: Job<any, any, string>): Promise<Job
 
     // Write transaction on Solana
     const collectionMint = await getCollectionMintAddressForNFT(nft._id.toString())
-    const { mintAddress, metadataAddress, masterEditionAddress, txSignature } = await dispatch({
+    const { destinationAddress, mintAddress, metadataAddress, masterEditionAddress, txSignature } = await dispatch({
       name: nftName ?? '',
       symbol: nftSymbol ?? '',
       description: nftDescription ?? '',
       uri: metadataUri ?? '',
+      creatorAddress: nft.creatorAddress ?? '',
       sellerFeeBasisPoints: sellerFeeBasisPoints ?? 0,
       collectionMintAddress: collectionMint,
     })
@@ -67,6 +69,7 @@ export async function processMintingJob(job: Job<any, any, string>): Promise<Job
 
     // Update offchain records and logs
     await updateNFT(nft._id.toString(), {
+      destinationAddress,
       mintAddress,
       metadataAddress,
       masterEditionAddress,
@@ -79,6 +82,7 @@ export async function processMintingJob(job: Job<any, any, string>): Promise<Job
       jobId: id!,
       nftId: nft._id.toString(),
       txSignature,
+      destinationAddress,
       mintAddress,
       metadataAddress,
       masterEditionAddress,
