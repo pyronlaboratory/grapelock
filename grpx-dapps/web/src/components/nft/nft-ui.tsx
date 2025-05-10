@@ -274,14 +274,16 @@ export function NFTGrid({ nfts }: { nfts: NFTResource[] }) {
 export function NFTCard({ nft }: { nft: NFTResource }) {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'VERIFIED':
+      case 'minted':
         return 'secondary'
-      case 'MINTED':
+      case 'verified':
         return 'primary'
-      case 'MINTING':
+      case 'pending':
         return 'outline'
-      case 'FAILED':
+      case 'failed':
         return 'destructive'
+      case 'processing':
+        return 'processing'
       default:
         return 'default'
     }
@@ -289,7 +291,7 @@ export function NFTCard({ nft }: { nft: NFTResource }) {
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden transition duration-200 hover:shadow-md cursor-pointer">
-      <Link href={`/marketplace/asset-manager/${nft._id}`}>
+      <Link href={`/asset-manager/${nft._id}`}>
         <div className="h-40 overflow-hidden">
           <img
             src={nft.nftMedia || getCollectionIdenticon(nft._id)}

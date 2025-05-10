@@ -1,7 +1,9 @@
 import {
+  ArrowRightLeft,
   ChartArea,
   FileBadge,
   LifeBuoy,
+  PackagePlus,
   Send,
   ServerCog,
   ShieldCheck,
@@ -147,21 +149,31 @@ export const links = {
       icon: Send,
     },
   ],
-  navProtocol: [
+  navItems: [
     {
-      name: 'Proposals',
-      url: '/protocol/proposals',
-      icon: FileBadge,
+      name: 'Marketplace',
+      url: '/marketplace',
+      icon: Store,
     },
     {
-      name: 'Consensus',
-      url: '/protocol/consensus',
-      icon: Vote,
+      name: 'Asset Manager',
+      url: '/asset-manager',
+      icon: PackagePlus,
     },
     {
-      name: 'Staking',
-      url: '/protocol/staking',
-      icon: ShieldCheck,
+      name: 'Infrastructure',
+      url: '/infrastructure',
+      icon: ServerCog,
+    },
+    {
+      name: 'Trading',
+      url: '/trading',
+      icon: ArrowRightLeft,
+    },
+    {
+      name: 'Wallet',
+      url: '/account',
+      icon: Wallet,
     },
   ],
 }

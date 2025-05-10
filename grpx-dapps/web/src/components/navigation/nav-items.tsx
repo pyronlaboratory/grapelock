@@ -9,7 +9,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 
-export function NavProtocols({
+export function NavItems({
   items,
 }: {
   items: {
@@ -22,7 +22,7 @@ export function NavProtocols({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Network Governance</SidebarGroupLabel>
+      <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>

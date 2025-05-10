@@ -2,10 +2,6 @@
 
 import * as React from 'react'
 import { Check, ChevronsUpDown, Command } from 'lucide-react'
-
-import { NavMain } from '@/components/navigation/nav-main'
-import { NavProtocols } from '@/components/navigation/nav-protocols'
-import { NavSecondary } from '@/components/navigation/nav-secondary'
 import { NavUser } from '@/components/navigation/nav-user'
 import {
   Sidebar,
@@ -19,6 +15,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useCluster } from '../cluster/cluster-data-access'
 import { links } from '@/lib/links'
+import { NavItems } from '../navigation/nav-items'
 
 export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { cluster, clusters, setCluster } = useCluster()
@@ -57,9 +54,7 @@ export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sideb
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={links.navMain} />
-        <NavProtocols items={links.navProtocol} />
-        <NavSecondary items={links.navSecondary} className="mt-auto" />
+        <NavItems items={links.navItems} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={links.navUser} />

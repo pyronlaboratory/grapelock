@@ -9,7 +9,7 @@ export default function Home() {
   const pathname = usePathname()
   useEffect(() => {
     if (publicKey && pathname === '/') {
-      redirect('/marketplace/collections')
+      redirect('/marketplace')
     }
   }, [publicKey])
   return <AppLanding />

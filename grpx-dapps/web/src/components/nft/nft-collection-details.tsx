@@ -1,5 +1,5 @@
 import { ellipsify, formatDate } from '@/lib/utils'
-import { AlertCircle, CalendarCheck2, Copy, ShieldCheck } from 'lucide-react'
+import { AlertCircle, ArrowLeft, CalendarCheck2, Copy, ShieldCheck } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Separator } from '../ui/separator'
 import { QRCodeSVG } from 'qrcode.react'
@@ -19,12 +19,12 @@ export function CollectionDetails({ collection, onBack }: CollectionDetailsProps
     <div className="animate-fadeIn relative">
       <div className="mb-8 flex items-center justify-between">
         {/* <button
-            onClick={onBack}
-            className="cursor-pointer flex items-center text-muted-foreground hover:text-primary transition"
-          >
-            <ArrowLeft size={18} className="mr-1" />
-            <span>Main Gallery</span>
-          </button> */}
+          onClick={onBack}
+          className="cursor-pointer flex items-center text-muted-foreground hover:text-primary transition"
+        >
+          <ArrowLeft size={18} className="mr-1" />
+          <span>Main Gallery</span>
+        </button> */}
 
         <div className="absolute -top-8 right-0 rounded-xl">
           <NFTMintingModal

@@ -5,7 +5,7 @@ import { NFTCollectionManager } from '@/components/nft/nft-collection-manager'
 import { useGetCollections } from '@/components/nft/nft-data-access'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useMemo } from 'react'
-import Loading from '../../loading'
+import Loading from '../loading'
 
 export default function ManagerPage() {
   const { publicKey } = useWallet()

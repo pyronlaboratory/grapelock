@@ -1,5 +1,10 @@
-import { redirect } from 'next/navigation'
+// app/marketplace/page.tsx
 
 export default function MarketplacePage() {
-  redirect('/marketplace/collections')
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold">Browse Collections</h1>
+      {/* Your content here */}
+    </div>
+  )
 }
