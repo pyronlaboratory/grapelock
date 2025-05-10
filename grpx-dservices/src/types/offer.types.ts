@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const objectIdSchema = z.custom<Types.ObjectId>((val) => val instanceof Types.ObjectId, {
   message: '_id must be a MongoDB ObjectId',
 })
-export const offerStatus = z.enum(['open', 'close', 'complete', 'failed'])
+export const offerStatus = z.enum(['open', 'closed', 'completed', 'failed'])
 export const createOfferSchema = z.object({
   nftId: z.string(),
   nftMintAddress: z.string(),

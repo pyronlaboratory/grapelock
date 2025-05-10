@@ -2,7 +2,7 @@ import { z } from 'zod'
 export const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, {
   message: '_id must be a 24-char hex string',
 })
-export const offerStatus = z.enum(['open', 'close', 'complete', 'failed'])
+export const offerStatus = z.enum(['open', 'closed', 'completed', 'failed'])
 export const createOfferSchema = z.object({
   nftId: z.string(),
   nftMintAddress: z.string(),
