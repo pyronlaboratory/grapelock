@@ -3,13 +3,19 @@ import { Router } from 'express'
 import { errorResponse, successResponse } from '../lib/helpers.js'
 import { validate } from '../middlewares/validate.js'
 import { createOfferSchema, OfferResource } from '../types/offer.types.js'
-import { registerOffer } from '../services/offer.js'
+import { registerOffer, getAllOpenVerfifiedOffers } from '../services/offer.js'
 import { updateNFT } from '../services/nft.js'
 
 const router = Router()
 
-// TODO: Return all offers getOpenOffers()
-router.get('/', async (req, res) => {})
+router.get('/', async (req, res) => {
+  try {
+    const offers = await getAllOpenVerfifiedOffers()
+    res.status(200).json(successResponse({ data: offers }))
+  } catch (error) {
+    res.status(500).json(errorResponse('Error fetching offers', 'OFFERS_ERROR'))
+  }
+})
 
 router.post('/', validate(createOfferSchema), async (req, res) => {
   try {
