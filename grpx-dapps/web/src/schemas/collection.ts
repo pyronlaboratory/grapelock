@@ -2,7 +2,7 @@ import { z } from 'zod'
 export const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, {
   message: '_id must be a 24-char hex string',
 })
-export const collectionStatusEnum = z.enum(['pending', 'processing', 'completed', 'failed', 'archived'])
+export const collectionStatusEnum = z.enum(['pending', 'processing', 'published', 'failed', 'archived'])
 export const collectionSchema = z.object({
   _id: objectIdSchema, // from MongoDB
   collectionName: z.string(),
@@ -13,7 +13,8 @@ export const collectionSchema = z.object({
   creatorAddress: z.string(),
   sellerFeeBasisPoints: z.number().min(0).max(10000),
   maxSupply: z.number().min(0),
-  mintAddress: z.string().nullable().optional(), // collectionMint
+  destinationAddress: z.string().nullable().optional(),
+  mintAddress: z.string().nullable().optional(),
   metadataAddress: z.string().nullable().optional(),
   masterEditionAddress: z.string().nullable().optional(),
   status: collectionStatusEnum,
@@ -39,6 +40,6 @@ export const collectionsResponseSchema = z.object({
   success: z.boolean(),
   data: z.array(collectionSchema),
 })
-export type CollectionType = z.infer<typeof collectionSchema>
-export type CollectionStatusEnumType = z.infer<typeof collectionStatusEnum>
-export type CreateCollectionFormType = z.infer<typeof createCollectionFormSchema>
+export type CollectionResource = z.infer<typeof collectionSchema>
+export type CollectionStatus = z.infer<typeof collectionStatusEnum>
+export type CreateCollectionFormResource = z.infer<typeof createCollectionFormSchema>

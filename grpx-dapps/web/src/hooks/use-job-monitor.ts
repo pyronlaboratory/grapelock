@@ -33,10 +33,10 @@ export function useJobMonitor() {
     }
   }, [])
 
-  // Persist to localStorage
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs))
-  }, [jobs])
+  // // Persist to localStorage
+  // useEffect(() => {
+  //   localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs))
+  // }, [jobs])
 
   // Polling logic
   useEffect(() => {

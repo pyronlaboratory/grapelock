@@ -1,15 +1,22 @@
 import { Job } from 'bullmq'
 import { getApiContext } from '../../lib/context.js'
-import { confirmNFT, failNFT, getCollectionMintAddressForNFT, processNFT, updateNFT } from '../../services/nft.js'
+import {
+  mintNFT,
+  failNFT,
+  getCollectionMintAddressForNFT,
+  processNFT,
+  updateNFT,
+  dispatch,
+} from '../../services/nft.js'
 import { NFTResource } from '../../types/nft.types.js'
 import { prepareMetadata } from '../../services/metadata.js'
-import { dispatch } from '../../services/transactions.js'
 
 type JobResult = {
   status: 'success' | 'failed'
   jobId: string
   nftId?: string
   txSignature?: string
+  destinationAddress?: string
   mintAddress?: string
   metadataAddress?: string
   masterEditionAddress?: string
@@ -18,7 +25,7 @@ type JobResult = {
 
 const context = await getApiContext()
 
-export async function processMintingJob(job: Job<any, any, string>) {
+export async function processMintingJob(job: Job<any, any, string>): Promise<JobResult> {
   const { id, name, token, data } = job
   context.log.info(`⚙️ Executing ${name!} job | id: ${id!}`)
 
@@ -49,33 +56,33 @@ export async function processMintingJob(job: Job<any, any, string>) {
 
     // Write transaction on Solana
     const collectionMint = await getCollectionMintAddressForNFT(nft._id.toString())
-    const { mintAddress, metadataAddress, masterEditionAddress, txSignature } = await dispatch({
-      type: 'mint',
-      payload: {
-        name: nftName ?? '',
-        symbol: nftSymbol ?? '',
-        description: nftDescription ?? '',
-        uri: metadataUri ?? '',
-        sellerFeeBasisPoints: sellerFeeBasisPoints ?? 0,
-        collectionMintKey: collectionMint,
-      },
+    const { destinationAddress, mintAddress, metadataAddress, masterEditionAddress, txSignature } = await dispatch({
+      name: nftName ?? '',
+      symbol: nftSymbol ?? '',
+      description: nftDescription ?? '',
+      uri: metadataUri ?? '',
+      creatorAddress: nft.creatorAddress ?? '',
+      sellerFeeBasisPoints: sellerFeeBasisPoints ?? 0,
+      collectionMintAddress: collectionMint,
     })
     if (!txSignature) throw new Error('Minting transaction signature not found')
 
     // Update offchain records and logs
     await updateNFT(nft._id.toString(), {
+      destinationAddress,
       mintAddress,
       metadataAddress,
       masterEditionAddress,
       txSignature,
     })
-    await confirmNFT(nft._id.toString())
+    await mintNFT(nft._id.toString())
     context.log.info(`NFT minted successfully | job id: ${id}`)
     return {
       status: 'success',
       jobId: id!,
       nftId: nft._id.toString(),
       txSignature,
+      destinationAddress,
       mintAddress,
       metadataAddress,
       masterEditionAddress,
@@ -88,7 +95,7 @@ export async function processMintingJob(job: Job<any, any, string>) {
     return {
       status: 'failed',
       jobId: id!,
-      collectionId: nft?._id?.toString(),
+      nftId: nft?._id?.toString(),
       error: error.message || 'NFT job failed',
     }
   }

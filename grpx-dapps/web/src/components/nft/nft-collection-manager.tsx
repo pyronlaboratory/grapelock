@@ -1,42 +1,33 @@
 'use client'
-import { useState } from 'react'
-import { CollectionType } from '@/schemas/collection'
-import { CreateCollectionModal } from './nft-ui'
+import { useEffect, useState } from 'react'
+import { CollectionResource } from '@/schemas/collection'
+import { CreateCollectionModal, GetStarted } from './nft-ui'
 import { CollectionDetails } from './nft-collection-details'
-import { mockNFTs } from '@/lib/mocks'
 import { CollectionTable } from './data-table/nft-collection-table'
-
+import { useGetNFTs } from './nft-data-access'
+import { NFTResource } from '@/schemas/nft'
 interface NFTCollectionManagerProps {
-  collections: CollectionType[]
+  collections: CollectionResource[]
 }
 
 export function NFTCollectionManager({ collections }: NFTCollectionManagerProps) {
-  const [selectedCollection, setSelectedCollection] = useState<CollectionType | null>(null)
-
-  const getNFTsForCollection = (collectionId: string) => {
-    return mockNFTs[collectionId] || []
-  }
-
-  const handleViewCollection = (collection: CollectionType) => {
+  const [selectedCollection, setSelectedCollection] = useState<CollectionResource | null>(null)
+  const handleViewCollection = (collection: CollectionResource) => {
     setSelectedCollection(collection)
     window.scrollTo(0, 0)
   }
-
   const handleBackToCollections = () => {
     setSelectedCollection(null)
   }
 
+  if (collections.length === 0) return <GetStarted />
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-primary">Collections Manager</h1>
+      <h1 className="text-2xl font-bold text-primary">All Collections 📦</h1>
+      <h1 className="text-sm font-medium text-gray-500 mt-2">Manage your NFT collections</h1>
 
-      {/* consider adding separate views */}
       {selectedCollection ? (
-        <CollectionDetails
-          collection={selectedCollection!}
-          nfts={getNFTsForCollection(selectedCollection!?._id)}
-          onBack={handleBackToCollections}
-        />
+        <CollectionDetails collection={selectedCollection!} onBack={handleBackToCollections} />
       ) : (
         <div className="relative">
           <div className="absolute -top-16 right-0 rounded-xl">

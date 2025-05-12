@@ -1,6 +1,8 @@
-import React, { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useState } from 'react'
+'use client'
+import React, { ReactElement, useState } from 'react'
+import Link from 'next/link'
 import { useWalletUi } from '@wallet-ui/react'
-
+import { useGetNFTs } from './nft-data-access'
 import {
   Info,
   Flame,
@@ -14,32 +16,34 @@ import {
   XCircle,
   FileArchive,
   Loader2,
+  CalendarCheck2,
+  Copy,
+  ShieldCheck,
 } from 'lucide-react'
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge, badgeVariants } from '../ui/badge'
-import { VariantProps } from 'class-variance-authority'
-import { Card, CardDescription, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CollectionStatusEnumType, CollectionType } from '@/schemas/collection'
-import { DialogClose } from '../ui/dialog'
+import { motion } from 'framer-motion'
+import { QRCodeSVG } from 'qrcode.react'
 
-import { AppModal } from '../app-modal'
+import { getCollectionIdenticon, ellipsify, formatDate } from '@/lib/utils'
+import { CollectionStatus, CollectionResource } from '@/schemas/collection'
+import { NFTResource } from '@/schemas/nft'
 import { NFTCollectionForm } from './forms/nft-collection-form'
 import { NFTMintingForm } from './forms/nft-minting-form'
-import { getCollectionIdenticon, getRandomAvatar } from '@/lib/utils'
-import { motion } from 'framer-motion'
+
+import { AppModal } from '../app-modal'
+import { Button } from '@/components/ui/button'
+import { Badge, badgeVariants } from '@/components/ui/badge'
+import { DialogClose } from '@/components/ui/dialog'
+import { Card, CardContent } from '@/components/ui/card'
+import { VariantProps } from 'class-variance-authority'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface EmptyGridProps {
-  collection: CollectionType
+  collection: CollectionResource
 }
-interface NFTGridProps {
-  nfts: any //NFT[]
-}
-interface NFTCardProps {
-  nft: any //NFT
-}
+
 interface CollectionStatusBadgeProps {
-  status: CollectionStatusEnumType
+  status: CollectionStatus
 }
 const statusConfigMap = {
   pending: {
@@ -52,7 +56,7 @@ const statusConfigMap = {
     variant: 'processing',
     icon: <Loader2 className="size-3.5 animate-spin text-blue-800" />,
   },
-  completed: {
+  published: {
     label: 'Registered',
     variant: 'registered',
     icon: <CheckCircle className="size-3.5 text-yellow-800" />,
@@ -68,14 +72,52 @@ const statusConfigMap = {
     icon: <FileArchive className="size-3.5 text-gray-400" />,
   },
 } satisfies Record<
-  CollectionStatusEnumType,
+  CollectionStatus,
   {
     label: string
     variant: VariantProps<typeof badgeVariants>['variant']
     icon?: React.ReactNode
   }
 >
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleCopy}
+            className="p-2.5 rounded-md hover:bg-gray-100 dark:hover:bg-muted/80 transition-colors cursor-pointer"
+            aria-label="Copy to clipboard"
+          >
+            <Copy className="h-4 w-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{copied ? 'Copied!' : 'Copy to clipboard'}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}
+function AddressBox({ title, address }: { title: string; address: string }) {
+  return (
+    <div className="bg-gray-100 dark:bg-black rounded-lg p-4 mb-4 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between">
+        <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+        <CopyButton text={address} />
+      </div>
+      <code className="text-sm w-full py-2 rounded-md block truncate">{ellipsify(address)}</code>
+    </div>
+  )
+}
 export function GetStarted() {
   return (
     <div className="min-w-[350px] max-w-md md:max-w-lg w-auto mx-auto flex flex-col items-center justify-center px-8 py-8 relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-gradient-to-r from-background via-primary-foreground to-accent rounded-2xl h-[500px]">
@@ -224,7 +266,7 @@ export function CollectionStatusBadge({ status }: CollectionStatusBadgeProps) {
   )
 }
 // TODO: Refactor
-export function CollectionHeader({ collection }: { collection: CollectionType }) {
+export function CollectionHeader({ collection }: { collection: CollectionResource }) {
   return (
     <div className="bg-background/40 rounded-lg shadow overflow-hidden mb-8 border-accent border">
       <div className="relative h-64">
@@ -249,15 +291,129 @@ export function CollectionHeader({ collection }: { collection: CollectionType })
     </div>
   )
 }
+export function CollectionBanner({ collection }: { collection: CollectionResource }) {
+  return (
+    <div className="flex items-center justify-between mb-6 px-4">
+      <CollectionStatusBadge status={collection?.status} />
+      <div className="text-right">
+        <h3 className="text-sm font-medium text-gray-400">
+          <span>Last updated</span>
+        </h3>
+        <div className="text-sm flex flex-row items-center gap-2">
+          <CalendarCheck2 className="h-4 w-4" />
+          <p className="mt-1">{formatDate(collection?.createdAt)}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+export function CollectionData({ collection }: { collection: CollectionResource }) {
+  const { data: nfts = [], isLoading, error: nftsError } = useGetNFTs(collection._id)
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 md:gap-8 max-w-8xl mx-auto ">
+      <div className="col-span-1 mb-8">
+        <div className="flex flex-col gap-6 w-auto md:max-w-md mx-auto">
+          {/* Left column - Creator info and QR code */}
+          <div className="bg-sidebar border rounded-xl p-6 lg:col-span-1">
+            <div className="flex flex-col h-full">
+              <div>
+                <h3 className="text-sm font-medium">Creator</h3>
+                <div className="mt-3.5 flex items-center justify-between">
+                  <code className="text-sm bg-muted dark:bg-black w-full px-4 py-2 rounded-2xl text-center mr-2">
+                    {ellipsify(collection?.creatorAddress)}
+                  </code>
+                  <CopyButton text={collection?.creatorAddress || ''} />
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col items-center">
+                <QRCodeSVG
+                  value={`https://explorer.solana.com/address/${collection?.creatorAddress}?cluster=devnet`}
+                  size={300}
+                  level="Q"
+                  bgColor="#FFFFFF"
+                  fgColor="#000000"
+                  marginSize={2}
+                  title="View creator on Solana Explorer"
+                  className="rounded-xl shadow-sm "
+                />
+                <p className="mt-4 text-xs text-center text-gray-500">
+                  Scan to view this creator address on&nbsp;
+                  <a
+                    href={`https://explorer.solana.com/address/${collection?.creatorAddress}?cluster=devnet`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-primary hover:text-primary/80"
+                  >
+                    Solana Explorer
+                  </a>
+                </p>
+              </div>
+
+              <div className="mt-auto pt-6">
+                <Button size={'lg'} className="w-full bg-primary hover:bg-green-400 hover:text-green-900">
+                  <ShieldCheck />
+                  Transfer
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Middle column - Collection Details */}
+          <div className="bg-sidebar border rounded-xl p-6 h-fit pb-2">
+            <h2 className="text-sm font-semibold mb-4">Details</h2>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-muted dark:bg-black rounded-lg p-4 text-center">
+                <h3 className="text-sm font-medium text-gray-500">Seller Fee</h3>
+                <p className="mt-2 text-2xl font-semibold text-green-400">{collection?.sellerFeeBasisPoints / 100}%</p>
+              </div>
+
+              <div className="bg-muted dark:bg-black rounded-lg p-4 text-center">
+                <h3 className="text-sm font-medium text-gray-500">Max Supply</h3>
+                <p className="mt-2 text-2xl font-semibold text-green-400">
+                  {collection?.maxSupply === 0 ? '∞' : collection?.maxSupply?.toLocaleString()}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <AddressBox title="Signature" address={collection.txSignature || ''} />
+            </div>
+          </div>
+
+          {/* Right column - Account Details */}
+          <div className="bg-sidebar border rounded-xl p-6 h-fit pb-2">
+            <h2 className="text-sm font-semibold mb-4">Accounts</h2>
+
+            <div className="space-y-4">
+              {/* Compact address display */}
+              {[
+                { title: 'Mint Token', address: collection.mintAddress },
+                { title: 'Destination Token', address: collection.destinationAddress },
+                { title: 'Metadata', address: collection.metadataAddress },
+                { title: 'Master Edition', address: collection.masterEditionAddress },
+              ].map((item, index) => (
+                <AddressBox title={item.title} address={item.address || ''} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="col-span-2">
+        <CollectionGallery collection={collection} nfts={nfts} />
+        {isLoading && <div className="mt-4 text-center text-gray-500">Loading NFTs...</div>}
+      </div>
+    </div>
+  )
+}
 export function CollectionGallery({ nfts, collection }: any) {
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-secondary-background">Factory collection</h2>
-        <p className="text-gray-600">
-          {nfts.length
-            ? `Showing ${nfts.length} NFT${nfts.length !== 1 ? 's' : ''}`
-            : 'No NFTs found in this collection'}
+    <div className="px-2 max-w-6xl mx-auto">
+      <div className="mb-6 relative">
+        <p className="italic text-primary/80 text-sm">
+          {nfts.length ? `Showing ${nfts.length} NFT${nfts.length !== 1 ? 's' : ''} from the collection` : null}
         </p>
       </div>
 
@@ -265,91 +421,69 @@ export function CollectionGallery({ nfts, collection }: any) {
     </div>
   )
 }
-export function NFTGrid({ nfts }: NFTGridProps) {
+export function NFTGrid({ nfts }: { nfts: NFTResource[] }) {
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 2xl:grid-cols-3">
       {nfts.map((nft: any) => (
         <NFTCard key={nft._id} nft={nft} />
       ))}
     </div>
   )
 }
-export function NFTCard({ nft }: NFTCardProps) {
+export function NFTCard({ nft }: { nft: NFTResource }) {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'VERIFIED':
+      case 'minted':
         return 'secondary'
-      case 'MINTED':
+      case 'verified':
         return 'primary'
-      case 'MINTING':
+      case 'pending':
         return 'outline'
-      case 'FAILED':
+      case 'failed':
         return 'destructive'
+      case 'processing':
+        return 'processing'
       default:
         return 'default'
     }
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden transition duration-200 hover:shadow-md">
-      <div className="h-40 overflow-hidden">
-        <img
-          src={nft.image || getRandomAvatar()}
-          alt={nft.name}
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-        />
-      </div>
-      <div className="p-4">
-        <div className="flex justify-between items-start">
-          <h3 className="text-lg font-medium text-gray-900 truncate">{nft.name}</h3>
-          <Badge variant={getStatusBadgeVariant(nft.status)}>{nft.status}</Badge>
+    <div className="bg-primary-foreground rounded-lg shadow overflow-hidden transition duration-200 hover:shadow-md cursor-pointer">
+      <Link href={`/asset-manager/${nft._id}`}>
+        <div className="h-60 overflow-hidden">
+          <img
+            src={nft.nftMedia || getCollectionIdenticon(nft._id)}
+            alt={nft.nftName}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          />
         </div>
-        <p className="mt-1 text-sm text-gray-500 line-clamp-2">{nft.description || 'No description available'}</p>
-
-        {nft.attributes && nft.attributes.length > 0 && (
-          <div className="mt-3">
-            <h4 className="text-xs font-medium text-gray-500 uppercase">Attributes</h4>
-            <div className="mt-1 flex flex-wrap gap-2">
-              {nft.attributes.slice(0, 3).map(
-                (
-                  attr: {
-                    trait_type:
-                      | string
-                      | number
-                      | bigint
-                      | boolean
-                      | ReactElement<unknown, string | JSXElementConstructor<any>>
-                      | Iterable<ReactNode>
-                      | ReactPortal
-                      | Promise<
-                          | string
-                          | number
-                          | bigint
-                          | boolean
-                          | ReactPortal
-                          | ReactElement<unknown, string | JSXElementConstructor<any>>
-                          | Iterable<ReactNode>
-                          | null
-                          | undefined
-                        >
-                      | null
-                      | undefined
-                    value: any
-                  },
-                  index: Key | null | undefined,
-                ) => (
-                  <div key={index} className="px-2 py-1 bg-gray-100 rounded text-xs">
-                    <span className="font-medium">{attr.trait_type}:</span> {String(attr.value)}
-                  </div>
-                ),
-              )}
-              {nft.attributes.length > 3 && (
-                <div className="px-2 py-1 bg-gray-100 rounded text-xs">+{nft.attributes.length - 3} more</div>
-              )}
-            </div>
+        <div className="p-4">
+          <div className="flex justify-between items-start">
+            <h3 className="text-lg font-medium text-primary/80 truncate">{nft.nftName}</h3>
+            <Badge variant={getStatusBadgeVariant(nft.status)}>{nft.status}</Badge>
           </div>
-        )}
-      </div>
+          <p className="mt-4 text-sm text-primary/80 line-clamp-2">
+            {nft.nftDescription || 'No description available'}
+          </p>
+
+          {nft.nftAttributes && nft.nftAttributes.length > 0 && (
+            <div className="mt-3">
+              <h4 className="text-xs font-medium text-gray-500 uppercase">Attributes</h4>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {nft.nftAttributes.slice(0, 3).map((attribute, index) => (
+                  <div key={index} className="px-2 py-1 bg-gray-100 rounded text-xs">
+                    <span className="font-medium">{attribute?.trait_type}:</span> {String(attribute?.value)}
+                  </div>
+                ))}
+                {nft.nftAttributes.length > 3 && (
+                  <div className="px-2 py-1 bg-gray-100 rounded text-xs">+{nft.nftAttributes.length - 3} more</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </Link>
     </div>
   )
 }
@@ -487,848 +621,4 @@ export const DefaultContainer: React.FC = () => {
       <div className="rounded-md border-1 border-accent p-32">Filterable NFT Gallery with Pagination</div>
     </div>
   )
-}
-
-{
-  /* <FormLabel htmlFor="imageUpload">Media</FormLabel>
-                <div className="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg p-8 text-center">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <Upload className="h-8 w-8 text-gray-400" />
-                    <p className="text-sm text-gray-500">Drag & drop an image or click to browse</p>
-                    <p className="text-xs text-gray-400">Recommended: 1000×1000px, Max: 5MB</p>
-                    <Button variant="outline" size="sm" className="mt-2">
-                      Select File
-                    </Button>
-                  </div>
-                </div> */
-}
-{
-  /* <div className="flex items-center gap-3">
-          <div className="bg-purple-100 dark:bg-purple-950 p-2 rounded-lg">
-            <Wine className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">Wine NFT Registration</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {nftType === 'SINGLE' ? 'Individual Bottle Registration' : 'Collection Bundle Registration'}
-            </p>
-          </div>
-        </div> */
-}
-
-// import { Switch } from '@/components/ui/switch'
-// import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-// import { cn } from '@/lib/utils'
-// import { format } from 'date-fns'
-// import { Calendar } from '@/components/ui/calendar'
-// import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-
-// creatorAddress: '',
-// royaltyBasisPoints: 500, // 5%
-// productType: 'Wine Bottle',
-// serialNumber: '',
-// manufacturer: '',
-// manufactureDate: new Date(),
-// longitude: null,
-// latitude: null,
-// address: '',
-// length: null,
-// width: null,
-// height: null,
-// dimensionUnit: 'CM',
-// weight: null,
-// weightUnit: 'KG',
-// vintage: new Date().getFullYear() - 3,
-// grapeVariety: '',
-// region: '',
-// alcoholContent: null,
-// bottleSize: 'standard',
-// harvestDate: null,
-// bottlingDate: null,
-// agingDetails: '',
-// isOrganic: false,
-// isBiodynamic: false,
-// isSustainable: false,
-// chips: [],
-// sensors: [],
-
-// creatorAddress: z.string().min(1, 'Creator address is required'),
-// royaltyBasisPoints: z.number().min(0).max(10000),
-
-// // Physical Product
-// productType: z.string().min(1, 'Product type is required'),
-// serialNumber: z.string().min(1, 'Serial number is required'),
-// manufacturer: z.string().min(1, 'Manufacturer is required'),
-// manufactureDate: z.date(),
-
-// // Location
-// longitude: z.number().optional().nullable(),
-// latitude: z.number().optional().nullable(),
-// address: z.string().optional(),
-
-// // Dimensions
-// length: z.number().optional().nullable(),
-// width: z.number().optional().nullable(),
-// height: z.number().optional().nullable(),
-// dimensionUnit: z.string().optional(),
-
-// // Weight
-// weight: z.number().optional().nullable(),
-// weightUnit: z.string().optional(),
-
-// // Wine Specific
-// vintage: z.number().optional().nullable(),
-// grapeVariety: z.string().optional(),
-// region: z.string().optional(),
-// alcoholContent: z.number().optional().nullable(),
-// bottleSize: z.string().optional(),
-// harvestDate: z.date().optional().nullable(),
-// bottlingDate: z.date().optional().nullable(),
-// agingDetails: z.string().optional(),
-
-// // Certifications
-// isOrganic: z.boolean().optional().default(false),
-// isBiodynamic: z.boolean().optional().default(false),
-// isSustainable: z.boolean().optional().default(false),
-
-// // Tamper-Proof Chips
-// chips: z
-//   .array(
-//     z.object({
-//       chipId: z.string().min(1, 'Chip ID is required'),
-//       chipType: z.string().min(1, 'Chip type is required'),
-//       manufacturer: z.string().min(1, 'Manufacturer is required'),
-//       publicKey: z.string().optional(),
-//     }),
-//   )
-//   .optional()
-//   .default([]),
-
-// // Sensors
-// sensors: z
-//   .array(
-//     z.object({
-//       sensorId: z.string().min(1, 'Sensor ID is required'),
-//       sensorType: z.string().min(1, 'Sensor type is required'),
-//       manufacturer: z.string().min(1, 'Manufacturer is required'),
-//       model: z.string().optional(),
-//       minThreshold: z.number().optional().nullable(),
-//       maxThreshold: z.number().optional().nullable(),
-//       unit: z.string().optional(),
-//       reportingInterval: z.number().optional().nullable(),
-//     }),
-//   )
-//   .optional()
-//   .default([]),
-
-// const [chipStatus, setChipStatus] = useState('NOT_PAIRED')
-// const [sensorStatus, setSensorStatus] = useState('NOT_PAIRED')
-{
-  /* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Wine Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Reserve Cabernet Sauvignon" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="vintage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Vintage Year</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="1900"
-                          max="2099"
-                          placeholder="YYYY"
-                          //   {...field}
-                          onChange={(e) => field.onChange(e.target.value ? Number.parseInt(e.target.value) : null)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="manufacturer"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Winery/Producer</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Winery name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="serialNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bottle Serial Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Unique identifier" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="region"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Region/Appellation</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Napa Valley, Bordeaux" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="grapeVariety"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Primary Grape Variety</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value || 'cab_sauv'}>
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select grape variety" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="cab_sauv">Cabernet Sauvignon</SelectItem>
-                          <SelectItem value="merlot">Merlot</SelectItem>
-                          <SelectItem value="pinot_noir">Pinot Noir</SelectItem>
-                          <SelectItem value="chard">Chardonnay</SelectItem>
-                          <SelectItem value="sauv_blanc">Sauvignon Blanc</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="alcoholContent"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Alcohol Content (%)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="100"
-                          placeholder="e.g. 13.5"
-                          //   {...field}
-                          onChange={(e) => field.onChange(e.target.value ? Number.parseFloat(e.target.value) : null)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="bottleSize"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bottle Size</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value || 'standard'}>
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select bottle size" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="half">Half Bottle (375ml)</SelectItem>
-                          <SelectItem value="standard">Standard (750ml)</SelectItem>
-                          <SelectItem value="magnum">Magnum (1.5L)</SelectItem>
-                          <SelectItem value="double_magnum">Double Magnum (3L)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tasting Notes</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe the wine's aroma, flavor profile, etc."
-                        className="resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="harvestDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Harvest Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground',
-                              )}
-                            >
-                              {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value!} onSelect={field.onChange} initialFocus />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="bottlingDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Bottling Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground',
-                              )}
-                            >
-                              {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value!} onSelect={field.onChange} initialFocus />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="agingDetails"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Aging Details</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. 18 months in French oak barrels" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="space-y-2">
-                <FormLabel>Vineyard GPS Location</FormLabel>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="latitude"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            placeholder="Latitude"
-                            // {...field}
-                            onChange={(e) => field.onChange(e.target.value ? Number.parseFloat(e.target.value) : null)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="longitude"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            placeholder="Longitude"
-                            // {...field}
-                            onChange={(e) => field.onChange(e.target.value ? Number.parseFloat(e.target.value) : null)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <FormLabel>Certifications</FormLabel>
-                <div className="flex items-center space-x-4 mt-2">
-                  <FormField
-                    control={form.control}
-                    name="isOrganic"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                        <FormLabel className="cursor-pointer">Organic</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isBiodynamic"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                        <FormLabel className="cursor-pointer">Biodynamic</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isSustainable"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                        <FormLabel className="cursor-pointer">Sustainable</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div> */
-}
-// // Add a new chip
-// const addChip = () => {
-//   const currentChips = form.getValues('chips') || []
-//   form.setValue('chips', [...currentChips, { chipId: '', chipType: 'NFC', manufacturer: '', publicKey: '' }])
-//   setChipStatus('PAIRED')
-// }
-
-// // Remove a chip
-// const removeChip = (index: number) => {
-//   const currentChips = form.getValues('chips') || []
-//   form.setValue(
-//     'chips',
-//     currentChips.filter((_, i) => i !== index),
-//   )
-//   if (currentChips.length <= 1) {
-//     setChipStatus('NOT_PAIRED')
-//   }
-// }
-
-// // Add a new sensor
-// const addSensor = () => {
-//   const currentSensors = form.getValues('sensors') || []
-//   form.setValue('sensors', [
-//     ...currentSensors,
-//     {
-//       sensorId: '',
-//       sensorType: 'TEMPERATURE',
-//       manufacturer: '',
-//       model: '',
-//       minThreshold: null,
-//       maxThreshold: null,
-//       unit: 'CELSIUS',
-//       reportingInterval: 60,
-//     },
-//   ])
-//   setSensorStatus('PAIRED')
-// }
-
-// // Remove a sensor
-// const removeSensor = (index: number) => {
-//   const currentSensors = form.getValues('sensors') || []
-//   form.setValue(
-//     'sensors',
-//     currentSensors.filter((_, i) => i !== index),
-//   )
-//   if (currentSensors.length <= 1) {
-//     setSensorStatus('NOT_PAIRED')
-//   }
-// }
-
-{
-  /* <Badge
-            variant="outline"
-            className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-400 border-amber-200 dark:border-amber-800"
-          >
-            Preview Mode
-          </Badge> */
-}
-{
-  /* Verification Tab */
-}
-{
-  /* <TabsContent value="verification" className="space-y-6"> */
-}
-{
-  /* <Card> */
-}
-{
-  /* <CardHeader>
-                  <CardTitle>Tamper-Proof Chip</CardTitle>
-                  <CardDescription>Configure the NFC/RFID chip for product verification</CardDescription>
-                </CardHeader> */
-}
-{
-  /* <CardContent className="space-y-6">
-                  
-                </CardContent> */
-}
-{
-  /* </Card> */
-}
-{
-  /* <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-900">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`rounded-full w-3 h-3 ${chipStatus === 'PAIRED' ? 'bg-green-500' : 'bg-amber-500'}`}
-                  ></div>
-                  <div>
-                    <h3 className="font-medium">Chip Status: {chipStatus === 'PAIRED' ? 'Paired' : 'Not Paired'}</h3>
-                    <p className="text-sm text-gray-500">
-                      {chipStatus === 'PAIRED' ? 'Chip ID: TPC-2023-05040XR' : 'No chip paired with this product'}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => (chipStatus === 'PAIRED' ? setChipStatus('NOT_PAIRED') : addChip())}
-                >
-                  {chipStatus === 'PAIRED' ? 'Unpair' : 'Pair New Chip'}
-                </Button>
-              </div>
-
-              {chipStatus === 'PAIRED' ? (
-                <div className="grid grid-cols-1 gap-4">
-                  {form.watch('chips')?.map((_, index) => (
-                    <div key={index} className="space-y-4 p-4 border rounded-md">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-medium">Tamper-Proof Chip #{index + 1}</h4>
-                        <Button type="button" variant="ghost" size="sm" onClick={() => removeChip(index)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-
-                      <FormField
-                        control={form.control}
-                        name={`chips.${index}.chipType`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Chip Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select chip type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="NFC">NFC</SelectItem>
-                                <SelectItem value="RFID">RFID</SelectItem>
-                                <SelectItem value="BLE">Bluetooth Low Energy</SelectItem>
-                                <SelectItem value="QR">QR Code</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`chips.${index}.chipId`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Chip ID</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Unique chip identifier" {...field} defaultValue="TPC-2023-05040XR" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`chips.${index}.manufacturer`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Manufacturer</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Chip manufacturer" {...field} defaultValue="SecureWine Tech" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`chips.${index}.publicKey`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Public Key</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Chip's public key" {...field} defaultValue="0x7f9d8e2b5a3c1d6..." />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <Alert className="text-sm text-sidebar-accent border-sidebar-primary bg-blue-400/80 p-4 rounded-md">
-                  <Shield className="h-4 w-4" />
-                  <AlertTitle>Pairing Required</AlertTitle>
-                  <AlertDescription>
-                    Pair a tamper-proof chip to enable physical verification of your wine product.
-                  </AlertDescription>
-                </Alert>
-              )}
-              <Card>
-                <CardHeader>
-                  <CardTitle>IoT Sensors</CardTitle>
-                  <CardDescription>Attach sensors to monitor environmental conditions</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-900">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`rounded-full w-3 h-3 ${sensorStatus === 'PAIRED' ? 'bg-green-500' : 'bg-amber-500'}`}
-                      ></div>
-                      <div>
-                        <h3 className="font-medium">
-                          Sensor Status: {sensorStatus === 'PAIRED' ? 'Paired' : 'Not Paired'}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          {sensorStatus === 'PAIRED'
-                            ? 'Sensor ID: WS-TEMP-7845'
-                            : 'No sensors paired with this product'}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => (sensorStatus === 'PAIRED' ? setSensorStatus('NOT_PAIRED') : addSensor())}
-                    >
-                      {sensorStatus === 'PAIRED' ? 'Unpair' : 'Pair New Sensor'}
-                    </Button>
-                  </div>
-
-                  {sensorStatus === 'PAIRED' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      {form.watch('sensors')?.map((_, index) => (
-                        <div key={index} className="space-y-4 p-4 border rounded-md">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium">Sensor #{index + 1}</h4>
-                            <Button type="button" variant="ghost" size="sm" onClick={() => removeSensor(index)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-
-                          <FormField
-                            control={form.control}
-                            name={`sensors.${index}.sensorType`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Sensor Type</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select sensor type" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="TEMPERATURE">Temperature</SelectItem>
-                                    <SelectItem value="HUMIDITY">Humidity</SelectItem>
-                                    <SelectItem value="LIGHT">Light/UV</SelectItem>
-                                    <SelectItem value="SHOCK">Shock/Vibration</SelectItem>
-                                    <SelectItem value="MULTI">Multi-sensor</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name={`sensors.${index}.sensorId`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Sensor ID</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Unique sensor identifier"
-                                    {...field}
-                                    defaultValue="WS-TEMP-7845"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name={`sensors.${index}.reportingInterval`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Reporting Interval (minutes)</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    placeholder="60"
-                                    // {...field}
-                                    onChange={(e) =>
-                                      field.onChange(e.target.value ? Number.parseInt(e.target.value) : null)
-                                    }
-                                    defaultValue="60"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <div className="space-y-2">
-                            <FormLabel>Alert Thresholds</FormLabel>
-                            <div className="grid grid-cols-3 gap-4">
-                              <FormField
-                                control={form.control}
-                                name={`sensors.${index}.minThreshold`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel className="text-xs">Min Temp (°C)</FormLabel>
-                                    <FormControl>
-                                      <Input
-                                        type="number"
-                                        placeholder="10"
-                                        // {...field}
-                                        onChange={(e) =>
-                                          field.onChange(e.target.value ? Number.parseFloat(e.target.value) : null)
-                                        }
-                                        defaultValue="10"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
-                                name={`sensors.${index}.maxThreshold`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel className="text-xs">Max Temp (°C)</FormLabel>
-                                    <FormControl>
-                                      <Input
-                                        type="number"
-                                        placeholder="18"
-                                        // {...field}
-                                        onChange={(e) =>
-                                          field.onChange(e.target.value ? Number.parseFloat(e.target.value) : null)
-                                        }
-                                        defaultValue="18"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
-                                name={`sensors.${index}.unit`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel className="text-xs">Unit</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value || 'CELSIUS'}>
-                                      <FormControl>
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Unit" />
-                                        </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                        <SelectItem value="CELSIUS">Celsius</SelectItem>
-                                        <SelectItem value="FAHRENHEIT">Fahrenheit</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card> */
-}
-{
-  /* </TabsContent> */
-}
-
-{
-  /* NFT Metadata Tab */
 }

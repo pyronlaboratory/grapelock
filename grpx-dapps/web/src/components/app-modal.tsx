@@ -20,7 +20,7 @@ export function AppModal({
   title: string | ReactNode
   submit?: () => void
   submitDisabled?: boolean
-  submitLabel?: string
+  submitLabel?: string | ReactNode
   classes?: string
   shineEffect?: boolean
   size?: 'sm' | 'lg' | 'default' | 'icon' | null | undefined

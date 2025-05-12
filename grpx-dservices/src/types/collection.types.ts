@@ -3,7 +3,7 @@ import { Types } from 'mongoose'
 export const objectIdSchema = z.custom<Types.ObjectId>((val) => val instanceof Types.ObjectId, {
   message: '_id must be a MongoDB ObjectId',
 })
-export const collectionStatus = z.enum(['pending', 'processing', 'completed', 'failed', 'archived'])
+export const collectionStatus = z.enum(['pending', 'processing', 'published', 'failed', 'archived'])
 export const collectionSchema = z.object({
   _id: objectIdSchema, // from MongoDB
   collectionName: z.string(),
@@ -14,6 +14,7 @@ export const collectionSchema = z.object({
   creatorAddress: z.string(),
   sellerFeeBasisPoints: z.number().min(0).max(10000),
   maxSupply: z.number().min(0),
+  destinationAddress: z.string().nullable().optional(),
   mintAddress: z.string().nullable().optional(),
   metadataAddress: z.string().nullable().optional(),
   masterEditionAddress: z.string().nullable().optional(),

@@ -1,3 +1,4 @@
+'use client'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -60,7 +61,7 @@ export function NFTMintingForm({ data, onSuccess }: { data?: Object | null; onSu
       creatorAddress: wallet.publicKey?.toBase58() ?? '',
       sellerFeeBasisPoints: 50,
       maxSupply: 0,
-      collectionId: data?.toString() || '',
+      collectionId: data?.toString(),
     },
   })
   const nftType = form.watch('nftType')

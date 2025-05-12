@@ -68,17 +68,19 @@ export const nftSchema = z.object({
   batchSize: z.number().optional().nullable(),
   batchType: z.string().optional().nullable(),
   collectionId: objectIdSchema,
-  creatorAddress: z.string().optional(),
+  creatorAddress: z.string(),
   sellerFeeBasisPoints: z.number().min(0).max(10000),
   maxSupply: z.number().min(0),
   status: nftStatusEnum,
+  destinationAddress: z.string().nullable().optional(),
   mintAddress: z.string().nullable().optional(),
   metadataAddress: z.string().nullable().optional(),
   masterEditionAddress: z.string().nullable().optional(),
   txSignature: z.string().nullable().optional(),
   errorMessage: z.string().nullable().optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()),
+  __v: z.number().optional(),
 })
 export const nftPhysicalAssetSchema = z.object({
   _id: objectIdSchema,
@@ -117,8 +119,9 @@ export const nftPhysicalAssetSchema = z.object({
   }),
   status: nftPhysicalAssetStatusEnum,
   containedItems: z.array(objectIdSchema).optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()),
+  __v: z.number().optional(),
 })
 export const nftTagSchema = z.object({
   _id: objectIdSchema,
@@ -140,8 +143,9 @@ export const nftTagSchema = z.object({
       }),
     )
     .optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()),
+  __v: z.number().optional(),
 })
 export const nftBeaconSchema = z.object({
   _id: objectIdSchema,
@@ -166,8 +170,9 @@ export const nftBeaconSchema = z.object({
     longitude: z.number(),
     latitude: z.number(),
   }),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()),
+  __v: z.number().optional(),
 })
 export const nftBeaconReadingSchema = z.object({
   _id: objectIdSchema,
@@ -184,7 +189,9 @@ export const nftBeaconReadingSchema = z.object({
     latitude: z.number(),
   }),
   metadata: z.record(z.any()).optional(),
-  createdAt: z.date(),
+  createdAt: z.string().or(z.date()),
+  updatedAt: z.string().or(z.date()),
+  __v: z.number().optional(),
 })
 
 export const mintNFTSchema = z.object({
@@ -207,7 +214,7 @@ export const mintNFTSchema = z.object({
   batchSize: z.number().optional().nullable(),
   batchType: z.string().optional().nullable(),
   collectionId: z.string().optional(),
-  creatorAddress: z.string().optional(),
+  creatorAddress: z.string(),
   sellerFeeBasisPoints: z.coerce.number().min(0).max(10000, 'Fee must be between 0 and 10000 basis points'),
   maxSupply: z.coerce.number().min(0, 'Max supply must be 0 or greater'),
 })
@@ -220,3 +227,9 @@ export type NFTTagResource = z.infer<typeof nftTagSchema>
 export type NFTBeaconResource = z.infer<typeof nftBeaconSchema>
 export type NFTBeaconReadingResource = z.infer<typeof nftBeaconReadingSchema>
 export type MintNFTResource = z.infer<typeof mintNFTSchema>
+
+export interface FullNFTResource extends NFTResource {
+  physicalAsset?: NFTPhysicalAssetResource | null
+  tags?: NFTTagResource[]
+  beacons?: (NFTBeaconResource & { readings?: NFTBeaconReadingResource[] })[]
+}

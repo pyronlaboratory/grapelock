@@ -2,17 +2,22 @@
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { redirect, usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function ConnectedLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { publicKey } = useWallet()
+  const { publicKey, connecting, connected } = useWallet()
   const pathname = usePathname()
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    if (!publicKey) {
+    setHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (hydrated && !publicKey && !connecting && !connected) {
       redirect('/')
     }
-  }, [publicKey, pathname])
+  }, [hydrated, publicKey, connecting, connected, pathname])
 
   return <DashboardLayout>{children}</DashboardLayout>
 }

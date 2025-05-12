@@ -1,7 +1,7 @@
+pub mod audit;
 pub mod create;
 pub mod mint;
-pub mod verify;
 
+pub use audit::*;
 pub use create::*;
 pub use mint::*;
-pub use verify::*;

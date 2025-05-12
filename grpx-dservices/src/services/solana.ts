@@ -1,6 +1,9 @@
 import { LRUCache } from 'lru-cache'
 import { Blockhash, assertIsAddress, getMonikerFromGenesisHash, lamportsToSol } from 'gill'
 import { ApiContext } from '../lib/context.js'
+import { PublicKey } from '@solana/web3.js'
+
+export const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
 export async function getSolanaCluster({ client }: ApiContext) {
   const genesis = await client.rpc.getGenesisHash().send()
@@ -46,4 +49,18 @@ export async function getSolanaBalance({ client }: ApiContext, address: string) 
     address,
     balance: `${lamportsToSol(balance)} SOL`,
   }
+}
+
+// Metadata and Master edition accounts
+export const getMetadata = async (mint: PublicKey): Promise<PublicKey> => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    TOKEN_METADATA_PROGRAM_ID,
+  )[0]
+}
+export const getMasterEdition = async (mint: PublicKey): Promise<PublicKey> => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer(), Buffer.from('edition')],
+    TOKEN_METADATA_PROGRAM_ID,
+  )[0]
 }

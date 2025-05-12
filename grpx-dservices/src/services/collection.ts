@@ -3,12 +3,21 @@ import { Collection } from '../models/collection.js'
 import { CollectionResource, CreateCollectionResource } from '../types/collection.types.js'
 import { getApiContext } from '../lib/context.js'
 
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'
+import { TOKEN_METADATA_PROGRAM_ID, getMasterEdition, getMetadata } from './solana.js'
+import { PublicKey, Keypair, SystemProgram, Connection } from '@solana/web3.js'
+import { AnchorProvider, Program, setProvider, Wallet } from '@coral-xyz/anchor'
+import { GrpxDprotocols } from '../bridge/grpx_dprotocols.js'
+
+import { loadKeypair } from '../lib/utils.js'
+import path from 'path'
+
+const IDL = require('../bridge/grpx_dprotocols.json')
 const context = await getApiContext()
 
-export async function getCollection(publicKey: string) {
+export async function getCollections(publicKey: string) {
   return await Collection.find({ creatorAddress: publicKey }).lean()
 }
-
 export async function registerCollection(payload: CreateCollectionResource): Promise<CollectionResource> {
   try {
     const now = new Date()
@@ -63,14 +72,14 @@ export async function updateCollection(id: string, updates: Partial<CollectionRe
     throw new Error('Failed to update collection data')
   }
 }
-export async function confirmCollection(id: string) {
+export async function publishCollection(id: string) {
   try {
     await Collection.findByIdAndUpdate(id, {
-      status: 'completed',
+      status: 'published',
       updatedAt: new Date(),
     })
   } catch (error: any) {
-    context.log.error('Error marking collection as completed:', error)
+    context.log.error('Error marking collection as published:', error)
     throw new Error('Failed to confirm collection')
   }
 }
@@ -88,4 +97,103 @@ export async function failCollection(id: string, message: string) {
 }
 export async function deleteCollection() {
   // change status to archived in MongoDB
+}
+
+// Write to solana block
+export async function dispatch({
+  name,
+  symbol,
+  description,
+  uri,
+  sellerFeeBasisPoints,
+}: {
+  name: string
+  symbol: string
+  description: string
+  uri: string
+  sellerFeeBasisPoints: number
+}): Promise<{
+  destinationAddress: string
+  mintAddress: string
+  metadataAddress: string
+  masterEditionAddress: string
+  txSignature: string
+}> {
+  try {
+    const connection = new Connection(process.env.RPC_URL!, 'confirmed')
+
+    const walletKeypair = loadKeypair(path.resolve(process.env.SOLANA_SIGNER_PATH!))
+    const wallet: Wallet = new Wallet(walletKeypair)
+
+    // Request airdrop if balance is low or account has no transaction history
+    const balance = await connection.getBalance(wallet.publicKey)
+    const transactionHistory = await connection.getSignaturesForAddress(wallet.publicKey)
+
+    if (balance < 1_000_000 || transactionHistory.length === 0) {
+      context.log.info(`Requesting airdrop for ${wallet.publicKey.toBase58()}`)
+      try {
+        const airdropSig = await connection.requestAirdrop(wallet.publicKey, 1_000_000_000) // 1 SOL
+        await connection.confirmTransaction(airdropSig, 'confirmed')
+        context.log.info(`Airdrop successful: ${airdropSig}`)
+      } catch (airdropErr) {
+        context.log.error('Airdrop failed or not supported on current network:', airdropErr)
+      }
+    }
+
+    // Provider and program
+    const provider = new AnchorProvider(connection, wallet, { commitment: 'confirmed' })
+    setProvider(provider)
+
+    const program: Program<GrpxDprotocols> = new Program<GrpxDprotocols>(IDL, provider)
+
+    // Minting keys and authority
+    const mint = Keypair.generate()
+    const mintAuthority = PublicKey.findProgramAddressSync([Buffer.from('authority')], program.programId)[0]
+
+    const metadata = await getMetadata(mint.publicKey)
+    context.log.info(`🥹 ${JSON.stringify({ metadata })}`)
+
+    const masterEdition = await getMasterEdition(mint.publicKey)
+    context.log.info(`🤩 ${JSON.stringify({ masterEdition })}`)
+
+    const destination = getAssociatedTokenAddressSync(mint.publicKey, wallet.payer.publicKey)
+    context.log.info(`💳 ${JSON.stringify({ destination })}`)
+
+    const tx = await program.methods
+      .create({
+        name,
+        symbol,
+        description,
+        uri,
+        sellerFeeBasisPoints,
+      })
+      .accountsPartial({
+        owner: context.signer.address,
+        mint: mint.publicKey,
+        mintAuthority,
+        metadata,
+        masterEdition,
+        destination,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+      })
+      .signers([mint])
+      .rpc({
+        skipPreflight: false,
+        commitment: 'confirmed',
+      })
+    context.log.info(`🔑 ${JSON.stringify({ tx })}`)
+    return {
+      destinationAddress: destination.toBase58(),
+      mintAddress: mint.publicKey.toBase58(),
+      metadataAddress: metadata.toBase58(),
+      masterEditionAddress: masterEdition.toBase58(),
+      txSignature: tx,
+    }
+  } catch (error: any) {
+    context.log.error('Error writing to Solana:', error)
+    throw new Error('Solana transaction failed')
+  }
 }

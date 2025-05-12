@@ -1,3 +1,4 @@
+'use client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -9,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useJobMonitor } from '@/hooks/use-job-monitor'
 import api, { ApiResponse } from '@/lib/api'
-import { CollectionType, createCollectionFormSchema, CreateCollectionFormType } from '@/schemas/collection'
+import { CollectionResource, createCollectionFormSchema, CreateCollectionFormResource } from '@/schemas/collection'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { Check, ChevronLeft, ChevronRight, Info, Loader2 } from 'lucide-react'
@@ -31,7 +32,7 @@ export function NFTCollectionForm({ onSuccess }: { onSuccess?: () => void }) {
     e?.preventDefault()
     if (activeTab === 'minting') setActiveTab('metadata')
   }
-  const form = useForm<CreateCollectionFormType>({
+  const form = useForm<CreateCollectionFormResource>({
     resolver: zodResolver(createCollectionFormSchema),
     mode: 'onChange',
     criteriaMode: 'all',
@@ -45,14 +46,14 @@ export function NFTCollectionForm({ onSuccess }: { onSuccess?: () => void }) {
       maxSupply: 0,
     },
   })
-  async function onSubmit(formData: CreateCollectionFormType) {
+  async function onSubmit(formData: CreateCollectionFormResource) {
     setIsSubmitting(true)
     console.log('Form submitted:', JSON.stringify(formData))
 
     try {
       const response = await api<
         ApiResponse<{
-          data: CollectionType
+          data: CollectionResource
           jobId: string
           jobStatus: 'queued' | 'processing' | 'success' | 'failed'
         }>
@@ -73,7 +74,7 @@ export function NFTCollectionForm({ onSuccess }: { onSuccess?: () => void }) {
       setIsSubmitting(false)
     }
   }
-
+  console.log(form.watch('collectionMedia'))
   return (
     <Card className="w-full md:w-xl">
       <CardHeader>
@@ -179,7 +180,7 @@ export function NFTCollectionForm({ onSuccess }: { onSuccess?: () => void }) {
 
                             <FormUploadField
                               wallet={wallet}
-                              value={field.value ?? ''}
+                              value={field.value || ''}
                               onChange={field.onChange}
                               onBlur={field.onBlur}
                               error={!!form.formState.errors.collectionMedia}

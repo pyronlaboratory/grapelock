@@ -3,6 +3,7 @@ import { twMerge } from 'tailwind-merge'
 
 import { WebUploader } from '@irys/web-upload'
 import { WebSolana } from '@irys/web-upload-solana'
+import { Wallet } from '@coral-xyz/anchor'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -34,9 +35,13 @@ export function getCollectionIdenticon(seed: string) {
 }
 
 // Function to upload file to Irys and return the URI
-export const uploadToIrys = async (file: File, wallet: any) => {
+export const uploadToIrys = async (file: File, wallet: Wallet) => {
   try {
+    if (!wallet || !wallet.publicKey || !wallet.signTransaction) {
+      throw new Error('Wallet is not properly connected')
+    }
     const irysUploader = await getIrysUploader(wallet)
+
     const uploadedUri = await irysUploader.uploadFile(file)
     return uploadedUri
   } catch (error) {
@@ -53,7 +58,8 @@ export async function getIrysUploader(wallet: any) {
   }
 
   try {
-    const irysUploader = await WebUploader(WebSolana).withProvider(wallet)
+    const irysUploader = await WebUploader(WebSolana).withProvider(wallet).withRpc('https://api.devnet.solana.com')
+
     return irysUploader
   } catch (error) {
     console.error('Error connecting to Irys:', error)

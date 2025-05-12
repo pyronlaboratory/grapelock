@@ -19,7 +19,7 @@ const builder = new Worker(
   { connection: { url: redisConnection } },
 )
 const workerId = builder.id || `worker-${Math.random().toString(36).substring(7)}`
-context.log.info(`🔥 Worker ${workerId} is ready to pick jobs on the 'collection_queue'`)
+context.log.info(`🔥 Worker ${workerId} is ready to pick jobs from 'collection_queue'`)
 
 // Forger - Worker for managing NFT minting
 const forger = new Worker(
@@ -30,7 +30,7 @@ const forger = new Worker(
   { connection: { url: redisConnection } },
 )
 const forgerId = forger.id || `worker-${Math.random().toString(36).substring(7)}`
-context.log.info(`🔥 Worker ${forgerId} is ready to pick jobs on the 'collection_queue'`)
+context.log.info(`🔥 Worker ${forgerId} is ready to pick jobs from 'nft_queue'`)
 
 // Event listeners
 builder.on('completed', (job) => {
@@ -39,7 +39,6 @@ builder.on('completed', (job) => {
 builder.on('failed', (job, err) => {
   context.log.error(`Job ${job?.id} failed:`, err)
 })
-
 forger.on('completed', (job) => {
   context.log.info(`Job ${job.id} completed`)
 })

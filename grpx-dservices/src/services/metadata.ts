@@ -4,6 +4,7 @@ export interface TokenMetadata {
   name: string
   description: string
   image: string
+  category: 'image'
   animation_url: string
   external_url: string
   attributes: Array<{
@@ -14,6 +15,7 @@ export interface TokenMetadata {
     files: Array<{
       uri: string
       type: string
+      cdn: boolean
     }>
   }
   symbol?: string
@@ -22,6 +24,7 @@ const context = await getApiContext()
 
 export async function prepareMetadata({
   name,
+  symbol,
   description,
   image,
   animationUrl,
@@ -29,6 +32,7 @@ export async function prepareMetadata({
   attributes,
 }: {
   name: string
+  symbol: string
   description: string
   image: string
   animationUrl?: string
@@ -37,8 +41,10 @@ export async function prepareMetadata({
 }): Promise<string> {
   const _metadata: TokenMetadata = {
     name: name,
+    symbol: symbol,
     description: description,
     image: image,
+    category: 'image',
     animation_url: animationUrl || '',
     external_url: externalUrl || '',
     attributes: attributes || [],
@@ -47,12 +53,14 @@ export async function prepareMetadata({
         {
           uri: image,
           type: 'image/png',
+          cdn: true,
         },
         ...(animationUrl
           ? [
               {
                 uri: animationUrl,
                 type: 'video/mp4',
+                cdn: true,
               },
             ]
           : []),

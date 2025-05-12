@@ -17,7 +17,7 @@ export default function ErrorScreen({
   details = '500: Horrible technical reasoning.. ',
 }: ErrorScreenProps) {
   return (
-    <div className="min-h-11/12 bg-background flex items-center justify-center p-4">
+    <div className="min-h-[75vh] bg-background flex items-center justify-center p-4">
       <div className="flex flex-col items-center text-center gap-4">
         <span className="text-7xl font-semibold text-primary">👾</span>
         <h1 className="text-3xl font-semibold text-primary">{status ? `Error ${status}` : title}</h1>
