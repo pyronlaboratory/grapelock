@@ -4,7 +4,7 @@
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "postinstall": "zx prepare.mjs",
-    "test:localnet": "RUST_BACKTRACE=1 env-cmd -f .env.localnet anchor test --skip-deploy --skip-local-validator",
+    "test:localnet": "RUST_BACKTRACE=1 env-cmd -f .env.localnet anchor test --provider.cluster localnet --skip-deploy --skip-local-validator",
     "test:devnet": "RUST_BACKTRACE=1 env-cmd -f .env.devnet anchor test --skip-deploy"
   },
   "dependencies": {

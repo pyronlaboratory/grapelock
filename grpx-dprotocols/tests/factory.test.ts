@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 
 import { AnchorProvider, Program, setProvider, Wallet, web3 } from '@coral-xyz/anchor'
-import { PublicKey, Keypair, SystemProgram, Connection, Cluster } from '@solana/web3.js'
+import { PublicKey, Keypair, SystemProgram, Connection, Cluster, SYSVAR_INSTRUCTIONS_PUBKEY } from '@solana/web3.js'
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'
 import { ASSOCIATED_PROGRAM_ID } from '@coral-xyz/anchor/dist/cjs/utils/token'
 import { GrpxDprotocols } from '../target/types/grpx_dprotocols'
@@ -25,7 +25,6 @@ const loadKeypair = (filename: string): Keypair => {
   return Keypair.fromSecretKey(new Uint8Array(keypairData))
 }
 
-// local testing using bankrun
 describe('grpx-protocols/factory', async () => {
   let connection: Connection
   let wallet: Wallet | NodeWallet
@@ -35,6 +34,19 @@ describe('grpx-protocols/factory', async () => {
   let mintAuthority: PublicKey
   let collectionMint: Keypair
   let mint: Keypair
+
+  const getMetadata = async (mint: PublicKey): Promise<PublicKey> => {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+      TOKEN_METADATA_PROGRAM_ID,
+    )[0]
+  }
+  const getMasterEdition = async (mint: PublicKey): Promise<PublicKey> => {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer(), Buffer.from('edition')],
+      TOKEN_METADATA_PROGRAM_ID,
+    )[0]
+  }
 
   before(async () => {
     const CLUSTER = process.env.CLUSTER
@@ -52,7 +64,7 @@ describe('grpx-protocols/factory', async () => {
       program = new Program<GrpxDprotocols>(IDL, provider)
     } else {
       console.log('Connecting to ', process.env.RPC_URL)
-      connection = new Connection(process.env.RPC_URL!, 'confirmed') // new Connection(clusterApiUrl('devnet'), 'confirmed')
+      connection = new Connection(process.env.RPC_URL!, 'confirmed')
       const walletKeypair = loadKeypair(path.resolve(process.env.HOME || '', '.config/solana/id.json'))
       wallet = new Wallet(walletKeypair)
       provider = new AnchorProvider(connection, wallet, {
@@ -78,27 +90,11 @@ describe('grpx-protocols/factory', async () => {
         connection.requestAirdrop(wallet.publicKey, lamportsNeeded),
       ])
       await connection.confirmTransaction({ signature: airdropSig, ...latestBlockhash }, 'confirmed')
-
-      //   const airdropSig = await connection.requestAirdrop(wallet.publicKey, lamportsNeeded)
-      //   await connection.confirmTransaction(airdropSig, 'confirmed')
       console.log('Airdrop completed.')
     }
   })
 
-  const getMetadata = async (mint: PublicKey): Promise<PublicKey> => {
-    return PublicKey.findProgramAddressSync(
-      [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-      TOKEN_METADATA_PROGRAM_ID,
-    )[0]
-  }
-  const getMasterEdition = async (mint: PublicKey): Promise<PublicKey> => {
-    return PublicKey.findProgramAddressSync(
-      [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer(), Buffer.from('edition')],
-      TOKEN_METADATA_PROGRAM_ID,
-    )[0]
-  }
-
-  it('Create NFT Collection', async () => {
+  it('ForgeCollection', async () => {
     console.log('Collection Mint Key: ', collectionMint.publicKey.toBase58())
 
     const metadata = await getMetadata(collectionMint.publicKey)
@@ -149,7 +145,7 @@ describe('grpx-protocols/factory', async () => {
     }
   })
 
-  it('Mint NFT Collection', async () => {
+  it('MintNFT', async () => {
     console.log('Mint Key: ', mint.publicKey.toBase58())
 
     const metadata = await getMetadata(mint.publicKey)
@@ -191,5 +187,35 @@ describe('grpx-protocols/factory', async () => {
       })
     console.log('\nNFT Minted! Your transaction signature', tx)
     console.table(tx)
+  })
+
+  it('AuditCollection', async () => {
+    const mintMetadata = await getMetadata(mint.publicKey)
+    console.log('\nMint Metadata', mintMetadata.toBase58())
+
+    const collectionMetadata = await getMetadata(collectionMint.publicKey)
+    console.log('Collection Metadata', collectionMetadata.toBase58())
+
+    const collectionMasterEdition = await getMasterEdition(collectionMint.publicKey)
+    console.log('Collection Master Edition', collectionMasterEdition.toBase58())
+
+    const tx = await program.methods
+      .verify()
+      .accountsPartial({
+        authority: wallet.publicKey,
+        metadata: mintMetadata,
+        mint: mint.publicKey,
+        mintAuthority,
+        collectionMint: collectionMint.publicKey,
+        collectionMetadata,
+        collectionMasterEdition,
+        systemProgram: SystemProgram.programId,
+        sysvarInstruction: SYSVAR_INSTRUCTIONS_PUBKEY,
+        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+      })
+      .rpc({
+        skipPreflight: true,
+      })
+    console.log('\nCollection Verified! Your transaction signature', tx)
   })
 })

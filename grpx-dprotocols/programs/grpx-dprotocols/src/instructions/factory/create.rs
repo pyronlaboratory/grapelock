@@ -1,3 +1,4 @@
+use crate::instructions::shared::MetadataArgs;
 use anchor_lang::prelude::*;
 use anchor_spl::metadata::mpl_token_metadata::{
     instructions::{
@@ -12,10 +13,8 @@ use anchor_spl::{
     metadata::Metadata,
     token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
-
-use crate::instructions::shared::MetadataArgs;
 #[derive(Accounts)]
-pub struct CreateCollectionNFT<'info> {
+pub struct ForgeCollection<'info> {
     #[account(mut)]
     owner: Signer<'info>,
     #[account(
@@ -51,10 +50,10 @@ pub struct CreateCollectionNFT<'info> {
     token_metadata_program: Program<'info, Metadata>,
 }
 
-impl<'info> CreateCollectionNFT<'info> {
+impl<'info> ForgeCollection<'info> {
     pub fn create(
         &mut self,
-        bumps: &CreateCollectionNFTBumps,
+        bumps: &ForgeCollectionBumps,
         metadata_args: MetadataArgs,
     ) -> Result<()> {
         let metadata = &self.metadata.to_account_info();

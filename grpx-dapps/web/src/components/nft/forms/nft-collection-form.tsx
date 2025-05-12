@@ -74,7 +74,7 @@ export function NFTCollectionForm({ onSuccess }: { onSuccess?: () => void }) {
       setIsSubmitting(false)
     }
   }
-
+  console.log(form.watch('collectionMedia'))
   return (
     <Card className="w-full md:w-xl">
       <CardHeader>
@@ -180,7 +180,7 @@ export function NFTCollectionForm({ onSuccess }: { onSuccess?: () => void }) {
 
                             <FormUploadField
                               wallet={wallet}
-                              value={field.value ?? ''}
+                              value={field.value || ''}
                               onChange={field.onChange}
                               onBlur={field.onBlur}
                               error={!!form.formState.errors.collectionMedia}

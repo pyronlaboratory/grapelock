@@ -1,21 +1,26 @@
+use crate::{error::GrpxProtocolError, Offer, OfferStatus};
 use anchor_lang::prelude::*;
-
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
-        close_account, CloseAccount, Mint, TokenAccount, TokenInterface, TransferChecked,
+        close_account, transfer_checked, CloseAccount, Mint, TokenAccount, TokenInterface,
+        TransferChecked,
     },
 };
 
-use crate::{error::GrpxProtocolError, Offer, OfferStatus};
-
 #[derive(Accounts)]
-pub struct RefundRequest<'info> {
+pub struct RefundOffer<'info> {
     #[account(mut)]
-    pub taker: Signer<'info>,
+    pub producer: SystemAccount<'info>,
 
     #[account(mut)]
-    pub maker: SystemAccount<'info>,
+    pub consumer: SystemAccount<'info>,
+
+    #[account(mut, constraint = (
+        initiator.key() == producer.key() || 
+        initiator.key() == consumer.key()
+    ) @ GrpxProtocolError::UnauthorizedRefund)]
+    pub initiator: Signer<'info>,
 
     pub token_mint_a: InterfaceAccount<'info, Mint>,
 
@@ -24,30 +29,38 @@ pub struct RefundRequest<'info> {
     #[account(
         mut,
         associated_token::mint = token_mint_a,
-        associated_token::authority = maker,
+        associated_token::authority = producer,
         associated_token::token_program = token_program,
     )]
-    pub maker_token_account_a: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub producer_token_account_a: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         mut,
         associated_token::mint = token_mint_b,
-        associated_token::authority = taker,
+        associated_token::authority = consumer,
         associated_token::token_program = token_program,
     )]
-    pub taker_token_account_b: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub consumer_token_account_b: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         mut,
-        has_one = maker,
+        close = initiator,
+        has_one = producer,
         has_one = token_mint_a,
         has_one = token_mint_b,
-        constraint = offer.taker.unwrap() == taker.key() @ GrpxProtocolError::UnauthorizedRefund,
-        constraint = offer.status == OfferStatus::Accepted @ GrpxProtocolError::InvalidOfferStatus,
-        seeds = [b"offer", maker.key().as_ref(), offer.id.to_le_bytes().as_ref()],
+        constraint = (offer.status == OfferStatus::Created || offer.status == OfferStatus::Accepted) @ GrpxProtocolError::InvalidOfferStatus,
+        seeds = [b"offer", producer.key().as_ref(), offer.id.to_le_bytes().as_ref()],
         bump = offer.bump
     )]
     pub offer: Account<'info, Offer>,
+
+    #[account(
+        mut,
+        associated_token::mint = token_mint_a,
+        associated_token::authority = offer,
+        associated_token::token_program = token_program,
+    )]
+    pub vault_token_account_a: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         mut,
@@ -55,109 +68,135 @@ pub struct RefundRequest<'info> {
         associated_token::authority = offer,
         associated_token::token_program = token_program,
     )]
-    pub vault_token_account_b: InterfaceAccount<'info, TokenAccount>,
-
-    #[account(
-        mut,
-        associated_token::mint = token_mint_a,
-        associated_token::authority = taker,
-        associated_token::token_program = token_program,
-    )]
-    pub taker_token_account_a: InterfaceAccount<'info, TokenAccount>,
+    pub vault_token_account_b: Option<InterfaceAccount<'info, TokenAccount>>,
 
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }
 
-pub fn validate_offer_state_refund(_ctx: &Context<RefundRequest>) -> Result<()> {
-    // All validations moved to account constraints for better error handling
-    Ok(())
-}
+impl<'info> RefundOffer<'info> {
+    pub fn process_refund(&mut self) -> Result<()> {
+        match self.offer.status {
+            OfferStatus::Created => {
+                self.return_nft_to_producer()?;
+            },
+            OfferStatus::Accepted => {
+                self.return_nft_to_producer()?;
+                if let Some(vault_token_b) = &self.vault_token_account_b {
+                    if vault_token_b.amount > 0 {
+                        self.return_sol_to_consumer()?;
+                    }
+                }
+            },
+            _ => {
+                return Err(GrpxProtocolError::InvalidOfferStatus.into())
+            }
+        }
+        
+        Ok(())
+    }
+    
+    pub fn return_nft_to_producer(&mut self) -> Result<()> {
+        let seeds = &[
+            b"offer",
+            self.producer.to_account_info().key.as_ref(),
+            &self.offer.id.to_le_bytes()[..],
+            &[self.offer.bump],
+        ];
+        let signer_seeds = [&seeds[..]];
 
-// Return SOL from vault to taker (buyer)
-pub fn return_payment_to_taker(ctx: &Context<RefundRequest>) -> Result<()> {
-    let seeds = &[
-        b"offer",
-        ctx.accounts.maker.to_account_info().key.as_ref(),
-        &ctx.accounts.offer.id.to_le_bytes()[..],
-        &[ctx.accounts.offer.bump],
-    ];
-    let signer_seeds = [&seeds[..]];
+        let accounts = TransferChecked {
+            from: self.vault_token_account_a.to_account_info(),
+            mint: self.token_mint_a.to_account_info(),
+            to: self.producer_token_account_a.to_account_info(),
+            authority: self.offer.to_account_info(),
+        };
 
-    let accounts = TransferChecked {
-        from: ctx.accounts.vault_token_account_b.to_account_info(),
-        mint: ctx.accounts.token_mint_b.to_account_info(),
-        to: ctx.accounts.taker_token_account_b.to_account_info(),
-        authority: ctx.accounts.offer.to_account_info(),
-    };
+        let cpi_context = CpiContext::new_with_signer(self.token_program.to_account_info(), accounts, &signer_seeds);
+        
+        transfer_checked(
+            cpi_context,
+            self.vault_token_account_a.amount,
+            self.token_mint_a.decimals,
+        )?;
 
-    let cpi_context = CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
-        accounts,
-        &signer_seeds,
-    );
+        Ok(())
+    }
 
-    anchor_spl::token_interface::transfer_checked(
-        cpi_context,
-        ctx.accounts.vault_token_account_b.amount,
-        ctx.accounts.token_mint_b.decimals,
-    )?;
+    pub fn return_sol_to_consumer(&mut self) -> Result<()> {
+        let vault_token_b = self.vault_token_account_b.as_ref().unwrap();
+        
+        if vault_token_b.amount == 0 {
+            return Ok(())
+        }
 
-    Ok(())
-}
+        let seeds = &[
+            b"offer",
+            self.producer.to_account_info().key.as_ref(),
+            &self.offer.id.to_le_bytes()[..],
+            &[self.offer.bump],
+        ];
+        let signer_seeds = [&seeds[..]];
 
-// Return NFT from taker back to maker
-pub fn return_nft_to_maker(ctx: &Context<RefundRequest>) -> Result<()> {
-    let accounts = TransferChecked {
-        from: ctx.accounts.taker_token_account_a.to_account_info(),
-        mint: ctx.accounts.token_mint_a.to_account_info(),
-        to: ctx.accounts.maker_token_account_a.to_account_info(),
-        authority: ctx.accounts.taker.to_account_info(),
-    };
+        let accounts = TransferChecked {
+            from: vault_token_b.to_account_info(),
+            mint: self.token_mint_b.to_account_info(),
+            to: self.consumer_token_account_b.to_account_info(),
+            authority: self.offer.to_account_info(),
+        };
 
-    let cpi_context = CpiContext::new(ctx.accounts.token_program.to_account_info(), accounts);
+        let cpi_context = CpiContext::new_with_signer(
+            self.token_program.to_account_info(),
+            accounts,
+            &signer_seeds,
+        );
 
-    // Transfer the NFT back from taker to maker
-    anchor_spl::token_interface::transfer_checked(
-        cpi_context,
-        ctx.accounts.taker_token_account_a.amount, // Should be 1 for an NFT
-        ctx.accounts.token_mint_a.decimals,
-    )?;
+        transfer_checked(
+            cpi_context,
+            vault_token_b.amount,
+            self.token_mint_b.decimals,
+        )?;
 
-    Ok(())
-}
+        Ok(())
+    }
 
-pub fn refund_and_close_vault(ctx: Context<RefundRequest>) -> Result<()> {
-    let seeds = &[
-        b"offer",
-        ctx.accounts.maker.to_account_info().key.as_ref(),
-        &ctx.accounts.offer.id.to_le_bytes()[..],
-        &[ctx.accounts.offer.bump],
-    ];
-    let signer_seeds = [&seeds[..]];
+    pub fn close_vaults(&mut self) -> Result<()> {
+        let seeds = &[
+            b"offer",
+            self.producer.to_account_info().key.as_ref(),
+            &self.offer.id.to_le_bytes()[..],
+            &[self.offer.bump],
+        ];
+        let signer_seeds = [&seeds[..]];
 
-    // Close the vault token account
-    let accounts = CloseAccount {
-        account: ctx.accounts.vault_token_account_b.to_account_info(),
-        destination: ctx.accounts.taker.to_account_info(),
-        authority: ctx.accounts.offer.to_account_info(),
-    };
+        let producer_accounts = CloseAccount {
+            account: self.vault_token_account_a.to_account_info(),
+            destination: self.initiator.to_account_info(),
+            authority: self.offer.to_account_info(),
+        };
+        let producer_cpi_context = CpiContext::new_with_signer(
+            self.token_program.to_account_info(),
+            producer_accounts,
+            &signer_seeds,
+        );
+        close_account(producer_cpi_context)?;
 
-    let cpi_context = CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
-        accounts,
-        &signer_seeds,
-    );
+        if self.offer.status == OfferStatus::Accepted {
+            if let Some(vault_token_b) = &self.vault_token_account_b {
+                let consumer_accounts = CloseAccount {
+                    account: vault_token_b.to_account_info(),
+                    destination: self.initiator.to_account_info(),
+                    authority: self.offer.to_account_info()
+                };
 
-    close_account(cpi_context)?;
+                let consumer_cpi_context = CpiContext::new_with_signer(self.token_program.to_account_info(), consumer_accounts, &signer_seeds);
+                close_account(consumer_cpi_context)?;
+            }
+        }
 
-    // Update offer status to refunded
-    ctx.accounts.offer.status = OfferStatus::Refunded;
+        self.offer.status = OfferStatus::Refunded;
 
-    // Note: We're not closing the offer account here so there's a record of the refunded transaction
-    // If you want to close it, you would add the close = maker constraint to the offer account and
-    // add more cleanup code here
-
-    Ok(())
+        Ok(())
+    }
 }

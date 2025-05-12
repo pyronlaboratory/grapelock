@@ -1,273 +1,383 @@
-// import 'dotenv/config'
-// import fs from 'fs'
-// import path from 'path'
-// import { randomBytes } from 'node:crypto'
-// import { describe, it, before } from 'node:test'
-// import * as anchor from '@coral-xyz/anchor'
-// import { Program } from '@coral-xyz/anchor'
-// import {
-//   MINT_SIZE,
-//   TOKEN_2022_PROGRAM_ID,
-//   type TOKEN_PROGRAM_ID,
-//   createAssociatedTokenAccountIdempotentInstruction,
-//   createInitializeMint2Instruction,
-//   createMintToInstruction,
-//   getAssociatedTokenAddressSync,
-//   getMinimumBalanceForRentExemptMint,
-//   getAccount,
-// } from '@solana/spl-token'
-// import {
-//   Connection,
-//   Keypair,
-//   LAMPORTS_PER_SOL,
-//   PublicKey,
-//   SystemProgram,
-//   Transaction,
-//   type TransactionInstruction,
-// } from '@solana/web3.js'
-// import { BankrunProvider } from 'anchor-bankrun'
-// import { assert } from 'chai'
-// import { startAnchor } from 'anchor-bankrun'
-// import type { GrpxDprotocols } from '../target/types/grpx_dprotocols'
+import * as anchor from '@coral-xyz/anchor'
+import { Program } from '@coral-xyz/anchor'
 
-// import { confirmTransaction, makeKeypairs } from '@solana-developers/helpers'
-// import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet'
+import { GrpxDprotocols } from '../target/types/grpx_dprotocols'
+import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
+import {
+  MINT_SIZE,
+  createAssociatedTokenAccountIdempotentInstruction,
+  createInitializeMint2Instruction,
+  createMintToInstruction,
+  getMinimumBalanceForRentExemptMint,
+  getAssociatedTokenAddressSync,
+  TOKEN_2022_PROGRAM_ID,
+} from '@solana/spl-token'
+import { BN } from 'bn.js'
+import { randomBytes } from 'crypto'
 
-// const TOKEN_PROGRAM: typeof TOKEN_2022_PROGRAM_ID | typeof TOKEN_PROGRAM_ID = TOKEN_2022_PROGRAM_ID
-// const IDL = require('../target/idl/grpx_dprotocols.json')
-// const PROGRAM_ID = new PublicKey(IDL.address)
+const IDL = require('../target/idl/grpx_dprotocols.json')
 
-// const getRandomBigNumber = (size = 8) => {
-//   return new anchor.BN(randomBytes(size))
-// }
+describe('grpx-dprotocols/escrow', () => {
+  anchor.setProvider(anchor.AnchorProvider.env())
+  const provider = anchor.getProvider()
+  const connection = provider.connection
+  const program = new Program<GrpxDprotocols>(IDL, provider)
+  const tokenProgram = TOKEN_2022_PROGRAM_ID
 
-// // Load the local keypair for testing
-// const loadKeypair = (filename: string): Keypair => {
-//   const keypairFile = fs.readFileSync(filename, 'utf-8')
-//   const keypairData = JSON.parse(keypairFile)
-//   return Keypair.fromSecretKey(new Uint8Array(keypairData))
-// }
+  const confirm = async (signature: string): Promise<string> => {
+    const block = await connection.getLatestBlockhash()
 
-// describe('grpx-dprotocols/escrow', () => {
-//   let connection: Connection
-//   let provider: BankrunProvider | anchor.AnchorProvider
-//   let wallet: NodeWallet | anchor.Wallet
-//   let program: Program<GrpxDprotocols>
+    await connection.confirmTransaction({
+      signature,
+      ...block,
+    })
 
-//   const accounts: Record<string, PublicKey> = {
-//     tokenProgram: TOKEN_PROGRAM,
-//   }
+    return signature
+  }
 
-//   const [alice, bob, tokenMintA, tokenMintB] = makeKeypairs(4)
+  const log = async (signature: string): Promise<string> => {
+    console.log(
+      `Your transaction signature: https://explorer.solana.com/transaction/${signature}?cluster=${
+        connection.rpcEndpoint.split('.')[1]
+      }`,
+    )
 
-//   before(async () => {
-//     const CLUSTER = process.env.CLUSTER
-//     if (CLUSTER === 'local') {
-//       const context = await startAnchor('', [{ name: 'grpx_dprotocols', programId: PROGRAM_ID }], [])
-//       provider = new BankrunProvider(context)
-//       wallet = provider.wallet as NodeWallet
-//       program = new anchor.Program<GrpxDprotocols>(IDL, provider)
-//     } else {
-//       connection = new Connection(process.env.RPC_URL || 'https://api.devnet.solana.com', 'confirmed')
-//       const walletKeypair = loadKeypair(path.resolve(process.env.HOME || '', '.config/solana/id.json'))
-//       wallet = new anchor.Wallet(walletKeypair)
-//       provider = new anchor.AnchorProvider(connection, wallet, {
-//         commitment: 'confirmed',
-//       })
-//       anchor.setProvider(provider)
-//       program = new Program<GrpxDprotocols>(IDL, provider)
-//     }
+    return signature
+  }
 
-//     const [aliceTokenAccountA, aliceTokenAccountB, bobTokenAccountA, bobTokenAccountB] = [alice, bob].flatMap(
-//       (keypair) =>
-//         [tokenMintA, tokenMintB].map((mint) =>
-//           getAssociatedTokenAddressSync(mint.publicKey, keypair.publicKey, false, TOKEN_PROGRAM),
-//         ),
-//     )
+  const createSetup = () => {
+    const [producer, consumer, tokenMintA, tokenMintB] = Array.from({ length: 4 }, () => Keypair.generate())
 
-//     // Airdrops to users, and creates two tokens mints 'A' and 'B'"
-//     const minimumLamports = await getMinimumBalanceForRentExemptMint(connection)
-//     console.log(minimumLamports)
-//     console.log(wallet.publicKey)
-//     const balance = await connection?.getBalance(wallet.publicKey)
-//     console.log('Wallet Balance: ', balance / LAMPORTS_PER_SOL, 'SOL')
+    const [producerTokenAccountA, producerTokenAccountB, consumerTokenAccountA, consumerTokenAccountB] = [
+      producer,
+      consumer,
+    ]
+      .map((a) =>
+        [tokenMintA, tokenMintB].map((m) =>
+          getAssociatedTokenAddressSync(m.publicKey, a.publicKey, false, tokenProgram),
+        ),
+      )
+      .flat()
 
-//     if (balance < minimumLamports && CLUSTER !== 'local') {
-//       console.log('Low balance, requesting airdrop...')
-//       const [latestBlockhash, airdropSig] = await Promise.all([
-//         connection.getLatestBlockhash(),
-//         connection.requestAirdrop(wallet.publicKey, minimumLamports),
-//       ])
-//       await connection.confirmTransaction({ signature: airdropSig, ...latestBlockhash }, 'confirmed')
+    const id = new BN(randomBytes(8))
+    const offer = PublicKey.findProgramAddressSync(
+      [Buffer.from('offer'), producer.publicKey.toBuffer(), id.toArrayLike(Buffer, 'le', 8)],
+      program.programId,
+    )[0]
 
-//       console.log('Airdrop completed.')
-//     }
-//     const sendSolInstructions: Array<TransactionInstruction> = [alice, bob].map((account) =>
-//       SystemProgram.transfer({
-//         fromPubkey: provider.publicKey,
-//         toPubkey: account.publicKey,
-//         lamports: 0.5 * LAMPORTS_PER_SOL,
-//       }),
-//     )
-//     const createMintInstructions: Array<TransactionInstruction> = [tokenMintA, tokenMintB].map((mint) =>
-//       SystemProgram.createAccount({
-//         fromPubkey: provider.publicKey,
-//         newAccountPubkey: mint.publicKey,
-//         lamports: minimumLamports,
-//         space: MINT_SIZE,
-//         programId: TOKEN_PROGRAM,
-//       }),
-//     )
+    const vaultTokenAccountA = getAssociatedTokenAddressSync(tokenMintA.publicKey, offer, true, tokenProgram)
+    const vaultTokenAccountB = getAssociatedTokenAddressSync(tokenMintB.publicKey, offer, true, tokenProgram)
 
-//     // Make tokenA and tokenB mints, mint tokens and create ATAs
-//     const mintTokensInstructions: Array<TransactionInstruction> = [
-//       {
-//         mint: tokenMintA.publicKey,
-//         authority: alice.publicKey,
-//         ata: aliceTokenAccountA,
-//       },
-//       {
-//         mint: tokenMintB.publicKey,
-//         authority: bob.publicKey,
-//         ata: bobTokenAccountB,
-//       },
-//     ].flatMap((mintDetails) => [
-//       createInitializeMint2Instruction(mintDetails.mint, 6, mintDetails.authority, null, TOKEN_PROGRAM),
-//       createAssociatedTokenAccountIdempotentInstruction(
-//         provider.publicKey,
-//         mintDetails.ata,
-//         mintDetails.authority,
-//         mintDetails.mint,
-//         TOKEN_PROGRAM,
-//       ),
-//       createMintToInstruction(mintDetails.mint, mintDetails.ata, mintDetails.authority, 100, [], TOKEN_PROGRAM),
-//     ])
+    const accounts = {
+      producer: producer.publicKey,
+      consumer: consumer.publicKey,
+      tokenMintA: tokenMintA.publicKey,
+      tokenMintB: tokenMintB.publicKey,
+      producerTokenAccountA,
+      producerTokenAccountB,
+      consumerTokenAccountA,
+      consumerTokenAccountB,
+      offer,
+      vaultTokenAccountA,
+      vaultTokenAccountB,
+      tokenProgram,
+    }
 
-//     console.log('Creating mints and associated token accounts...')
-//     for (const [label, pubkey] of Object.entries({
-//       alice: alice.publicKey.toBase58(),
-//       bob: bob.publicKey.toBase58(),
-//       tokenMintA: tokenMintA.publicKey.toBase58(),
-//       tokenMintB: tokenMintB.publicKey.toBase58(),
-//       aliceTokenAccountA: aliceTokenAccountA.toBase58(),
-//       aliceTokenAccountB: aliceTokenAccountB.toBase58(),
-//       bobTokenAccountA: bobTokenAccountA.toBase58(),
-//       bobTokenAccountB: bobTokenAccountB.toBase58(),
-//     })) {
-//       console.log(`${label}: ${pubkey}`)
-//     }
+    return {
+      producer,
+      consumer,
+      tokenMintA,
+      tokenMintB,
+      producerTokenAccountA,
+      producerTokenAccountB,
+      consumerTokenAccountA,
+      consumerTokenAccountB,
+      id,
+      offer,
+      vaultTokenAccountA,
+      vaultTokenAccountB,
+      accounts,
+    }
+  }
 
-//     // Add all these instructions to our transaction
-//     const tx = new Transaction()
-//     tx.instructions = [...sendSolInstructions, ...createMintInstructions, ...mintTokensInstructions]
+  describe('Confirmation Flow', () => {
+    const setup = createSetup()
 
-//     console.log('Sending setup transaction...')
-//     const signature = await provider.sendAndConfirm(tx, [tokenMintA, tokenMintB, alice, bob])
-//     console.log(`Setup transaction confirmed: ${signature}`)
+    it('Initialization', async () => {
+      let lamports = await getMinimumBalanceForRentExemptMint(connection)
+      let tx = new Transaction()
 
-//     // Save the accounts for later use
-//     accounts.maker = alice.publicKey
-//     accounts.taker = bob.publicKey
-//     accounts.tokenMintA = tokenMintA.publicKey
-//     accounts.makerTokenAccountA = aliceTokenAccountA
-//     accounts.takerTokenAccountA = bobTokenAccountA
-//     accounts.tokenMintB = tokenMintB.publicKey
-//     accounts.makerTokenAccountB = aliceTokenAccountB
-//     accounts.takerTokenAccountB = bobTokenAccountB
-//   })
+      tx.instructions = [
+        ...[setup.producer, setup.consumer].map((a) =>
+          SystemProgram.transfer({
+            fromPubkey: provider.publicKey,
+            toPubkey: a.publicKey,
+            lamports: 0.1 * LAMPORTS_PER_SOL,
+          }),
+        ),
+        ...[setup.tokenMintA, setup.tokenMintB].map((m) =>
+          SystemProgram.createAccount({
+            fromPubkey: provider.publicKey,
+            newAccountPubkey: m.publicKey,
+            lamports,
+            space: MINT_SIZE,
+            programId: tokenProgram,
+          }),
+        ),
+        ...[
+          { mint: setup.tokenMintA.publicKey, authority: setup.producer.publicKey, ata: setup.producerTokenAccountA },
+          { mint: setup.tokenMintB.publicKey, authority: setup.consumer.publicKey, ata: setup.consumerTokenAccountB },
+        ].flatMap((x) => [
+          createInitializeMint2Instruction(x.mint, 6, x.authority, null, tokenProgram),
+          createAssociatedTokenAccountIdempotentInstruction(
+            provider.publicKey,
+            x.ata,
+            x.authority,
+            x.mint,
+            tokenProgram,
+          ),
+          createMintToInstruction(x.mint, x.ata, x.authority, 2, undefined, tokenProgram),
+        ]),
+      ]
 
-//   const tokenAOfferedAmount = new anchor.BN(1)
-//   const tokenBDesiredAmount = new anchor.BN(1)
+      await provider.sendAndConfirm(tx, [setup.producer, setup.consumer, setup.tokenMintA, setup.tokenMintB]).then(log)
+    })
 
-//   // We'll call this function from multiple tests, so let's seperate it out
-//   const make = async () => {
-//     // Pick a random ID for the offer we'll make
-//     const offerId = getRandomBigNumber()
+    it('CreateOffer', async () => {
+      await program.methods
+        .open(setup.id, new BN(1), new BN(1))
+        .accounts({ ...setup.accounts })
+        .signers([setup.producer])
+        .rpc()
+        .then(confirm)
+        .then(log)
+    })
 
-//     // Then determine the account addresses we'll use for the offer and the vault
-//     const offer = PublicKey.findProgramAddressSync(
-//       [Buffer.from('offer'), accounts.maker.toBuffer(), offerId.toArrayLike(Buffer, 'le', 8)],
-//       program.programId,
-//     )[0]
+    it('AcceptOffer', async () => {
+      await program.methods
+        .accept()
+        .accounts({ ...setup.accounts })
+        .signers([setup.consumer])
+        .rpc()
+        .then(confirm)
+        .then(log)
+    })
 
-//     const vault = getAssociatedTokenAddressSync(accounts.tokenMintA, offer, true, TOKEN_PROGRAM)
+    it('ConfirmOffer', async () => {
+      await program.methods
+        .confirm()
+        .accounts({ ...setup.accounts })
+        .signers([setup.consumer])
+        .rpc()
+        .then(confirm)
+        .then(log)
+    })
+  })
 
-//     accounts.offer = offer
-//     accounts.vault = vault
-//     console.log('Creating offer...')
-//     console.log(`Offer ID: ${offerId.toString()}`)
-//     console.log(`Offer PDA: ${offer.toBase58()}`)
-//     console.log(`Vault ATA: ${vault.toBase58()}`)
+  describe('Refund Flow - After Opening', () => {
+    const setup = createSetup()
 
-//     const tx = await program.methods
-//       .open(offerId, tokenAOfferedAmount, tokenBDesiredAmount)
-//       .accounts(accounts)
-//       .signers([alice])
-//       .rpc()
+    it('Initialization', async () => {
+      let lamports = await getMinimumBalanceForRentExemptMint(connection)
+      let tx = new Transaction()
 
-//     await confirmTransaction(connection, tx)
+      tx.instructions = [
+        ...[setup.producer, setup.consumer].map((a) =>
+          SystemProgram.transfer({
+            fromPubkey: provider.publicKey,
+            toPubkey: a.publicKey,
+            lamports: 0.1 * LAMPORTS_PER_SOL,
+          }),
+        ),
+        ...[setup.tokenMintA, setup.tokenMintB].map((m) =>
+          SystemProgram.createAccount({
+            fromPubkey: provider.publicKey,
+            newAccountPubkey: m.publicKey,
+            lamports,
+            space: MINT_SIZE,
+            programId: tokenProgram,
+          }),
+        ),
+        ...[
+          { mint: setup.tokenMintA.publicKey, authority: setup.producer.publicKey, ata: setup.producerTokenAccountA },
+          { mint: setup.tokenMintB.publicKey, authority: setup.consumer.publicKey, ata: setup.consumerTokenAccountB },
+        ].flatMap((x) => [
+          createInitializeMint2Instruction(x.mint, 6, x.authority, null, tokenProgram),
+          createAssociatedTokenAccountIdempotentInstruction(
+            provider.publicKey,
+            x.ata,
+            x.authority,
+            x.mint,
+            tokenProgram,
+          ),
+          createMintToInstruction(x.mint, x.ata, x.authority, 2, undefined, tokenProgram),
+        ]),
+      ]
 
-//     // Deprecated
-//     // await confirmTransaction(connection, tx)
+      await provider.sendAndConfirm(tx, [setup.producer, setup.consumer, setup.tokenMintA, setup.tokenMintB]).then(log)
+    })
 
-//     // const latestBlockhash = await connection.getLatestBlockhash()
-//     // Check our vault contains the tokens offered
-//     // const vaultBalanceResponse = await provider.connection.getTokenAccountBalance(vault)
-//     // const vaultBalance = new BN(vaultBalanceResponse.value.amount)
+    it('CreateOffer', async () => {
+      await program.methods
+        .open(setup.id, new BN(1), new BN(1))
+        .accounts({ ...setup.accounts })
+        .signers([setup.producer])
+        .rpc()
+        .then(confirm)
+        .then(log)
+    })
 
-//     // const tx = new Transaction()
-//     // tx.instructions = [openEscrowInstruction]
-//     // await provider.sendAndConfirm(tx, [alice])
+    it('RefundOffer: after opening', async () => {
+      const refundAccounts = {
+        ...setup.accounts,
+        initiator: setup.producer.publicKey,
+      }
+      refundAccounts.vaultTokenAccountB = null
+      await program.methods.refund().accounts(refundAccounts).signers([setup.producer]).rpc().then(confirm).then(log)
+    })
+  })
 
-//     const vaultAccount = await getAccount(connection, vault, undefined, TOKEN_PROGRAM)
-//     const vaultBalance = new anchor.BN(vaultAccount.amount.toString())
-//     console.log(`Vault token balance: ${vaultBalance.toString()}`)
-//     console.log(`Vault token owner: ${vaultAccount.owner.toBase58()}`)
-//     assert(vaultBalance.eq(tokenAOfferedAmount))
-//     assert(vaultAccount.owner.equals(accounts.offer))
+  describe('Refund Flow - After Accepting', () => {
+    const setup = createSetup()
 
-//     // Check our Offer account contains the correct data
-//     const offerAccount = await program.account.offer.fetch(offer)
-//     assert(offerAccount.maker.equals(alice.publicKey))
-//     assert(offerAccount.tokenMintA.equals(accounts.tokenMintA))
-//     assert(offerAccount.tokenMintB.equals(accounts.tokenMintB))
-//     assert(offerAccount.tokenBDesiredAmount.eq(tokenBDesiredAmount))
-//     assert.ok('created' in offerAccount.status)
-//     console.log('Fetched offer account data:')
-//     console.log(`  Maker: ${offerAccount.maker.toBase58()}`)
-//     console.log(`  TokenMintA: ${offerAccount.tokenMintA.toBase58()}`)
-//     console.log(`  TokenMintB: ${offerAccount.tokenMintB.toBase58()}`)
-//     console.log(`  Wanted Amount: ${offerAccount.tokenBDesiredAmount.toString()}`)
-//   }
+    it('Initialization', async () => {
+      let lamports = await getMinimumBalanceForRentExemptMint(connection)
+      let tx = new Transaction()
 
-//   it('Puts the tokens Alice offers into the vault when Alice makes an offer', async () => {
-//     await make()
-//   })
+      tx.instructions = [
+        ...[setup.producer, setup.consumer].map((a) =>
+          SystemProgram.transfer({
+            fromPubkey: provider.publicKey,
+            toPubkey: a.publicKey,
+            lamports: 0.1 * LAMPORTS_PER_SOL,
+          }),
+        ),
+        ...[setup.tokenMintA, setup.tokenMintB].map((m) =>
+          SystemProgram.createAccount({
+            fromPubkey: provider.publicKey,
+            newAccountPubkey: m.publicKey,
+            lamports,
+            space: MINT_SIZE,
+            programId: tokenProgram,
+          }),
+        ),
+        ...[
+          { mint: setup.tokenMintA.publicKey, authority: setup.producer.publicKey, ata: setup.producerTokenAccountA },
+          { mint: setup.tokenMintB.publicKey, authority: setup.consumer.publicKey, ata: setup.consumerTokenAccountB },
+        ].flatMap((x) => [
+          createInitializeMint2Instruction(x.mint, 6, x.authority, null, tokenProgram),
+          createAssociatedTokenAccountIdempotentInstruction(
+            provider.publicKey,
+            x.ata,
+            x.authority,
+            x.mint,
+            tokenProgram,
+          ),
+          createMintToInstruction(x.mint, x.ata, x.authority, 2, undefined, tokenProgram),
+        ]),
+      ]
 
-//   // We'll call this function from multiple tests, so let's seperate it out
-//   // const take = async () => {
-//   //   const transactionSignature = await program.methods
-//   //     .accept()
-//   //     .accounts({ ...accounts })
-//   //     .signers([bob])
-//   //     .rpc()
+      await provider.sendAndConfirm(tx, [setup.producer, setup.consumer, setup.tokenMintA, setup.tokenMintB]).then(log)
+    })
 
-//   //   await confirmTransaction(connection, transactionSignature)
+    it('CreateOffer', async () => {
+      await program.methods
+        .open(setup.id, new BN(1), new BN(1))
+        .accounts({ ...setup.accounts })
+        .signers([setup.producer])
+        .rpc()
+        .then(confirm)
+        .then(log)
+    })
 
-//   //   // Check the offered tokens are now in Bob's account
-//   //   // (note: there is no before balance as Bob didn't have any offered tokens before the transaction)
-//   //   const bobTokenAccountBalanceAfterResponse = await connection.getTokenAccountBalance(accounts.takerTokenAccountA)
-//   //   const bobTokenAccountBalanceAfter = new anchor.BN(bobTokenAccountBalanceAfterResponse.value.amount)
-//   //   assert(bobTokenAccountBalanceAfter.eq(tokenAOfferedAmount))
+    it('AcceptOffer', async () => {
+      await program.methods
+        .accept()
+        .accounts({ ...setup.accounts })
+        .signers([setup.consumer])
+        .rpc()
+        .then(confirm)
+        .then(log)
+    })
 
-//   //   // Check the wanted tokens are now in Alice's account
-//   //   // (note: there is no before balance as Alice didn't have any wanted tokens before the transaction)
-//   //   const aliceTokenAccountBalanceAfterResponse = await connection.getTokenAccountBalance(accounts.makerTokenAccountB)
-//   //   const aliceTokenAccountBalanceAfter = new anchor.BN(aliceTokenAccountBalanceAfterResponse.value.amount)
-//   //   assert(aliceTokenAccountBalanceAfter.eq(tokenBDesiredAmount))
-//   // }
+    it('RefundOffer: after accepting', async () => {
+      const refundAccounts = {
+        ...setup.accounts,
+        initiator: setup.producer.publicKey,
+      }
+      await program.methods.refund().accounts(refundAccounts).signers([setup.producer]).rpc().then(confirm).then(log)
+    })
+  })
 
-//   // it("Puts the tokens from the vault into Bob's account, and gives Alice Bob's tokens, when Bob takes an offer", async () => {
-//   //   await take()
-//   // })
-// })
+  describe('Consumer Refund Flow', () => {
+    const setup = createSetup()
+
+    it('Initialization', async () => {
+      let lamports = await getMinimumBalanceForRentExemptMint(connection)
+      let tx = new Transaction()
+
+      tx.instructions = [
+        ...[setup.producer, setup.consumer].map((a) =>
+          SystemProgram.transfer({
+            fromPubkey: provider.publicKey,
+            toPubkey: a.publicKey,
+            lamports: 0.1 * LAMPORTS_PER_SOL,
+          }),
+        ),
+        ...[setup.tokenMintA, setup.tokenMintB].map((m) =>
+          SystemProgram.createAccount({
+            fromPubkey: provider.publicKey,
+            newAccountPubkey: m.publicKey,
+            lamports,
+            space: MINT_SIZE,
+            programId: tokenProgram,
+          }),
+        ),
+        ...[
+          { mint: setup.tokenMintA.publicKey, authority: setup.producer.publicKey, ata: setup.producerTokenAccountA },
+          { mint: setup.tokenMintB.publicKey, authority: setup.consumer.publicKey, ata: setup.consumerTokenAccountB },
+        ].flatMap((x) => [
+          createInitializeMint2Instruction(x.mint, 6, x.authority, null, tokenProgram),
+          createAssociatedTokenAccountIdempotentInstruction(
+            provider.publicKey,
+            x.ata,
+            x.authority,
+            x.mint,
+            tokenProgram,
+          ),
+          createMintToInstruction(x.mint, x.ata, x.authority, 2, undefined, tokenProgram),
+        ]),
+      ]
+
+      await provider.sendAndConfirm(tx, [setup.producer, setup.consumer, setup.tokenMintA, setup.tokenMintB]).then(log)
+    })
+
+    it('CreateOffer', async () => {
+      await program.methods
+        .open(setup.id, new BN(1), new BN(1))
+        .accounts({ ...setup.accounts })
+        .signers([setup.producer])
+        .rpc()
+        .then(confirm)
+        .then(log)
+    })
+
+    it('AcceptOffer', async () => {
+      await program.methods
+        .accept()
+        .accounts({ ...setup.accounts })
+        .signers([setup.consumer])
+        .rpc()
+        .then(confirm)
+        .then(log)
+    })
+
+    it('RefundOffer: initiated by consumer', async () => {
+      const refundAccounts = {
+        ...setup.accounts,
+        initiator: setup.consumer.publicKey,
+      }
+      await program.methods.refund().accounts(refundAccounts).signers([setup.consumer]).rpc().then(confirm).then(log)
+    })
+  })
+})

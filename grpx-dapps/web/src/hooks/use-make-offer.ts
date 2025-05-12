@@ -1,20 +1,13 @@
 'use client'
 
-import { AnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-  TOKEN_2022_PROGRAM_ID,
-  getAccount,
-} from '@solana/spl-token'
-import { Keypair, LAMPORTS_PER_SOL, PublicKey, SendTransactionError, SystemProgram, Transaction } from '@solana/web3.js'
-import { BN, type Program } from '@coral-xyz/anchor'
+import { ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { LAMPORTS_PER_SOL, PublicKey, SendTransactionError, SystemProgram, Transaction } from '@solana/web3.js'
+
 import * as anchor from '@coral-xyz/anchor'
 import { randomBytes } from 'crypto'
 import { GrpxDprotocols } from '@/schemas/grpx_dprotocols'
-import { useGetBalance } from '@/components/account/account-data-access'
 import { createAssociatedTokenAccountIdempotentInstruction } from '@solana/spl-token'
 
 const IDL = require('@/lib/grpx_dprotocols.json')
@@ -22,9 +15,8 @@ const tokenProgram = TOKEN_PROGRAM_ID
 
 export function useMakeOffer() {
   const { connection } = useConnection()
-  const wallet = useWallet()
-  const query = useGetBalance({ address: wallet?.publicKey || PublicKey.default })
   const client = useQueryClient()
+  const wallet = useWallet()
 
   return useMutation({
     mutationKey: ['make-offer'],
@@ -57,8 +49,8 @@ export function useMakeOffer() {
       const tokenMintA = new PublicKey(nftMintAddress)
       const tokenMintB = new PublicKey('So11111111111111111111111111111111111111112')
 
-      const tokenAOfferedAmount = new BN(1)
-      const tokenBWantedAmount = new BN(sellingPrice * LAMPORTS_PER_SOL)
+      const tokenAOfferedAmount = new anchor.BN(1)
+      const tokenBWantedAmount = new anchor.BN(sellingPrice * LAMPORTS_PER_SOL)
 
       const makerTokenAccountA = getAssociatedTokenAddressSync(tokenMintA, maker, true, tokenProgram)
       const makerTokenAccountB = getAssociatedTokenAddressSync(tokenMintB, maker, true, tokenProgram)
@@ -75,7 +67,7 @@ export function useMakeOffer() {
       // console.log('Current NFT holding account:', largest)
       // console.log('Parsed account info:', accountInfo.value?.data)
 
-      const id = new BN(randomBytes(8))
+      const id = new anchor.BN(randomBytes(8))
       const offer = PublicKey.findProgramAddressSync(
         [Buffer.from('offer'), maker.toBuffer(), id.toArrayLike(Buffer, 'le', 8)],
         programId,

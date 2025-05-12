@@ -151,13 +151,13 @@ export async function dispatch({
     const mintAuthority = PublicKey.findProgramAddressSync([Buffer.from('authority')], program.programId)[0]
 
     const metadata = await getMetadata(mint.publicKey)
-    context.log.info(JSON.stringify({ metadata }))
+    context.log.info(`🥹 ${JSON.stringify({ metadata })}`)
 
     const masterEdition = await getMasterEdition(mint.publicKey)
-    context.log.info(JSON.stringify({ masterEdition }))
+    context.log.info(`🤩 ${JSON.stringify({ masterEdition })}`)
 
     const destination = getAssociatedTokenAddressSync(mint.publicKey, wallet.payer.publicKey)
-    context.log.info(JSON.stringify({ destination }))
+    context.log.info(`💳 ${JSON.stringify({ destination })}`)
 
     const tx = await program.methods
       .create({
@@ -184,7 +184,7 @@ export async function dispatch({
         skipPreflight: false,
         commitment: 'confirmed',
       })
-    context.log.info(JSON.stringify({ tx }))
+    context.log.info(`🔑 ${JSON.stringify({ tx })}`)
     return {
       destinationAddress: destination.toBase58(),
       mintAddress: mint.publicKey.toBase58(),

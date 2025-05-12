@@ -36,6 +36,7 @@ export async function processCollectionJob(job: Job<any, any, string>): Promise<
     // Process pipeline
     const resource = {
       name: collection?.collectionName ?? '',
+      symbol: collection?.collectionSymbol ?? '',
       description: collection?.collectionDescription ?? '',
       image: collection?.collectionMedia ?? '',
       // animationUrl: collection?.collectionAnimationUrl ?? '',
@@ -54,7 +55,7 @@ export async function processCollectionJob(job: Job<any, any, string>): Promise<
       name: collection.collectionName ?? '',
       symbol: collection.collectionSymbol ?? '',
       description: collection.collectionDescription ?? '',
-      uri: collection.collectionMetadataUri ?? '',
+      uri: metadataUri,
       sellerFeeBasisPoints: collection.sellerFeeBasisPoints ?? 0,
     })
     if (!txSignature) throw new Error('Collection transaction signature not found')
@@ -68,7 +69,7 @@ export async function processCollectionJob(job: Job<any, any, string>): Promise<
       txSignature,
     })
     await publishCollection(collection._id.toString())
-    context.log.info(`Collection processed successfully | job id: ${id}`)
+    context.log.info(`🥳 Collection processed successfully | job id: ${id}`)
     return {
       status: 'success',
       jobId: id ?? 'unknown',

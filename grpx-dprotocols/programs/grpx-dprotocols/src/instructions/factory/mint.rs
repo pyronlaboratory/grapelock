@@ -14,7 +14,7 @@ use anchor_spl::{
     token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
 #[derive(Accounts)]
-pub struct MintCollectionNFT<'info> {
+pub struct MintNFT<'info> {
     #[account(mut)]
     pub owner: Signer<'info>,
     #[account(
@@ -52,12 +52,8 @@ pub struct MintCollectionNFT<'info> {
     pub token_metadata_program: Program<'info, Metadata>,
 }
 
-impl<'info> MintCollectionNFT<'info> {
-    pub fn mint(
-        &mut self,
-        bumps: &MintCollectionNFTBumps,
-        metadata_args: MetadataArgs,
-    ) -> Result<()> {
+impl<'info> MintNFT<'info> {
+    pub fn mint(&mut self, bumps: &MintNFTBumps, metadata_args: MetadataArgs) -> Result<()> {
         let metadata = &self.metadata.to_account_info();
         let master_edition = &self.master_edition.to_account_info();
         let mint = &self.mint.to_account_info();

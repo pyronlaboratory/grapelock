@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-
 pub use anchor_lang::solana_program::sysvar::instructions::ID as INSTRUCTIONS_ID;
 use anchor_spl::metadata::mpl_token_metadata::instructions::{
     VerifyCollectionV1Cpi, VerifyCollectionV1CpiAccounts,
@@ -8,7 +7,7 @@ use anchor_spl::metadata::{MasterEditionAccount, MetadataAccount};
 use anchor_spl::{metadata::Metadata, token::Mint};
 
 #[derive(Accounts)]
-pub struct VerifyCollectionNFT<'info> {
+pub struct AuditCollection<'info> {
     pub authority: Signer<'info>,
     #[account(mut)]
     pub metadata: Account<'info, MetadataAccount>,
@@ -30,8 +29,8 @@ pub struct VerifyCollectionNFT<'info> {
     pub token_metadata_program: Program<'info, Metadata>,
 }
 
-impl<'info> VerifyCollectionNFT<'info> {
-    pub fn verify(&mut self, bumps: &VerifyCollectionNFTBumps) -> Result<()> {
+impl<'info> AuditCollection<'info> {
+    pub fn verify(&mut self, bumps: &AuditCollectionBumps) -> Result<()> {
         let metadata = &self.metadata.to_account_info();
         let authority = &self.mint_authority.to_account_info();
         let collection_mint = &self.collection_mint.to_account_info();

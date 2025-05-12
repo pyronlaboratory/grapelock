@@ -18,48 +18,51 @@ pub mod grpx_dprotocols {
     use super::*;
 
     // === Factory Instructions ===
-    pub fn create(ctx: Context<CreateCollectionNFT>, metadata_args: MetadataArgs) -> Result<()> {
+    pub fn create(ctx: Context<ForgeCollection>, metadata_args: MetadataArgs) -> Result<()> {
         ctx.accounts.create(&ctx.bumps, metadata_args)
     }
 
-    pub fn mint(ctx: Context<MintCollectionNFT>, metadata_args: MetadataArgs) -> Result<()> {
+    pub fn mint(ctx: Context<MintNFT>, metadata_args: MetadataArgs) -> Result<()> {
         ctx.accounts.mint(&ctx.bumps, metadata_args)
     }
 
-    pub fn verify(ctx: Context<VerifyCollectionNFT>) -> Result<()> {
+    pub fn verify(ctx: Context<AuditCollection>) -> Result<()> {
         ctx.accounts.verify(&ctx.bumps)
     }
 
     // === Escrow Instructions ===
     pub fn open(
-        ctx: Context<MakeOffer>,
+        ctx: Context<CreateOffer>,
         id: u64,
         token_a_offered_amount: u64,
         token_b_desired_amount: u64,
     ) -> Result<()> {
         ctx.accounts
-            .open_contract(id, token_b_desired_amount, &ctx.bumps)?;
-        ctx.accounts.deposit_to_vault(token_a_offered_amount)?;
+            .open_vault(id, token_b_desired_amount, &ctx.bumps)?;
+        ctx.accounts.deposit_nft_to_vault(token_a_offered_amount)?;
 
         Ok(())
     }
 
-    // pub fn accept(ctx: Context<AcceptOffer>) -> Result<()> {
-    //     instructions::accept::send_wanted_tokens_to_vault(&ctx)?;
-    //     instructions::accept::transfer_nft_to_taker(ctx)
-    // }
+    pub fn accept(ctx: Context<AcceptOffer>) -> Result<()> {
+        ctx.accounts.deposit_sol_to_vault()?;
 
-    pub fn confirm(ctx: Context<ConfirmDelivery>) -> Result<()> {
-        instructions::confirm::validate_offer_state_confirm(&ctx)?;
-        instructions::confirm::send_payment_to_maker(&ctx)?;
-        instructions::confirm::complete_and_close_vault(ctx)
+        Ok(())
     }
 
-    pub fn refund(ctx: Context<RefundRequest>) -> Result<()> {
-        instructions::refund::validate_offer_state_refund(&ctx)?;
-        instructions::refund::return_payment_to_taker(&ctx)?;
-        instructions::refund::return_nft_to_maker(&ctx)?;
-        instructions::refund::refund_and_close_vault(ctx)
+    pub fn confirm(ctx: Context<ConfirmOffer>) -> Result<()> {
+        ctx.accounts.transfer_sol_to_producer()?;
+        ctx.accounts.transfer_nft_to_consumer()?;
+        ctx.accounts.close_vaults()?;
+
+        Ok(())
+    }
+
+    pub fn refund(ctx: Context<RefundOffer>) -> Result<()> {
+        ctx.accounts.process_refund()?;
+        ctx.accounts.close_vaults()?;
+
+        Ok(())
     }
 }
 
