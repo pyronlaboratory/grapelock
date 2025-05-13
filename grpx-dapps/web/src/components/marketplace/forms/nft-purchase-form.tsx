@@ -20,8 +20,8 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
     try {
       const response = await mutation.mutateAsync({ offerObj: selectedOffer })
       if (!response) return toast.error('Failed to secure offer. Please try again.')
-      const { consumer, status, txSignature } = response
 
+      const { consumer, status, txSignature } = response
       const { data: order } = await api<ApiResponse<{ data: OrderResource; success: boolean }>>(
         `offers/${selectedOffer._id}`,
         {
@@ -33,8 +33,8 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
           },
         },
       )
-      // check data and show success toast..
-      if (order.data.status === 'pending') {
+
+      if (order.data.status === 'awaiting_delivery') {
         toast.success(`Order placed successfully!`)
         setOpen(false)
       }

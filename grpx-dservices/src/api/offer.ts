@@ -3,11 +3,20 @@ import { Router } from 'express'
 import { errorResponse, successResponse } from '../lib/helpers.js'
 import { validate } from '../middlewares/validate.js'
 import { createOfferSchema, OfferResource, updateOfferSchema } from '../types/offer.types.js'
-import { registerOffer, updateOffer, getAllOpenVerfifiedOffers } from '../services/offer.js'
+import { registerOffer, updateOffer, getOfferById, getAllOpenVerfifiedOffers } from '../services/offer.js'
 import { updateNFT } from '../services/nft.js'
 import { createOrder } from '../services/order.js'
 
 const router = Router()
+
+router.get('/:id', async (req, res) => {
+  try {
+    const offer = await getOfferById(req.params.id)
+    res.status(200).json(successResponse({ data: offer }))
+  } catch (error) {
+    res.status(500).json(errorResponse(`Error fetching details for offer id: ${req.params.id}`, 'OFFER_ERROR'))
+  }
+})
 
 router.get('/', async (req, res) => {
   try {

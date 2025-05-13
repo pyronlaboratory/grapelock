@@ -8,12 +8,18 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { formatDate } from 'date-fns'
 import api from '@/lib/api'
 import { toast } from 'sonner'
+import { useConfirmOffer } from '@/hooks/use-confirm-offer'
+import { OrderResource } from '@/schemas/order'
+import { useRefundOffer } from '@/hooks/use-refund-offer'
 
 export default function OrdersPage() {
   const { publicKey } = useWallet()
   const publicKeyString = useMemo(() => publicKey?.toBase58(), [publicKey])
 
-  async function handleFulfill(order: any) {
+  const confirmMutation = useConfirmOffer()
+  const refundMutation = useRefundOffer()
+
+  async function handleFulfill(order: OrderResource) {
     try {
       const response = await api(`orders/${order._id.toString()}`, {
         method: 'PATCH',
@@ -22,9 +28,7 @@ export default function OrdersPage() {
         },
       })
 
-      if (!response) {
-        throw new Error('Failed to fulfill order')
-      }
+      if (!response) throw new Error('Failed to fulfill order')
 
       toast.success('Order marked as awaiting confirmation')
     } catch (error: any) {
@@ -32,15 +36,37 @@ export default function OrdersPage() {
       toast.error('Failed to fulfill order')
     }
   }
+  async function handleConfirm(order: OrderResource) {
+    try {
+      const response = await confirmMutation.mutateAsync({ orderObj: order })
+      if (!response || response.status !== 'completed')
+        return toast.error('Failed to confirm order delivery. Please try again.')
 
-  function handleCancel(order: any) {
-    console.log('Cancel order', order)
-    // Add cancel logic
+      const confirmation = await api(`orders/confirm/${order._id.toString()}`, {
+        method: 'PUT',
+        body: {
+          status: 'completed',
+        },
+      })
+
+      if (!confirmation) throw new Error('Failed to confirm order delivery status.')
+      toast.success(`Purchase confirmed. NFT successfully transferred!`)
+    } catch (error) {
+      console.error('Error confirming order:', error)
+      toast.error('Failed to confirm order. Please try again.')
+    }
   }
+  async function handleCancel(order: OrderResource) {
+    try {
+      const response = await refundMutation.mutateAsync({ orderObj: order })
+      if (!response) return toast.error('Failed to refund order. Please try again.')
 
-  function handleConfirm(order: any) {
-    console.log('Confirm order', order)
-    // Add confirm logic
+      // if response status is refunded i.e. program returned success.. then update order, offer, nft off-chain data.
+      toast.success(`Refund confirmed.`)
+    } catch (error) {
+      console.error('Error refunding order:', error)
+      toast.error('Failed to refund order. Please try again.')
+    }
   }
 
   const { data: orders, isLoading, error } = useGetOrders(publicKeyString)
@@ -119,7 +145,18 @@ export default function OrdersPage() {
                               >
                                 Confirm
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleCancel(order)}>Cancel</DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={['completed', 'cancelled_by_producer', 'cancelled_by_consumer'].includes(
+                                  order.status,
+                                )}
+                                onClick={() =>
+                                  !['completed', 'cancelled_by_producer', 'cancelled_by_consumer'].includes(
+                                    order.status,
+                                  ) && handleCancel(order)
+                                }
+                              >
+                                Cancel
+                              </DropdownMenuItem>
                             </>
                           ) : (
                             <DropdownMenuItem disabled>No actions available</DropdownMenuItem>

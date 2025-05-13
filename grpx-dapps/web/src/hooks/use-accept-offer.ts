@@ -31,34 +31,6 @@ export function syncNative(programId: PublicKey, account: PublicKey) {
 
 const IDL = require('@/idl/grpx_dprotocols.json')
 
-// Object { id: {…}, producer: {…}, consumer: null, tokenMintA: {…}, tokenMintB: {…}, tokenAOfferedAmount: {…}, tokenBDesiredAmount: {…}, status: {…}, bump: 255 }
-// use-accept-offer.ts:86:14
-// {
-//   "id": "9e351842cbb35482",
-//   "producer": "EpmGcK3Uc73ncnnTn2a5gRnCuz1C8UsqKRdpkt4WJbRj",
-//   "consumer": null,
-//   "tokenMintA": "A1EvnMFmyqSwn9FPfpXqQQRpFAP56Xz647RnfGMgKioD",
-//   "tokenMintB": "So11111111111111111111111111111111111111112",
-//   "tokenAOfferedAmount": "01",
-//   "tokenBDesiredAmount": "0bb8",
-//   "status": {
-//     "created": {}
-//   },
-//   "bump": 255
-// }
-// Sending raw signatures nbXhRKu3SkXK9Kbm6ywbyyGTiogn9Y9pv46nxMXU6DjpU4vzzG9dwXYQE7diJqKmr1cydghG6GiopGhsyXVRej9
-
-// {
-// 	"error": "Invalid data",
-// 	"details": [
-// 		{
-// 			"message": "_id is _id must be a MongoDB ObjectId"
-// 		},
-// 		{
-// 			"message": "status is Expected 'open' | 'in_progress' | 'closed' | 'completed' | 'failed', received object"
-// 		}
-// 	]
-// }
 export function useAcceptOffer() {
   const { connection } = useConnection()
   const wallet = useWallet()
@@ -87,7 +59,7 @@ export function useAcceptOffer() {
       const consumerTokenAccountA = getAssociatedTokenAddressSync(tokenMintA, consumer, true, tokenProgram)
       const consumerTokenAccountB = getAssociatedTokenAddressSync(tokenMintB, consumer, true, tokenProgram)
 
-      // First, ensure the vault token account B is initialized
+      // First, ensure the vault token account B is initialized // Ideally should be setup at the time of make offer // Also why not init vault a was needed..? check if this could be removed
       const vaultAccountBInfo = await connection.getAccountInfo(vaultTokenAccountB)
       if (!vaultAccountBInfo) {
         const createVaultBTx = new Transaction().add(
@@ -241,7 +213,6 @@ export function useAcceptOffer() {
         throw new Error('Offer was not accepted successfully on-chain')
       }
 
-      // Also return consumer details..
       return {
         txSignature: signature,
         consumer: wallet.publicKey.toBase58(),

@@ -47,7 +47,7 @@ export function useMakeOffer() {
       const tokenMintA = new PublicKey(nftMintAddress)
       const tokenMintB = new PublicKey('So11111111111111111111111111111111111111112')
 
-      const producerTokenAccountA = getAssociatedTokenAddressSync(tokenMintA, producer, true, tokenProgram)
+      const producerTokenAccountA = getAssociatedTokenAddressSync(tokenMintA, producer, true, tokenProgram) // This should be nft destinationAddress
       const producerTokenAccountB = getAssociatedTokenAddressSync(tokenMintB, producer, true, tokenProgram)
       const consumerTokenAccountA = getAssociatedTokenAddressSync(tokenMintA, consumer, true, tokenProgram)
       const consumerTokenAccountB = getAssociatedTokenAddressSync(tokenMintB, consumer, true, tokenProgram)
@@ -99,8 +99,8 @@ export function useMakeOffer() {
 
       // Very sus!
       // Init producer associated account
-      const ataInfo = await connection.getAccountInfo(producerTokenAccountA)
-      if (!ataInfo) {
+      const producerAtaInfo = await connection.getAccountInfo(producerTokenAccountA)
+      if (!producerAtaInfo) {
         const createAtaTx = new Transaction().add(
           createAssociatedTokenAccountIdempotentInstruction(
             wallet.publicKey,
@@ -118,22 +118,17 @@ export function useMakeOffer() {
         const sig = await connection.sendRawTransaction(signed.serialize())
         await connection.confirmTransaction({ signature: sig, ...bh }, 'confirmed')
       }
-      console.log(ataInfo, producerTokenAccountA)
+      console.log(producerAtaInfo, producerTokenAccountA)
 
-      // First verify ownership 🤮
+      // First verify ownership 🤮 // Check if the NFT token account exists and you own it
       try {
-        // Check if the NFT token account exists and you own it
         const tokenAccountInfo = await connection.getParsedTokenAccountsByOwner(producer, { mint: tokenMintA })
-
         if (
           tokenAccountInfo.value.length === 0 ||
           Number(tokenAccountInfo.value[0].account.data.parsed.info.tokenAmount.amount) !== 1
         ) {
           throw new Error("You don't own this NFT")
         }
-
-        // Now proceed with listing the NFT
-        // ...rest of your code for listing...
       } catch (error) {
         console.error('Error:', error)
         throw new Error('Failed to list NFT: ' + error)
@@ -141,7 +136,6 @@ export function useMakeOffer() {
 
       // Main transaction instructions 🤮
       const latestBlockhash = await connection.getLatestBlockhash()
-
       const ix = await program.methods
         .open(id, new anchor.BN(1), new anchor.BN(sellingPrice * LAMPORTS_PER_SOL))
         .accounts({ ...accounts })

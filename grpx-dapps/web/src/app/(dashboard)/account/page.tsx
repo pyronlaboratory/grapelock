@@ -7,7 +7,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 // Add these individual components to accounts-ui
 export default function MyWalletPage() {
   const { publicKey, wallet, wallets } = useWallet()
-  console.log(wallet)
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold">My Wallet</h1>

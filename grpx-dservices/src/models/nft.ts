@@ -39,7 +39,7 @@ const nftSchema = new mongoose.Schema(
         'linked',
         'verified',
         'in_circulation',
-        'delivered',
+        'primary_sale_happened',
         'consumed',
         'cancelled',
         'burned',

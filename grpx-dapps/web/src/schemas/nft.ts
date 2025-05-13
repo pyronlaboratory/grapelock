@@ -5,17 +5,17 @@ export const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, {
 export const nftTypeEnum = z.enum(['single', 'batch'])
 
 export const nftStatusEnum = z.enum([
-  'pending', // NFT is registered but not yet minted
-  'processing', // Job is actively minting or validating
-  'failed', // Minting/processing error
-  'minted', // Successfully minted but no physical linkage yet
-  'linked', // Linked to a physical asset
-  'verified', // IoT sensors/tags are active and authenticated
-  'in_circulation', // Actively moving through supply chain (optional state to signal it's in use)
-  'delivered', // Reached final recipient (end consumer)
-  'consumed', // Physically used, e.g., eaten, installed, etc.
-  'cancelled', // Invalidated by producer/admin (e.g., recall or tamper)
-  'burned', // NFT is permanently destroyed
+  'pending',
+  'processing',
+  'failed',
+  'minted',
+  'linked',
+  'verified',
+  'in_circulation',
+  'primary_sale_happened',
+  'consumed',
+  'cancelled',
+  'burned',
 ])
 export const nftPhysicalAssetStatusEnum = z.enum([
   'unlinked', // Asset not yet linked to any NFT

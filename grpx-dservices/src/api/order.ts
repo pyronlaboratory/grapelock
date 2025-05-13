@@ -1,7 +1,7 @@
 import { Router } from 'express'
 
 import { errorResponse, successResponse } from '../lib/helpers.js'
-import { getOrders, updateOrder } from '../services/order.js'
+import { getOrders, updateOrder, confirmOrder } from '../services/order.js'
 import { validate } from '../middlewares/validate.js'
 import { updateOrderSchema } from '../types/order.types.js'
 
@@ -29,6 +29,14 @@ router.patch('/:id', validate(updateOrderSchema), async (req, res) => {
     res.status(200).json(successResponse(order))
   } catch (error) {
     res.status(500).json(errorResponse('Error updating order', 'ORDERS_ERROR'))
+  }
+})
+
+router.put('/confirm/:id', async (req, res) => {
+  try {
+    const order = await confirmOrder(req.params.id, req.body)
+  } catch (error) {
+    res.status(500).json(errorResponse('Error confirming order', 'ORDERS_ERROR'))
   }
 })
 export { router as orderRoute }

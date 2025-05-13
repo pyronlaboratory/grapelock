@@ -19,6 +19,13 @@ export async function getAllOpenVerfifiedOffers(): Promise<OfferResource[]> {
   return filteredOffers as OfferResource[]
 }
 
+export async function getOfferById(id: string): Promise<OfferResource> {
+  const offer = await Offer.findOne({ _id: id }).lean()
+  if (!offer) throw new Error('Offer not found')
+
+  return offer as OfferResource
+}
+
 export async function registerOffer(payload: CreateOfferResource): Promise<OfferResource> {
   try {
     const newOffer = await Offer.create({
