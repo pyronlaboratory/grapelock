@@ -1,7 +1,9 @@
 import { Router } from 'express'
 
 import { errorResponse, successResponse } from '../lib/helpers.js'
-import { getOrders } from '../services/order.js'
+import { getOrders, updateOrder } from '../services/order.js'
+import { validate } from '../middlewares/validate.js'
+import { updateOrderSchema } from '../types/order.types.js'
 
 const router = Router()
 
@@ -18,4 +20,15 @@ router.get('/:pubicKey', async (req, res) => {
   }
 })
 
+router.patch('/:id', validate(updateOrderSchema), async (req, res) => {
+  try {
+    const order = await updateOrder(req.params.id, req.body)
+    if (!order) {
+      res.status(404).json(errorResponse('Order not found', 'ORDER_NOT_FOUND'))
+    }
+    res.status(200).json(successResponse(order))
+  } catch (error) {
+    res.status(500).json(errorResponse('Error updating order', 'ORDERS_ERROR'))
+  }
+})
 export { router as orderRoute }

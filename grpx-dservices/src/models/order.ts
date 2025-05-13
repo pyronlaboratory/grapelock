@@ -8,15 +8,14 @@ const orderSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        'pending',
-        'cancelled_by_producer',
-        'cancelled_by_consumer',
         'awaiting_delivery',
         'awaiting_confirmation',
+        'cancelled_by_producer',
+        'cancelled_by_consumer',
         'completed',
         'failed',
       ],
-      default: 'pending',
+      default: 'awaiting_delivery',
     },
     errorMessage: { type: String },
   },

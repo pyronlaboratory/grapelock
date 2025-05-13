@@ -17,6 +17,10 @@ export const createOrderSchema = z.object({
   producerPublicKey: z.string(),
   consumerPublicKey: z.string(),
 })
+export const updateOrderSchema = z.object({
+  status: orderStatus.optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+})
 export const orderSchema = z.object({
   _id: objectIdSchema,
   offerId: z.string(),

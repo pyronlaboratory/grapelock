@@ -5,13 +5,32 @@ import { useMemo } from 'react'
 import { Loader2, MoreHorizontal } from 'lucide-react'
 import { ellipsify } from '@wallet-ui/react'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import { formatDate } from 'date-fns'
+import api from '@/lib/api'
+import { toast } from 'sonner'
 
 export default function OrdersPage() {
   const { publicKey } = useWallet()
   const publicKeyString = useMemo(() => publicKey?.toBase58(), [publicKey])
-  function handleFulfill(order: any) {
-    console.log('Fulfill order', order)
-    // Add fulfill logic
+
+  async function handleFulfill(order: any) {
+    try {
+      const response = await api(`orders/${order._id.toString()}`, {
+        method: 'PATCH',
+        body: {
+          status: 'awaiting_confirmation',
+        },
+      })
+
+      if (!response) {
+        throw new Error('Failed to fulfill order')
+      }
+
+      toast.success('Order marked as awaiting confirmation')
+    } catch (error: any) {
+      console.error(error)
+      toast.error('Failed to fulfill order')
+    }
   }
 
   function handleCancel(order: any) {
@@ -72,7 +91,7 @@ export default function OrdersPage() {
                     <td className="px-4 py-3">
                       <StatusBadge status={order.status} />
                     </td>
-                    <td className="px-4 py-3">{formatDate(order.createdAt)}</td>
+                    <td className="px-4 py-3">{formatDate(order.createdAt, `dd, MMM yy 'at' HH:mm`)}</td>
                     {/* <td className="px-4 py-3 text-muted-foreground">{formatDate(order.updatedAt)}</td> */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <DropdownMenu>
@@ -84,7 +103,12 @@ export default function OrdersPage() {
                         <DropdownMenuContent>
                           {publicKeyString === order.producerPublicKey ? (
                             <>
-                              <DropdownMenuItem onClick={() => handleFulfill(order)}>Fulfill</DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={order.status !== 'awaiting_delivery'}
+                                onClick={() => order.status === 'awaiting_delivery' && handleFulfill(order)}
+                              >
+                                Fulfill
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleCancel(order)}>Cancel</DropdownMenuItem>
                             </>
                           ) : publicKeyString === order.consumerPublicKey ? (
@@ -114,20 +138,6 @@ export default function OrdersPage() {
   )
 }
 
-// Helper function to format dates
-function formatDate(dateString: string): string {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
-}
-
-// Status badge component
 function StatusBadge({ status }: { status: string }) {
   let bgColor = 'bg-gray-100 text-gray-800'
 
