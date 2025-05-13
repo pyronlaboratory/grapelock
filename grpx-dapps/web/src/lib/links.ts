@@ -1,6 +1,7 @@
 import {
   ArrowRightLeft,
   ChartArea,
+  ClipboardList,
   FileBadge,
   LifeBuoy,
   PackagePlus,
@@ -166,9 +167,9 @@ export const links = {
       icon: ServerCog,
     },
     {
-      name: 'Trading',
-      url: '/trading',
-      icon: ArrowRightLeft,
+      name: 'Orders',
+      url: '/orders',
+      icon: ClipboardList,
     },
     {
       name: 'Wallet',

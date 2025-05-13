@@ -8,7 +8,6 @@ import {
   NFTResource,
   NFTTagResource,
   nftSchema,
-  objectIdSchema,
 } from '../types/nft.types.js'
 import { getApiContext } from '../lib/context.js'
 import mongoose, { Types } from 'mongoose'

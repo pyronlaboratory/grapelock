@@ -37,40 +37,55 @@ export function OfferCard({ offer }: { offer: OfferResource }) {
       className="bg-muted/20 overflow-hidden hover:border-gray-400 transition-all group gap-0 p-0 min-w-xs rounded-3xl border-none cursor-pointer hover:bg-muted/40"
     >
       <CardHeader className="sr-only" />
-      <div className="px-6 py-4 text-primary text-center text-sm font-mono">{ellipsify(offer.nftMintAddress)}</div>
+      {/* <div className="px-6 py-4 text-primary text-center text-sm font-mono">{ellipsify(offer?.tokenMintA || '')}</div> */}
       <div className="h-12 bg-gradient-to-br from-blue-600 to-blue-900 text-center bottom-0 relative">
-        <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium">
+        <div
+          className={`absolute top-3 right-3 ${offer.status === 'open' ? 'bg-yellow-500' : 'bg-green-500'} dark:bg-black/50 px-4 py-1 rounded-full text-xs font-medium`}
+        >
           {offer.status}
         </div>
       </div>
-      <CardContent className="space-y-8 bg-black">
-        <div className="flex justify-between items-start mb-16 mt-4">
-          <div className="flex justify-star gap-4 items-center mt-4">
+      <CardContent className="space-y-8 dark:bg-black">
+        <div className="flex flex-row gap-8 justify-between items-start mb-6 mt-4">
+          <div className="flex justify-start gap-4 items-center mt-4">
             <img
               src={getCollectionIdenticon(offer.nftId)}
               alt={offer.nftId}
               className="h-12 w-12 rounded-full object-cover"
             />
-            <h2 className="font-medium text-md text-muted-foreground/80 font-mono">
-              {ellipsify(offer.nftMintAddress, 6)} <br />
-              <span className="font-medium text-[12px]">{ellipsify(offer?.offerAddress || '', 4)}</span> <br />
+            <h2 className="font-medium text-md text-muted-foreground/80">
+              {ellipsify(offer?.tokenMintA || '', 6)} <br />
+              <span className="font-medium text-[12px]">{ellipsify(offer?.offer || '', 4)}</span> <br />
             </h2>
           </div>
         </div>
+        <Separator className="mb-4" />
+        <div className="mb-4 text-muted-foreground font-mono flex flex-col rounded-md bg-zinc-100 p-4 dark:bg-zinc-800/50 text-xs min-h-[150px]">
+          Details about offer <br />
+          Offer and vault details ..
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+          ... Token Mint Address
+        </div>
         <div className="">
-          <p className="tracking-wider text-[10px] mb-1 uppercase text-muted-foreground/80">Selling Price</p>
           <div className="flex flex-row items-baseline gap-2">
             <p className="text-xl font-semibold text-green-400">{offer.sellingPrice} </p>
             <p className="text-xs font-medium text-green-400/80 tracking-wider">SOL</p>
           </div>
+          <p className="text-[10px] mb-1 text-muted-foreground/80">Price</p>
         </div>
-        <Separator className="mb-4" />
-        <span className="text-muted-foreground/80 text-xs mb-2 flex flex-row gap-3">
-          <Clock className="h-4 w-4" />
+
+        <NFTPurchaseModal selectedOffer={offer} />
+        <Button className="w-full mb-8" variant={'default'}>
+          View Details
+        </Button>
+        <span className="text-muted-foreground/40 text-[12px] px-2 mb-6 flex flex-row gap-3 items-center">
+          <Clock className="h-3 w-3" />
           {formatDistanceToNow(new Date(offer.createdAt), { addSuffix: true })}
         </span>
-
-        <NFTPurchaseModal nftMintAddress={offer.nftMintAddress} nftSellingPrice={offer.sellingPrice} />
       </CardContent>
     </Card>
   )
@@ -95,7 +110,7 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
     if (searchTerm) {
       result = result.filter(
         (offer) =>
-          offer.nftMintAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          offer?.tokenMintA?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           offer._id.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     }
@@ -112,7 +127,7 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
   }, [offers, searchTerm, priceRange, sortOrder])
 
   // Find max price for slider
-  const maxPrice = offers ? Math.max(...offers.map((offer) => offer.sellingPrice), 100) : 100
+  const maxPrice = offers ? Math.max(...offers.map((offer) => offer.sellingPrice), 100) : 1000
   const { connected } = useWallet()
   const [open, setOpen] = useState(false)
 
@@ -132,16 +147,17 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
   return (
     <div className="">
       {/* Heading */}
-      <div className="flex flex-col sm:flex-row justify-between items-start md:items-end mb-8 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start md:items-end mb-2 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-primary dark:text-white"> Marketplace 🔥 </h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Discover and trade digital twins</p>
-          <div className="flex items-center gap-2 mt-4">
-            <Badge variant={connected ? 'default' : 'outline'} className="px-3 py-1 text-xs">
+
+          {/* <div className="flex items-center gap-2 mt-4">
+            <Badge variant={connected ? 'default' : 'outline'} className="px-3 py-1 text-xs ">
               <span className={`mr-1.5 h-2 w-2 rounded-full ${connected ? 'bg-green-500' : 'bg-gray-400'}`} />
               {connected ? 'Wallet Connected' : 'Wallet Disconnected'}
             </Badge>
-          </div>
+          </div> */}
         </div>
 
         <div className="flex items-center gap-2">
@@ -165,12 +181,17 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
 
       <Separator className="my-2 text-white" />
 
-      <div className="flex flex-col-reverse md:flex-row">
+      <div className="flex flex-col-reverse md:flex-row gap-6">
         {/* Cards */}
         <div className="flex-3 md:flex-[3] py-4">
-          {filteredOffers.length === 0 ? (
+          {offers.length === 0 ? (
             <div className="flex justify-center items-center text-center min-h-11/12 bg-muted-background border rounded-lg">
-              <p className="text-primary">No offers match your search criteria</p>
+              <p className="text-foreground/60">
+                <b className="text-6xl leading-20 font-medium">¯\_(ツ)_/¯</b>
+                <br />
+                <br />
+                No offers to show!
+              </p>
             </div>
           ) : (
             <div className="flex flex-col sm:flex-row sm:flex-wrap gap-8">
@@ -205,8 +226,8 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
 
                       <h2 className="text-2xl md:text-3xl font-bold mb-2">Featured NFT</h2>
                       <p className="text-zinc-400 mb-4">
-                        Mint Address: {featuredNft.nftMintAddress.substring(0, 8)}...
-                        {featuredNft.nftMintAddress.substring(featuredNft.nftMintAddress.length - 8)}
+                        Mint Address: {featuredNft.tokenMintA.substring(0, 8)}...
+                        {featuredNft.tokenMintA.substring(featuredNft.tokenMintA.length - 8)}
                       </p>
 
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
@@ -240,7 +261,7 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
         </div>
 
         {/* Filters */}
-        <div className="flex-1 lg:flex-[1] mt-4 border rounded-xl px-8 py-6 pb-0 h-fit bg-black max-w-sm">
+        <div className="flex-1 lg:flex-[1] mt-4 border rounded-xl px-8 py-6 pb-0 h-fit dark:bg-black">
           <div className="flex flex-col gap-3">
             <p className="uppercase text-xs font-medium flex gap-4 items-center tracking-wider">
               <Funnel className="h-4 w-4" />
@@ -310,7 +331,7 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
                   className="h-8 w-8 rounded object-cover"
                 />
                 <div>
-                  <p>{item.nftMintAddress}</p>
+                  <p>{item.tokenMintA}</p>
                   <p className="text-xs text-muted-foreground">
                     {item.status} · ${item.sellingPrice}
                   </p>

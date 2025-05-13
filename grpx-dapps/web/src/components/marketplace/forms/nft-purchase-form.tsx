@@ -8,21 +8,36 @@ import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTit
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
+import { OfferResource } from '@/schemas/offer'
+import api, { ApiResponse } from '@/lib/api'
+import { OrderResource } from '@/schemas/order'
 
-export function NFTPurchaseModal({
-  nftMintAddress,
-  nftSellingPrice,
-}: {
-  nftMintAddress: string
-  nftSellingPrice: number
-}) {
+export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResource }) {
   const [open, setOpen] = useState(false)
   const mutation = useAcceptOffer()
+
   const handleSubmit = async () => {
     try {
-      const response = await mutation.mutateAsync()
-      alert('Done')
-      toast.error('Failed to purchase NFT. Please try again.')
+      const response = await mutation.mutateAsync({ offerObj: selectedOffer })
+      if (!response) return toast.error('Failed to secure offer. Please try again.')
+      const { consumer, status, txSignature } = response
+
+      const { data: order } = await api<ApiResponse<{ data: OrderResource; success: boolean }>>(
+        `offers/${selectedOffer._id}`,
+        {
+          method: 'PATCH',
+          body: {
+            status: status === 'accepted' ? 'in_progress' : 'failed',
+            consumer,
+            txSignature,
+          },
+        },
+      )
+      // check data and show success toast..
+      if (order.data.status === 'pending') {
+        toast.success(`Order placed successfully!`)
+        setOpen(false)
+      }
     } catch (error) {
       console.error('Error purchasing NFT:', error)
       toast.error('Failed to purchase NFT. Please try again.')
@@ -32,7 +47,7 @@ export function NFTPurchaseModal({
     <AppModal
       open={open}
       onOpenChange={setOpen}
-      classes={`hover:!text-green-900 hover:!bg-green-400 w-full my-6 rounded-md`}
+      classes={`border-1 bg-yellow-500 text-green-950 hover:!text-green-900 hover:!bg-green-400 w-full my-3 rounded-md !mt-0`}
       title="Purchase"
       submitDisabled={mutation.isPending}
       submitLabel={
@@ -68,7 +83,7 @@ export function NFTPurchaseModal({
             <div className="flex flex-col space-y-1">
               <h3 className="font-medium">Château Margaux 2015</h3>
               <p className="text-sm text-muted-foreground">2015 • Bordeaux, France</p>
-              <p className="text-sm font-bold mt-1 font-mono">{nftSellingPrice} SOL</p>
+              <p className="text-sm font-bold mt-1 font-mono">{selectedOffer.sellingPrice} SOL</p>
             </div>
           </div>
 
@@ -100,7 +115,8 @@ export function NFTPurchaseModal({
             <div className="flex justify-between mb-1">
               <span>Price</span>
               <span className="font-mono">
-                {nftSellingPrice} <span className="text-[0.75em] tracking-wider text-muted-foreground/80">SOL</span>
+                {selectedOffer.sellingPrice}{' '}
+                <span className="text-[0.75em] tracking-wider text-muted-foreground/80">SOL</span>
               </span>
             </div>
             <div className="flex justify-between mb-1">
@@ -113,7 +129,8 @@ export function NFTPurchaseModal({
             <div className="flex justify-between font-bold">
               <span>Total</span>
               <span className="font-mono  text-green-500">
-                {(nftSellingPrice + 0.0085).toFixed(3)} <span className="text-[0.75em] tracking-wider">SOL</span>
+                {(selectedOffer.sellingPrice + 0.0085).toFixed(3)}{' '}
+                <span className="text-[0.75em] tracking-wider">SOL</span>
               </span>
             </div>
           </div>

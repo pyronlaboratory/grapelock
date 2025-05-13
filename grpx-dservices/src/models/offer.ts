@@ -2,15 +2,18 @@ import mongoose from 'mongoose'
 
 const offerSchema = new mongoose.Schema(
   {
+    offer: { type: String, required: true },
     nftId: { type: String, required: true },
-    nftMintAddress: { type: String, required: true },
     sellingPrice: { type: Number, required: true },
-    producerAddress: { type: String },
-    offerAddress: { type: String },
-    vaultAddress: { type: String },
+    producer: { type: String, required: true },
+    consumer: { type: String },
+    tokenMintA: { type: String, required: true },
+    tokenMintB: { type: String, required: true },
+    vaultTokenAccountA: { type: String, required: true },
+    vaultTokenAccountB: { type: String, required: true },
     status: {
       type: String,
-      enum: ['open', 'close', 'complete', 'failed'],
+      enum: ['open', 'in_progress', 'close', 'complete', 'failed'],
       default: 'open',
     },
     txSignature: { type: String },

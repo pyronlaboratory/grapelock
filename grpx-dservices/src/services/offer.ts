@@ -1,4 +1,3 @@
-import { Types } from 'mongoose'
 import { getApiContext } from '../lib/context.js'
 import { Offer } from '../models/offer.js'
 import { CreateOfferResource, OfferResource } from '../types/offer.types.js'
@@ -6,15 +5,31 @@ import { NFT } from '../models/nft.js'
 
 const context = await getApiContext()
 
+export async function getAllOpenVerfifiedOffers(): Promise<OfferResource[]> {
+  const openOffers = await Offer.find({ status: ['open', 'in_progress'] }).lean()
+  const nftIds = openOffers.map((offer) => offer.nftId)
+  const inCirculationNFTs = await NFT.find({
+    _id: { $in: nftIds },
+    status: 'in_circulation',
+  }).select('_id')
+
+  const validNftIdSet = new Set(inCirculationNFTs.map((nft) => nft._id.toString()))
+  const filteredOffers = openOffers.filter((offer) => validNftIdSet.has(offer.nftId.toString()))
+
+  return filteredOffers as OfferResource[]
+}
+
 export async function registerOffer(payload: CreateOfferResource): Promise<OfferResource> {
   try {
     const newOffer = await Offer.create({
+      offer: payload.offer,
       nftId: payload.nftId,
-      nftMintAddress: payload.nftMintAddress,
       sellingPrice: payload.sellingPrice,
-      producerAddress: payload.producerAddress,
-      offerAddress: payload.offerAddress,
-      vaultAddress: payload.vaultAddress,
+      producer: payload.producer,
+      tokenMintA: payload.tokenMintA,
+      tokenMintB: payload.tokenMintB,
+      vaultTokenAccountA: payload.vaultTokenAccountA,
+      vaultTokenAccountB: payload.vaultTokenAccountB,
       txSignature: payload.txSignature,
     })
 
@@ -25,23 +40,27 @@ export async function registerOffer(payload: CreateOfferResource): Promise<Offer
   }
 }
 
-export async function getAllOpenVerfifiedOffers(): Promise<OfferResource[]> {
-  // Get all open offers
-  const openOffers = await Offer.find({ status: 'open' }).lean()
+export async function updateOffer(id: string, payload: Partial<OfferResource>): Promise<OfferResource> {
+  try {
+    const updatedOffer = await Offer.findByIdAndUpdate(
+      id,
+      {
+        consumer: payload.consumer,
+        txSignature: payload.txSignature,
+        status: payload.status,
+        updatedAt: new Date(),
+      },
+      { new: true },
+    )
 
-  // Get all unique nftIds from these offers
-  const nftIds = openOffers.map((offer) => offer.nftId)
+    if (!updatedOffer) {
+      context.log.error('Offer not found or update failed:', id)
+      throw new Error('Offer not found or update failed')
+    }
 
-  // Find NFTs that are in circulation
-  const inCirculationNFTs = await NFT.find({
-    _id: { $in: nftIds },
-    status: 'in_circulation',
-  }).select('_id')
-
-  const validNftIdSet = new Set(inCirculationNFTs.map((nft) => nft._id.toString()))
-
-  // Filter offers whose nftId is in the valid set
-  const filteredOffers = openOffers.filter((offer) => validNftIdSet.has(offer.nftId.toString()))
-
-  return filteredOffers as OfferResource[]
+    return updatedOffer.toObject() as OfferResource
+  } catch (error: any) {
+    context.log.error('Error updating offer:', error)
+    throw new Error(`Failed to update offer: ${error.message}`)
+  }
 }

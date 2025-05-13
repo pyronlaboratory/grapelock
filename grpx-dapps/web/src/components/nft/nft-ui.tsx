@@ -330,7 +330,7 @@ export function CollectionData({ collection }: { collection: CollectionResource 
               <div className="mt-6 flex flex-col items-center">
                 <QRCodeSVG
                   value={`https://explorer.solana.com/address/${collection?.creatorAddress}?cluster=devnet`}
-                  size={300}
+                  size={250}
                   level="Q"
                   bgColor="#FFFFFF"
                   fgColor="#000000"

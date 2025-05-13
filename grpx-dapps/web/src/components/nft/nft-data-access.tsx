@@ -5,13 +5,13 @@ import { useQuery } from '@tanstack/react-query'
 import { collectionsResponseSchema } from '@/schemas/collection'
 import { nftDetailsResponseSchema, nftsResponseSchema } from '@/schemas/nft'
 
-export function useGetCollections(publicKey: string) {
+export function useGetCollections(publicKey?: string) {
   return useQuery({
     queryKey: ['get-collections', publicKey],
     queryFn: async () => {
       const response = await api(`collections/${publicKey}`)
       const parsed = collectionsResponseSchema.parse(response)
-      return parsed.data
+      return parsed.data || []
     },
     enabled: !!publicKey,
     staleTime: 60_000,
