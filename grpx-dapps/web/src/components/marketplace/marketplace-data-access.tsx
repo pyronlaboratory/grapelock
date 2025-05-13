@@ -2,7 +2,7 @@ import api from '@/lib/api'
 import { allOpenVerifiedOffersResponseSchema } from '@/schemas/offer'
 import { useQuery } from '@tanstack/react-query'
 
-export const useOffers = () => {
+export const useGetOffers = () => {
   return useQuery({
     queryKey: ['offers'],
     queryFn: async () => {

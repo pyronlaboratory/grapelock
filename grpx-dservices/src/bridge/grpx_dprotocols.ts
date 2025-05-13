@@ -14,26 +14,32 @@ export type GrpxDprotocols = {
   },
   "instructions": [
     {
-      "name": "confirm",
+      "name": "accept",
       "discriminator": [
-        174,
-        1,
-        15,
-        213,
-        3,
-        190,
-        131,
-        0
+        65,
+        150,
+        70,
+        216,
+        133,
+        6,
+        107,
+        4
       ],
       "accounts": [
         {
-          "name": "taker",
+          "name": "producer",
+          "writable": true,
+          "relations": [
+            "offer"
+          ]
+        },
+        {
+          "name": "consumer",
           "writable": true,
           "signer": true
         },
         {
-          "name": "maker",
-          "writable": true,
+          "name": "tokenMintA",
           "relations": [
             "offer"
           ]
@@ -45,13 +51,13 @@ export type GrpxDprotocols = {
           ]
         },
         {
-          "name": "makerTokenAccountB",
+          "name": "consumerTokenAccountB",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "consumer"
               },
               {
                 "kind": "account",
@@ -118,7 +124,7 @@ export type GrpxDprotocols = {
               },
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "producer"
               },
               {
                 "kind": "account",
@@ -126,6 +132,309 @@ export type GrpxDprotocols = {
                 "account": "offer"
               }
             ]
+          }
+        },
+        {
+          "name": "vaultTokenAccountB",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "tokenMintB"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "tokenProgram"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "confirm",
+      "discriminator": [
+        174,
+        1,
+        15,
+        213,
+        3,
+        190,
+        131,
+        0
+      ],
+      "accounts": [
+        {
+          "name": "producer",
+          "writable": true,
+          "relations": [
+            "offer"
+          ]
+        },
+        {
+          "name": "consumer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenMintA"
+        },
+        {
+          "name": "tokenMintB",
+          "relations": [
+            "offer"
+          ]
+        },
+        {
+          "name": "producerTokenAccountB",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "producer"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "tokenMintB"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "consumerTokenAccountA",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "consumer"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "tokenMintA"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "offer",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "producer"
+              },
+              {
+                "kind": "account",
+                "path": "offer.id",
+                "account": "offer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vaultTokenAccountA",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "tokenMintA"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
           }
         },
         {
@@ -384,7 +693,8 @@ export type GrpxDprotocols = {
       "accounts": [
         {
           "name": "owner",
-          "writable": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "mint",
@@ -556,7 +866,7 @@ export type GrpxDprotocols = {
       ],
       "accounts": [
         {
-          "name": "maker",
+          "name": "producer",
           "writable": true,
           "signer": true
         },
@@ -567,13 +877,13 @@ export type GrpxDprotocols = {
           "name": "tokenMintB"
         },
         {
-          "name": "makerTokenAccountA",
+          "name": "producerTokenAccountA",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "producer"
               },
               {
                 "kind": "account",
@@ -640,7 +950,7 @@ export type GrpxDprotocols = {
               },
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "producer"
               },
               {
                 "kind": "arg",
@@ -650,7 +960,7 @@ export type GrpxDprotocols = {
           }
         },
         {
-          "name": "vault",
+          "name": "vaultTokenAccountA",
           "writable": true,
           "pda": {
             "seeds": [
@@ -747,16 +1057,20 @@ export type GrpxDprotocols = {
       ],
       "accounts": [
         {
-          "name": "taker",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "maker",
+          "name": "producer",
           "writable": true,
           "relations": [
             "offer"
           ]
+        },
+        {
+          "name": "consumer",
+          "writable": true
+        },
+        {
+          "name": "initiator",
+          "writable": true,
+          "signer": true
         },
         {
           "name": "tokenMintA",
@@ -771,13 +1085,13 @@ export type GrpxDprotocols = {
           ]
         },
         {
-          "name": "makerTokenAccountA",
+          "name": "producerTokenAccountA",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "producer"
               },
               {
                 "kind": "account",
@@ -828,13 +1142,13 @@ export type GrpxDprotocols = {
           }
         },
         {
-          "name": "takerTokenAccountB",
+          "name": "consumerTokenAccountB",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "taker"
+                "path": "consumer"
               },
               {
                 "kind": "account",
@@ -901,7 +1215,7 @@ export type GrpxDprotocols = {
               },
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "producer"
               },
               {
                 "kind": "account",
@@ -912,7 +1226,7 @@ export type GrpxDprotocols = {
           }
         },
         {
-          "name": "vaultTokenAccountB",
+          "name": "vaultTokenAccountA",
           "writable": true,
           "pda": {
             "seeds": [
@@ -926,7 +1240,7 @@ export type GrpxDprotocols = {
               },
               {
                 "kind": "account",
-                "path": "tokenMintB"
+                "path": "tokenMintA"
               }
             ],
             "program": {
@@ -969,13 +1283,14 @@ export type GrpxDprotocols = {
           }
         },
         {
-          "name": "takerTokenAccountA",
+          "name": "vaultTokenAccountB",
           "writable": true,
+          "optional": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "taker"
+                "path": "offer"
               },
               {
                 "kind": "account",
@@ -983,7 +1298,7 @@ export type GrpxDprotocols = {
               },
               {
                 "kind": "account",
-                "path": "tokenMintA"
+                "path": "tokenMintB"
               }
             ],
             "program": {
@@ -1149,12 +1464,12 @@ export type GrpxDprotocols = {
     {
       "code": 6004,
       "name": "unauthorizedConfirmation",
-      "msg": "Only the taker can confirm the delivery"
+      "msg": "Only the consumer can confirm the delivery"
     },
     {
       "code": 6005,
       "name": "unauthorizedRefund",
-      "msg": "Only the taker can request a refund"
+      "msg": "Only the producer or consumer of offer can request a refund"
     },
     {
       "code": 6006,
@@ -1201,11 +1516,11 @@ export type GrpxDprotocols = {
             "type": "u64"
           },
           {
-            "name": "maker",
+            "name": "producer",
             "type": "pubkey"
           },
           {
-            "name": "taker",
+            "name": "consumer",
             "type": {
               "option": "pubkey"
             }
@@ -1224,9 +1539,7 @@ export type GrpxDprotocols = {
           },
           {
             "name": "tokenBDesiredAmount",
-            "type": {
-              "option": "u64"
-            }
+            "type": "u64"
           },
           {
             "name": "status",

@@ -8,44 +8,35 @@
   },
   "instructions": [
     {
-      "name": "confirm",
-      "discriminator": [
-        174,
-        1,
-        15,
-        213,
-        3,
-        190,
-        131,
-        0
-      ],
+      "name": "accept",
+      "discriminator": [65, 150, 70, 216, 133, 6, 107, 4],
       "accounts": [
         {
-          "name": "taker",
+          "name": "producer",
+          "writable": true,
+          "relations": ["offer"]
+        },
+        {
+          "name": "consumer",
           "writable": true,
           "signer": true
         },
         {
-          "name": "maker",
-          "writable": true,
-          "relations": [
-            "offer"
-          ]
+          "name": "token_mint_a",
+          "relations": ["offer"]
         },
         {
           "name": "token_mint_b",
-          "relations": [
-            "offer"
-          ]
+          "relations": ["offer"]
         },
         {
-          "name": "maker_token_account_b",
+          "name": "consumer_token_account_b",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "consumer"
               },
               {
                 "kind": "account",
@@ -59,38 +50,8 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
               ]
             }
           }
@@ -102,17 +63,11 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  111,
-                  102,
-                  102,
-                  101,
-                  114
-                ]
+                "value": [111, 102, 102, 101, 114]
               },
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "producer"
               },
               {
                 "kind": "account",
@@ -143,38 +98,172 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "confirm",
+      "discriminator": [174, 1, 15, 213, 3, 190, 131, 0],
+      "accounts": [
+        {
+          "name": "producer",
+          "writable": true,
+          "relations": ["offer"]
+        },
+        {
+          "name": "consumer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_mint_a"
+        },
+        {
+          "name": "token_mint_b",
+          "relations": ["offer"]
+        },
+        {
+          "name": "producer_token_account_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "producer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_b"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
+              ]
+            }
+          }
+        },
+        {
+          "name": "consumer_token_account_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "consumer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_a"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
+              ]
+            }
+          }
+        },
+        {
+          "name": "offer",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [111, 102, 102, 101, 114]
+              },
+              {
+                "kind": "account",
+                "path": "producer"
+              },
+              {
+                "kind": "account",
+                "path": "offer.id",
+                "account": "Offer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_token_account_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_a"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vault_token_account_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_b"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
               ]
             }
           }
@@ -195,16 +284,7 @@
     },
     {
       "name": "create",
-      "discriminator": [
-        24,
-        30,
-        200,
-        40,
-        5,
-        28,
-        7,
-        119
-      ],
+      "discriminator": [24, 30, 200, 40, 5, 28, 7, 119],
       "accounts": [
         {
           "name": "owner",
@@ -222,17 +302,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  97,
-                  117,
-                  116,
-                  104,
-                  111,
-                  114,
-                  105,
-                  116,
-                  121
-                ]
+                "value": [97, 117, 116, 104, 111, 114, 105, 116, 121]
               }
             ]
           }
@@ -257,38 +327,8 @@
               {
                 "kind": "const",
                 "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
+                  6, 221, 246, 225, 215, 101, 161, 147, 217, 203, 225, 70, 206, 235, 121, 172, 28, 180, 133, 237, 95,
+                  91, 55, 145, 58, 140, 245, 133, 126, 255, 0, 169
                 ]
               },
               {
@@ -299,38 +339,8 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
               ]
             }
           }
@@ -365,16 +375,7 @@
     },
     {
       "name": "mint",
-      "discriminator": [
-        51,
-        57,
-        225,
-        47,
-        182,
-        146,
-        137,
-        166
-      ],
+      "discriminator": [51, 57, 225, 47, 182, 146, 137, 166],
       "accounts": [
         {
           "name": "owner",
@@ -392,17 +393,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  97,
-                  117,
-                  116,
-                  104,
-                  111,
-                  114,
-                  105,
-                  116,
-                  121
-                ]
+                "value": [97, 117, 116, 104, 111, 114, 105, 116, 121]
               }
             ]
           }
@@ -427,38 +418,8 @@
               {
                 "kind": "const",
                 "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
+                  6, 221, 246, 225, 215, 101, 161, 147, 217, 203, 225, 70, 206, 235, 121, 172, 28, 180, 133, 237, 95,
+                  91, 55, 145, 58, 140, 245, 133, 126, 255, 0, 169
                 ]
               },
               {
@@ -469,38 +430,8 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
               ]
             }
           }
@@ -539,19 +470,10 @@
     },
     {
       "name": "open",
-      "discriminator": [
-        228,
-        220,
-        155,
-        71,
-        199,
-        189,
-        60,
-        45
-      ],
+      "discriminator": [228, 220, 155, 71, 199, 189, 60, 45],
       "accounts": [
         {
-          "name": "maker",
+          "name": "producer",
           "writable": true,
           "signer": true
         },
@@ -562,13 +484,13 @@
           "name": "token_mint_b"
         },
         {
-          "name": "maker_token_account_a",
+          "name": "producer_token_account_a",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "producer"
               },
               {
                 "kind": "account",
@@ -582,38 +504,8 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
               ]
             }
           }
@@ -625,17 +517,11 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  111,
-                  102,
-                  102,
-                  101,
-                  114
-                ]
+                "value": [111, 102, 102, 101, 114]
               },
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "producer"
               },
               {
                 "kind": "arg",
@@ -645,7 +531,7 @@
           }
         },
         {
-          "name": "vault",
+          "name": "vault_token_account_a",
           "writable": true,
           "pda": {
             "seeds": [
@@ -665,38 +551,8 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
               ]
             }
           }
@@ -730,49 +586,38 @@
     },
     {
       "name": "refund",
-      "discriminator": [
-        2,
-        96,
-        183,
-        251,
-        63,
-        208,
-        46,
-        46
-      ],
+      "discriminator": [2, 96, 183, 251, 63, 208, 46, 46],
       "accounts": [
         {
-          "name": "taker",
+          "name": "producer",
+          "writable": true,
+          "relations": ["offer"]
+        },
+        {
+          "name": "consumer",
+          "writable": true
+        },
+        {
+          "name": "initiator",
           "writable": true,
           "signer": true
         },
         {
-          "name": "maker",
-          "writable": true,
-          "relations": [
-            "offer"
-          ]
-        },
-        {
           "name": "token_mint_a",
-          "relations": [
-            "offer"
-          ]
+          "relations": ["offer"]
         },
         {
           "name": "token_mint_b",
-          "relations": [
-            "offer"
-          ]
+          "relations": ["offer"]
         },
         {
-          "name": "maker_token_account_a",
+          "name": "producer_token_account_a",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "producer"
               },
               {
                 "kind": "account",
@@ -786,50 +631,20 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
               ]
             }
           }
         },
         {
-          "name": "taker_token_account_b",
+          "name": "consumer_token_account_b",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "taker"
+                "path": "consumer"
               },
               {
                 "kind": "account",
@@ -843,38 +658,8 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
               ]
             }
           }
@@ -886,17 +671,11 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  111,
-                  102,
-                  102,
-                  101,
-                  114
-                ]
+                "value": [111, 102, 102, 101, 114]
               },
               {
                 "kind": "account",
-                "path": "maker"
+                "path": "producer"
               },
               {
                 "kind": "account",
@@ -907,8 +686,36 @@
           }
         },
         {
+          "name": "vault_token_account_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_a"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
+              ]
+            }
+          }
+        },
+        {
           "name": "vault_token_account_b",
           "writable": true,
+          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -927,95 +734,8 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "taker_token_account_a",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "taker"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "token_mint_a"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90, 19, 153, 218, 255, 16,
+                132, 4, 142, 123, 216, 219, 233, 248, 89
               ]
             }
           }
@@ -1036,16 +756,7 @@
     },
     {
       "name": "verify",
-      "discriminator": [
-        133,
-        161,
-        141,
-        48,
-        120,
-        198,
-        88,
-        150
-      ],
+      "discriminator": [133, 161, 141, 48, 120, 198, 88, 150],
       "accounts": [
         {
           "name": "authority",
@@ -1064,17 +775,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  97,
-                  117,
-                  116,
-                  104,
-                  111,
-                  114,
-                  105,
-                  116,
-                  121
-                ]
+                "value": [97, 117, 116, 104, 111, 114, 105, 116, 121]
               }
             ]
           }
@@ -1108,16 +809,7 @@
   "accounts": [
     {
       "name": "Offer",
-      "discriminator": [
-        215,
-        88,
-        60,
-        71,
-        170,
-        162,
-        73,
-        229
-      ]
+      "discriminator": [215, 88, 60, 71, 170, 162, 73, 229]
     }
   ],
   "errors": [
@@ -1144,12 +836,12 @@
     {
       "code": 6004,
       "name": "UnauthorizedConfirmation",
-      "msg": "Only the taker can confirm the delivery"
+      "msg": "Only the consumer can confirm the delivery"
     },
     {
       "code": 6005,
       "name": "UnauthorizedRefund",
-      "msg": "Only the taker can request a refund"
+      "msg": "Only the producer or consumer of offer can request a refund"
     },
     {
       "code": 6006,
@@ -1196,11 +888,11 @@
             "type": "u64"
           },
           {
-            "name": "maker",
+            "name": "producer",
             "type": "pubkey"
           },
           {
-            "name": "taker",
+            "name": "consumer",
             "type": {
               "option": "pubkey"
             }
@@ -1219,9 +911,7 @@
           },
           {
             "name": "token_b_desired_amount",
-            "type": {
-              "option": "u64"
-            }
+            "type": "u64"
           },
           {
             "name": "status",

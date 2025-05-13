@@ -19,8 +19,8 @@ export function NFTSaleModal({
 }: {
   isVerified: boolean
   nftId: string
-  nftCreatorAddress?: string
-  nftMintAddress?: string | null
+  nftCreatorAddress: string
+  nftMintAddress: string
 }) {
   const [open, setOpen] = useState(false)
   const [price, setPrice] = useState('')
@@ -35,26 +35,24 @@ export function NFTSaleModal({
 
     try {
       const response = await mutation.mutateAsync({
-        nftMintAddress: nftMintAddress || '',
-        creatorAddress: nftCreatorAddress || '',
+        nftMintAddress: nftMintAddress,
+        creatorAddress: nftCreatorAddress, // could be re-seller as well
         sellingPrice: parseFloat(price),
       })
-      // const response = {
-      //   offer: '8dtxDPVNDhkMiuFagSeQjAZGyM5RY1iqSbFYjcPFEP3Z',
-      //   vault: 'FzbUZE4vHyjeeoKFBuX9sG3endRGeJvFbQND5nXHGoEt',
-      //   signature: '3Djwx3yfDZxQukCTjaCdWEeqB832ZhaAzyrPZzEDa1cvHnvPuFbmJ4WJVhoaT7YCEa52c2PYAytMui33q9gBW5gK',
-      // }
+
       if (!response) return toast.error('Failed to list NFT for sale. Please try again.')
 
       const { data: offer } = await api<ApiResponse<{ data: OfferResource; success: boolean }>>('offers', {
         method: 'POST',
         body: {
+          offer: response.offer,
           nftId,
-          nftMintAddress,
           sellingPrice: parseFloat(price),
-          producerAddress: nftCreatorAddress || wallet.publicKey?.toBase58(),
-          offerAddress: response.offer,
-          vaultAddress: response.vault,
+          producer: nftCreatorAddress || wallet.publicKey?.toBase58(),
+          tokenMintA: response.tokenMintA,
+          tokenMintB: response.tokenMintB,
+          vaultTokenAccountA: response.vaultTokenAccountA,
+          vaultTokenAccountB: response.vaultTokenAccountB,
           txSignature: response.signature,
         },
       })

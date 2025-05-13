@@ -9,12 +9,7 @@ import Loading from '../loading'
 export default function ManagerPage() {
   const { publicKey } = useWallet()
   const publicKeyString = useMemo(() => publicKey?.toBase58(), [publicKey])
-  const { data: collections, isLoading } = useGetCollections(publicKeyString!)
+  const { data: collections, isLoading } = useGetCollections(publicKeyString)
 
-  return (
-    <>
-      {isLoading && <Loading />}
-      {collections && <NFTCollectionManager collections={collections} />}
-    </>
-  )
+  return <>{isLoading ? <Loading /> : <NFTCollectionManager collections={collections || []} />}</>
 }
