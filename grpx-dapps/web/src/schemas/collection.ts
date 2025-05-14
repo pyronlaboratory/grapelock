@@ -40,6 +40,10 @@ export const collectionsResponseSchema = z.object({
   success: z.boolean(),
   data: z.array(collectionSchema),
 })
+export const collectionDetailsResponseSchema = z.object({
+  success: z.boolean(),
+  data: collectionSchema,
+})
 export type CollectionResource = z.infer<typeof collectionSchema>
 export type CollectionStatus = z.infer<typeof collectionStatusEnum>
 export type CreateCollectionFormResource = z.infer<typeof createCollectionFormSchema>

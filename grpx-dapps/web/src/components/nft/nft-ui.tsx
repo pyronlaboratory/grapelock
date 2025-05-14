@@ -122,21 +122,21 @@ function AddressBox({ title, address }: { title: string; address: string }) {
 }
 export function GetStarted() {
   return (
-    <div className="min-w-[350px] max-w-md md:max-w-lg w-auto mx-auto flex flex-col items-center justify-center px-8 py-8 relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-gradient-to-r from-background via-primary-foreground to-accent rounded-2xl h-[500px]">
+    <div className="border mt-8 dark:border-none min-w-[350px] max-w-md md:max-w-lg w-auto mx-auto flex flex-col items-center justify-center px-8 py-8 relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-gradient-to-r from-background via-primary-foreground to-accent rounded-2xl h-[450px]">
       <div className="p-4 bg-background rounded-full mb-6">
-        <Flame className="h-12 w-12 text-yellow-600" />
+        <Flame className="h-12 w-12 text-amber-400 dark:text-yellow-600" />
       </div>
 
       <h2 className="text-2xl font-bold text-muted-foreground text-center mb-3">Register Mint</h2>
 
-      <p className="text-sm text-center text-muted-foreground tracking-wide max-w-xs mb-16">
+      <p className="text-sm text-center text-muted-foreground tracking-wide max-w-xs mb-2">
         Create a master edition to start publishing on the marketplace
       </p>
 
       <CreateCollectionModal
         label={'Start Creating'}
         classes={
-          'w-full h-12 -bottom-15 relative overflow-hidden bg-background hover:bg-green-500 text-yellow-600 hover:text-black transition-colors cursor-pointer group'
+          'w-full h-12 -bottom-15 relative overflow-hidden bg-gray-900 dark:bg-background hover:bg-green-500 text-amber-500 dark:text-yellow-600 hover:text-black transition-colors cursor-pointer group font-semibold'
         }
         shineEffect
       />
@@ -452,7 +452,7 @@ export function NFTCard({ nft }: { nft: NFTResource }) {
 
   return (
     <div className="bg-primary-foreground rounded-lg shadow overflow-hidden transition duration-200 hover:shadow-md cursor-pointer">
-      <Link href={`/asset-manager/${nft._id}`}>
+      <Link href={`/asset-manager/${nft.collectionId}/${nft._id}`}>
         <div className="h-60 overflow-hidden">
           <img
             src={nft.nftMedia || getCollectionIdenticon(nft._id)}

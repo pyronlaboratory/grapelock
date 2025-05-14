@@ -8,15 +8,22 @@ import { useEffect, useState } from 'react'
 import {
   ArrowUpDown,
   ArrowUpRight,
+  BadgeCheck,
   CheckCircle,
+  CheckCircleIcon,
+  CheckIcon,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Copy,
   ExternalLink,
   Filter,
   Funnel,
+  Info,
   Keyboard,
   ListFilter,
   Search,
+  ShieldCheck,
   SlidersHorizontal,
   Wallet,
 } from 'lucide-react'
@@ -27,111 +34,216 @@ import { Badge } from '../ui/badge'
 import { NFTResource } from '@/schemas/nft'
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command'
 import { Separator } from '../ui/separator'
-import { ellipsify, getCollectionIdenticon } from '../../lib/utils'
+import { cn, ellipsify, getCollectionIdenticon, getIdenticon } from '../../lib/utils'
 import { NFTPurchaseModal } from './forms/nft-purchase-form'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+// export function AssetCard({ asset }: { asset: OfferResource }) {
+//   const [expanded, setExpanded] = useState(false)
 
+//   return (
+//     <Card
+//       className={cn(
+//         'w-full max-w-[500px] bg-zinc-900 overflow-hidden transition-all rounded-3xl border-zinc-800 hover:border-zinc-700 cursor-pointer group',
+//         expanded ? 'h-auto' : 'h-[170px]',
+//       )}
+//       onClick={() => setExpanded(!expanded)}
+//     >
+//       <CardContent className="p-0">
+//         {/* Main card content always visible */}
+//         <div className="p-4 space-y-2">
+//           <div className="flex items-center justify-between">
+//             <div className="flex items-center gap-3">
+//               <img
+//                 src={getIdenticon(asset.tokenMintA)}
+//                 alt={asset.nftId || asset.tokenMintA}
+//                 className="h-12 w-12 rounded-full"
+//               />
+//               <div>
+//                 <div className="flex items-center gap-1">
+//                   {asset.nftId && <h3 className="font-semibold text-white">{asset.nftId}</h3>}
+//                   {/* {asset?.isVerified && (
+//                     <TooltipProvider>
+//                       <Tooltip>
+//                         <TooltipTrigger asChild>
+//                           <div>
+//                             <BadgeCheck className="h-4 w-4 text-green-500" />
+//                           </div>
+//                         </TooltipTrigger>
+//                         <TooltipContent>
+//                           <p>Verified provenance</p>
+//                         </TooltipContent>
+//                       </Tooltip>
+//                     </TooltipProvider>
+//                   )} */}
+//                 </div>
+//                 <p className="text-xs text-zinc-400">{ellipsify(asset.tokenMintA)}</p>
+//                 {/* {asset.symbol && <p className="text-xs text-zinc-500">{asset.symbol}</p>} */}
+//               </div>
+//             </div>
+//             <div className="text-right">
+//               <p className="text-xl font-semibold text-green-400">{asset.sellingPrice.toFixed(5)}</p>
+//               <p className="text-xs text-zinc-500 uppercase">SOL</p>
+//             </div>
+//           </div>
+
+//           <div className="flex justify-between items-center">
+//             <Badge
+//               variant="outline"
+//               className={cn(
+//                 'px-2 py-0.5 text-xs rounded-full border',
+//                 asset.type === 'SINGLE'
+//                   ? 'border-blue-700 bg-blue-950/30 text-blue-400'
+//                   : 'border-purple-700 bg-purple-950/30 text-purple-400',
+//               )}
+//             >
+//               {asset.type}
+//             </Badge>
+
+//             <button
+//               className="text-zinc-400 hover:text-white transition-colors"
+//               aria-label={expanded ? 'Show less' : 'Show more'}
+//             >
+//               {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+//             </button>
+//           </div>
+//         </div>
+
+//         {/* Expandable details section */}
+//         {expanded && (
+//           <div className="bg-zinc-800/50 p-4 border-t border-zinc-700">
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <p className="text-xs text-zinc-500">Producer</p>
+//                 <p className="text-sm text-zinc-300">{ellipsify(asset.producerAddress)}</p>
+//               </div>
+//               <div>
+//                 <p className="text-xs text-zinc-500">Offer</p>
+//                 <p className="text-sm text-zinc-300">{ellipsify(asset.offerAddress)}</p>
+//               </div>
+//               <div>
+//                 <p className="text-xs text-zinc-500">Escrow</p>
+//                 <p className="text-sm text-zinc-300">{ellipsify(asset.escrowAddress)}</p>
+//               </div>
+//             </div>
+
+//             {asset.description && (
+//               <div className="mt-3">
+//                 <p className="text-xs text-zinc-500">Description</p>
+//                 <p className="text-sm text-zinc-300 mt-1">{asset.description}</p>
+//               </div>
+//             )}
+//           </div>
+//         )}
+//       </CardContent>
+
+//       <CardFooter className="bg-zinc-950 justify-between p-4">
+//         <div>
+//           <span className="text-zinc-500 text-xs flex items-center gap-1">
+//             <Info className="h-3 w-3" />
+//             Updated {formatDistanceToNow(asset.createdAt, { addSuffix: true })}
+//           </span>
+//         </div>
+//         <Button className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium">Purchase</Button>
+//       </CardFooter>
+//     </Card>
+//   )
+// }
 export function OfferCard({ offer }: { offer: OfferResource }) {
   return (
+    // w-[500px] h-[250px]
     <Card
       key={offer._id}
-      className="bg-muted/20 overflow-hidden hover:border-gray-400 transition-all group gap-0 p-0 min-w-xs rounded-3xl border-none cursor-pointer hover:bg-muted/40"
+      className="w-full bg-dark dark:bg-black overflow-hidden hover:border-gray-400 transition-all group gap-0 p-0 rounded-3xl border-none cursor-pointer hover:bg-muted/40"
     >
       <CardHeader className="sr-only" />
-      {/* <div className="px-6 py-4 text-primary text-center text-sm font-mono">{ellipsify(offer?.tokenMintA || '')}</div> */}
-      <div className="h-12 bg-gradient-to-br from-blue-600 to-blue-900 text-center bottom-0 relative">
-        <div
-          className={`absolute top-3 right-3 ${offer.status === 'open' ? 'bg-yellow-500' : 'bg-green-500'} dark:bg-black/50 px-4 py-1 rounded-full text-xs font-medium`}
-        >
-          {offer.status}
-        </div>
-      </div>
-      <CardContent className="space-y-8 dark:bg-black">
-        <div className="flex flex-row gap-8 justify-between items-start mb-6 mt-4">
+
+      <CardContent className="space-y-8 dark:bg-muted/80 dark:hover:bg-blue-600 text-muted-foreground/80 dark:hover:text-white h-[80%]">
+        <div className="flex flex-row gap-8 justify-between items-center mb-6 mt-4">
           <div className="flex justify-start gap-4 items-center mt-4">
             <img
               src={getCollectionIdenticon(offer.nftId)}
               alt={offer.nftId}
               className="h-12 w-12 rounded-full object-cover"
             />
-            <h2 className="font-medium text-md text-muted-foreground/80">
+            <h2 className="font-medium text-md">
               {ellipsify(offer?.tokenMintA || '', 6)} <br />
               <span className="font-medium text-[12px]">{ellipsify(offer?.offer || '', 4)}</span> <br />
             </h2>
           </div>
-        </div>
-        <Separator className="mb-4" />
-        <div className="mb-4 text-muted-foreground font-mono flex flex-col rounded-md bg-zinc-100 p-4 dark:bg-zinc-800/50 text-xs min-h-[150px]">
-          Details about offer <br />
-          Offer and vault details ..
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          ... Token Mint Address
-        </div>
-        <div className="">
-          <div className="flex flex-row items-baseline gap-2">
-            <p className="text-xl font-semibold text-green-400">{offer.sellingPrice} </p>
-            <p className="text-xs font-medium text-green-400/80 tracking-wider">SOL</p>
-          </div>
-          <p className="text-[10px] mb-1 text-muted-foreground/80">Price</p>
-        </div>
+          <div className="text-right">
+            <div className="flex flex-row items-baseline gap-2">
+              <p className="text-xl font-semibold text-green-400">{offer.sellingPrice} </p>
+            </div>
 
-        <NFTPurchaseModal selectedOffer={offer} />
-        <Button className="w-full mb-8" variant={'default'}>
-          View Details
-        </Button>
-        <span className="text-muted-foreground/40 text-[12px] px-2 mb-6 flex flex-row gap-3 items-center">
-          <Clock className="h-3 w-3" />
-          {formatDistanceToNow(new Date(offer.createdAt), { addSuffix: true })}
-        </span>
+            <p className="text-[10px] font-medium text-muted-foreground/80 tracking-wider">SOL</p>
+          </div>
+        </div>
       </CardContent>
+
+      <CardFooter className="dark:bg-black justify-between items-end mt-4">
+        <div className="">
+          <span className="text-muted-foreground/40 text-[12px] px-2 mb-6 flex flex-row gap-3 items-center">
+            Last updated: {formatDistanceToNow(new Date(offer.createdAt), { addSuffix: true })}
+          </span>
+        </div>
+        <div className="flex flex-row items-start gap-2">
+          <NFTPurchaseModal selectedOffer={offer} />
+        </div>
+      </CardFooter>
     </Card>
   )
 }
+
+{
+  /* <Separator className="my-4" />
+<Button className="h-9.5" size={'sm'} variant={'outline'}>
+  Asset
+  <ArrowUpRight className="h-4 w-4" />
+</Button> */
+}
+{
+  /* <ShieldCheck className="text-green-400 h-4 w-4" />
+            Verified Provenance */
+}
+
+{
+  /*  <div className="flex flex-wrap gap-8 space-y-4 w-max">
+          <div className="text-muted-foreground font-mono flex flex-col rounded-md bg-zinc-100 p-4 dark:bg-zinc-800/50 dark:hover:bg-zinc-100 text-xs">
+            <span>
+              {' '}
+              Offer: <b>{ellipsify(offer._id)}</b>{' '}
+            </span>
+          </div>
+          <div className="text-muted-foreground font-mono flex flex-col rounded-md bg-zinc-100 p-4 dark:bg-zinc-800/50 dark:hover:bg-zinc-100 text-xs">
+            <span>Producer: {ellipsify(offer.producer || '')}</span>
+          </div>
+          <div className="text-muted-foreground font-mono flex flex-col rounded-md bg-zinc-100 p-4 dark:bg-zinc-800/50 dark:hover:bg-zinc-100 text-xs">
+            <span>Asset: {ellipsify(offer.tokenMintA || '')}</span>
+          </div>
+          <div className="text-muted-foreground font-mono flex flex-col rounded-md bg-zinc-100 p-4 dark:bg-zinc-800/50 dark:hover:bg-zinc-100 text-xs !h-fit">
+            <span>Escrow: {ellipsify(offer.vaultTokenAccountA || '')} </span>
+          </div>
+        </div> */
+}
 export function OffersList({ offers }: { offers: OfferResource[] }) {
   const [searchTerm, setSearchTerm] = useState('')
-  const [priceRange, setPriceRange] = useState([0, 100])
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [filteredOffers, setFilteredOffers] = useState<OfferResource[]>([])
-  const [featuredNft, setFeaturedNft] = useState<OfferResource | null>(null)
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     if (!offers) return
 
-    // Set the highest priced NFT as featured
-    const highestPriced = [...offers].sort((a, b) => b.sellingPrice - a.sellingPrice)[0]
-    setFeaturedNft(highestPriced)
-
-    let result = [...offers].filter((offer) => offer._id !== highestPriced._id)
+    let result
 
     // Filter by search term
     if (searchTerm) {
-      result = result.filter(
+      result = [...offers].filter(
         (offer) =>
           offer?.tokenMintA?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           offer._id.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     }
+  }, [offers, searchTerm])
 
-    // Filter by price range
-    result = result.filter((offer) => offer.sellingPrice >= priceRange[0] && offer.sellingPrice <= priceRange[1])
-
-    // Sort by price
-    result.sort((a, b) => {
-      return sortOrder === 'asc' ? a.sellingPrice - b.sellingPrice : b.sellingPrice - a.sellingPrice
-    })
-
-    setFilteredOffers(result)
-  }, [offers, searchTerm, priceRange, sortOrder])
-
-  // Find max price for slider
-  const maxPrice = offers ? Math.max(...offers.map((offer) => offer.sellingPrice), 100) : 1000
-  const { connected } = useWallet()
-  const [open, setOpen] = useState(false)
-
-  // Handle CMD+K to open search
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
@@ -145,19 +257,11 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
   }, [])
 
   return (
-    <div className="">
-      {/* Heading */}
+    <div className="max-w-6xl mx-auto space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start md:items-end mb-2 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-primary dark:text-white"> Marketplace 🔥 </h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Discover and trade digital twins</p>
-
-          {/* <div className="flex items-center gap-2 mt-4">
-            <Badge variant={connected ? 'default' : 'outline'} className="px-3 py-1 text-xs ">
-              <span className={`mr-1.5 h-2 w-2 rounded-full ${connected ? 'bg-green-500' : 'bg-gray-400'}`} />
-              {connected ? 'Wallet Connected' : 'Wallet Disconnected'}
-            </Badge>
-          </div> */}
         </div>
 
         <div className="flex items-center gap-2">
@@ -179,139 +283,23 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
         </div>
       </div>
 
-      <Separator className="my-2 text-white" />
-
-      <div className="flex flex-col-reverse md:flex-row gap-6">
-        {/* Cards */}
-        <div className="flex-3 md:flex-[3] py-4">
-          {offers.length === 0 ? (
-            <div className="flex justify-center items-center text-center min-h-11/12 bg-muted-background border rounded-lg">
-              <p className="text-foreground/60">
-                <b className="text-6xl leading-20 font-medium">¯\_(ツ)_/¯</b>
-                <br />
-                <br />
-                No offers to show!
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-8">
-              {offers.map((offer) => (
-                <OfferCard offer={offer} key={offer._id} />
-              ))}
-            </div>
-          )}
-
-          {/* <h2 className="text-xl font-bold mb-6 text-primary/80">Featured </h2>*/}
-
-          {/* Featured NFT Hero Section */}
-          {/* {featuredNft && (
-            <div className="mb-10 rounded-xl overflow-hidden">
-              <div className="bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 p-6 md:p-8">
-                <div className="flex flex-col md:flex-row gap-8">
-                  <div className="w-full md:w-1/3 aspect-square bg-gradient-to-br from-purple-900/30 to-zinc-900 rounded-xl flex items-center justify-center">
-                    <div className="text-5xl font-bold text-white/20">Featured</div>
-                  </div>
-
-                  <div className="w-full md:w-2/3 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                          <CheckCircle className="h-3 w-3" /> Verified
-                        </span>
-                        <span className="text-zinc-400 text-sm flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(featuredNft.createdAt), { addSuffix: true })}
-                        </span>
-                      </div>
-
-                      <h2 className="text-2xl md:text-3xl font-bold mb-2">Featured NFT</h2>
-                      <p className="text-zinc-400 mb-4">
-                        Mint Address: {featuredNft.tokenMintA.substring(0, 8)}...
-                        {featuredNft.tokenMintA.substring(featuredNft.tokenMintA.length - 8)}
-                      </p>
-
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                        <div className="bg-black/30 backdrop-blur-sm p-3 rounded-lg">
-                          <p className="text-zinc-500 text-xs">Status</p>
-                          <p className="font-medium">{featuredNft.status}</p>
-                        </div>
-                        <div className="bg-black/30 backdrop-blur-sm p-3 rounded-lg">
-                          <p className="text-zinc-500 text-xs">NFT ID</p>
-                          <p className="font-medium">{featuredNft.nftId.substring(0, 10)}...</p>
-                        </div>
-                        <div className="bg-black/30 backdrop-blur-sm p-3 rounded-lg">
-                          <p className="text-zinc-500 text-xs">Vault</p>
-                          <p className="font-medium">{featuredNft.vaultAddress?.substring(0, 10)}...</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-end justify-between mt-4">
-                      <div>
-                        <p className="text-zinc-400 text-sm">Price</p>
-                        <p className="text-3xl font-bold">{featuredNft.sellingPrice} SOL</p>
-                      </div>
-                      <Button className="bg-white hover:bg-zinc-200 text-black px-8 py-6 text-lg">Purchase Now</Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}  */}
-        </div>
-
-        {/* Filters */}
-        <div className="flex-1 lg:flex-[1] mt-4 border rounded-xl px-8 py-6 pb-0 h-fit dark:bg-black">
-          <div className="flex flex-col gap-3">
-            <p className="uppercase text-xs font-medium flex gap-4 items-center tracking-wider">
-              <Funnel className="h-4 w-4" />
-              Filters
+      <div className="my-8 flex flex-col-reverse md:flex-row gap-6">
+        {offers.length === 0 ? (
+          <div className="flex justify-center items-center text-center min-h-11/12 bg-muted-background border rounded-lg">
+            <p className="text-foreground/60">
+              <b className="text-6xl leading-20 font-medium">¯\_(ツ)_/¯</b>
+              <br />
+              <br />
+              No offers to show!
             </p>
-            <span className="text-xs text-muted-foreground mb-6">Showing 12 results</span>
           </div>
-
-          <div className="">
-            <div className="flex gap-6 mb-8 w-full">
-              <div className="flex flex-col gap-2 w-full">
-                <h4 className="text-sm font-medium mb-2 text-muted-foreground">Sort by Price</h4>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="flex gap-2 dark:text-green-950 dark:bg-green-400 dark:border-green-600 dark:hover:bg-green-300 !w-full"
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                >
-                  <ArrowUpDown className="h-4 w-4" />
-                  {sortOrder === 'asc' ? 'Lowest' : 'Highest'}
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-medium mb-4 text-muted-foreground/80">Price Range</h4>
-              <div className="w-full bg-muted/50 rounded-md p-4 mb-8">
-                <div className="flex flex-col md:flex-row justify-between gap-8">
-                  <div className="flex-1">
-                    <div className="px-4 mb-2">
-                      <Slider
-                        defaultValue={[0, maxPrice]}
-                        max={maxPrice}
-                        step={1}
-                        value={priceRange}
-                        onValueChange={setPriceRange}
-                        className="my-8"
-                      />
-                    </div>
-                    <div className="flex justify-between text-sm px-4 mb-2">
-                      <span className="text-muted-foreground/60 font-semibold">{priceRange[0]} SOL</span>
-
-                      <span className="text-muted-foreground/60 font-semibold">{priceRange[1]} SOL</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-8 w-full max-w-lg mx-auto 2xl:my-8">
+            {offers.map((offer) => (
+              <OfferCard offer={offer} key={offer._id} />
+            ))}
           </div>
-        </div>
+        )}
       </div>
 
       <CommandDialog open={open} onOpenChange={setOpen}>

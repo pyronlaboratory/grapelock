@@ -3,17 +3,17 @@ import React, { useState } from 'react'
 import { Copy, ExternalLink } from 'lucide-react'
 import { ellipsify } from '@wallet-ui/react'
 import { AccountBalance, AccountButtons, ModalQR } from './account-ui'
-import { useWallet } from '@solana/wallet-adapter-react'
+
 import { Badge } from '../ui/badge'
 import { ExplorerLink } from '../cluster/cluster-ui'
+import { PublicKey } from '@solana/web3.js'
 
-const AccountWallet: React.FC = () => {
-  const { connected, publicKey } = useWallet()
+function AccountWallet({ connected, address }: { connected: boolean; address: PublicKey }) {
   const [copySuccess, setCopySuccess] = useState(false)
   const handleCopyAddress = () => {
-    if (!publicKey) return
+    if (!address) return
 
-    navigator.clipboard.writeText(publicKey.toBase58()).then(() => {
+    navigator.clipboard.writeText(address.toBase58()).then(() => {
       setCopySuccess(true)
       setTimeout(() => setCopySuccess(false), 2000)
     })
@@ -22,7 +22,7 @@ const AccountWallet: React.FC = () => {
   return (
     <>
       <div className="text-left">
-        <AccountButtons address={publicKey!} />
+        <AccountButtons address={address} />
       </div>
       <div className="bg-white dark:bg-sidebar-primary rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
         <div className="px-8 py-4 border-b">
@@ -30,7 +30,7 @@ const AccountWallet: React.FC = () => {
             <div className="mb-4 sm:mb-0">
               <h2 className="text-sm font-medium text-gray-500 dark:text-primary">Available Balance</h2>
               <div className="flex items-end mt-1">
-                {publicKey && <AccountBalance address={publicKey} />}
+                {address && <AccountBalance address={address} />}
                 <span className="ml-2 text-sm font-semibold text-green-400 mb-1">SOL</span>
               </div>
             </div>
@@ -51,14 +51,14 @@ const AccountWallet: React.FC = () => {
           <div className="flex flex-wrap gap-y-8 items-center justify-between">
             <div className="flex items-center">
               <span className="text-sm font-medium text-gray-900 dark:text-primary font-mono">
-                {ellipsify(publicKey?.toBase58() || '', 10)}
+                {ellipsify(address?.toBase58() || '', 10)}
               </span>
             </div>
             <div className="gap-2 flex">
               <button className="cursor-pointer inline-flex items-center px-3 py-1.5 border  text-xs font-medium rounded-md text-gray-700 dark:text-gray-400 bg-white dark:bg-muted/40 border-none hover:bg-gray-50 focus:outline-none duration-200">
                 <ExplorerLink
                   className="font-sans"
-                  path={`account/${publicKey}`}
+                  path={`account/${address}`}
                   label={
                     <div className="flex ">
                       <ExternalLink size={14} className="mr-1" />
@@ -74,7 +74,7 @@ const AccountWallet: React.FC = () => {
                 <Copy size={14} className="mr-1" />
                 {copySuccess ? 'Copied!' : 'Copy'}
               </button>
-              <ModalQR address={publicKey!} />
+              <ModalQR address={address} />
             </div>
           </div>
         </div>

@@ -24,7 +24,7 @@ export default function AppLandingPage() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button>
-              Connect Wallet <LucideArrowRight />
+              Connect Wallet <LucideArrowRight className="h-4 w-5 ml-2" />
             </Button>
 
             <Button variant="outline">View Source</Button>

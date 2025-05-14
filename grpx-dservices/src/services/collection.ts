@@ -18,6 +18,19 @@ const context = await getApiContext()
 export async function getCollections(publicKey: string) {
   return await Collection.find({ creatorAddress: publicKey }).lean()
 }
+export async function getCollection(id: string): Promise<CollectionResource> {
+  const objectId = Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : null
+  if (!objectId) {
+    throw new Error('Invalid collection ID')
+  }
+
+  const collection = await Collection.findById(objectId).lean()
+  if (!collection) {
+    throw new Error('Collection not found')
+  }
+
+  return collection
+}
 export async function registerCollection(payload: CreateCollectionResource): Promise<CollectionResource> {
   try {
     const now = new Date()

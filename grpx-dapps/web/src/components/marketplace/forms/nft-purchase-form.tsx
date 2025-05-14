@@ -47,7 +47,7 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
     <AppModal
       open={open}
       onOpenChange={setOpen}
-      classes={`border-1 bg-yellow-500 text-green-950 hover:!text-green-900 hover:!bg-green-400 w-full my-3 rounded-md !mt-0`}
+      classes={`border-1 bg-yellow-500 text-green-950 hover:!text-green-900 hover:!bg-green-400 my-4 rounded-md !mt-0 h-10`}
       title="Purchase"
       submitDisabled={mutation.isPending}
       submitLabel={
@@ -55,7 +55,7 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
           {mutation.isPending ? (
             <span className="flex items-center">
               Processing
-              <span className="ml-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span className="ml-2 h-4.5 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             </span>
           ) : (
             <span className="flex items-center">

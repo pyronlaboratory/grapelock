@@ -1,15 +1,21 @@
 'use client'
-
 import { NFTCollectionManager } from '@/components/nft/nft-collection-manager'
-import { useGetCollections } from '@/components/nft/nft-data-access'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useMemo } from 'react'
-import Loading from '../loading'
+import { PublicKey } from '@solana/web3.js'
 
 export default function ManagerPage() {
   const { publicKey } = useWallet()
-  const publicKeyString = useMemo(() => publicKey?.toBase58(), [publicKey])
-  const { data: collections, isLoading } = useGetCollections(publicKeyString)
+  const address = useMemo(() => {
+    if (!publicKey) return
 
-  return <>{isLoading ? <Loading /> : <NFTCollectionManager collections={collections || []} />}</>
+    try {
+      return new PublicKey(publicKey)
+    } catch (e) {
+      console.log(`Invalid public key`, e)
+    }
+  }, [publicKey])
+
+  if (!address) return
+  return <NFTCollectionManager address={address} />
 }

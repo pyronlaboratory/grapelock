@@ -2,13 +2,14 @@ import { formatDate, getCollectionIdenticon } from '@/lib/utils'
 import { CollectionResource } from '@/schemas/collection'
 import { CollectionStatusBadge } from '../nft-ui'
 import { MoreHorizontal } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface CollectionTableProps {
   collections: CollectionResource[]
-  onViewCollection: (collection: CollectionResource) => void
 }
 
-export function CollectionTable({ collections, onViewCollection }: CollectionTableProps) {
+export function CollectionTable({ collections }: CollectionTableProps) {
+  const router = useRouter()
   return (
     <div className="overflow-x-auto rounded-lg shadow border border-accent my-8">
       <table className="min-w-full divide-y divide-accent">
@@ -35,7 +36,7 @@ export function CollectionTable({ collections, onViewCollection }: CollectionTab
             <tr
               key={collection._id}
               className="hover:bg-primary-foreground transition duration-150 ease-in-out cursor-pointer"
-              onClick={() => onViewCollection(collection)}
+              onClick={() => router.push(`/asset-manager/${collection._id}`)}
             >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">

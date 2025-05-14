@@ -8,7 +8,7 @@ import AccountTokensTable from '@/components/account/data-tables/account-tokens-
 import AccountWallet from '@/components/account/account-wallet'
 
 export default function AccountCenterPage() {
-  const { publicKey } = useWallet()
+  const { connected, publicKey } = useWallet()
   const address = useMemo(() => {
     if (!publicKey) return
 
@@ -22,8 +22,8 @@ export default function AccountCenterPage() {
   if (!address) return
   return (
     <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <AccountWallet />
+      <div className="max-w-6xl mx-auto space-y-8">
+        <AccountWallet connected={connected} address={address} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-y-8 lg:gap-8">
           <AccountTokensTable address={address} />

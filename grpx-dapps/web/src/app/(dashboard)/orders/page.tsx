@@ -72,7 +72,7 @@ export default function OrdersPage() {
   const { data: orders, isLoading, error } = useGetOrders(publicKeyString)
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container max-w-6xl mx-auto  py-8 px-4">
       <h1 className="text-2xl font-bold mb-6">Manage orders</h1>
 
       {isLoading ? (
