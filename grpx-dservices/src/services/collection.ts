@@ -36,11 +36,15 @@ export async function registerCollection(payload: CreateCollectionResource): Pro
     const now = new Date()
     const collection = new Collection({
       ...payload,
+      ownerAddress: payload.creatorAddress,
       collectionMetadataUri: '',
       status: 'pending',
-      mintAddress: '',
-      metadataAddress: '',
-      masterEditionAddress: '',
+      tokenMintAddress: '',
+      tokenAccountAddress: '',
+      metadataAccountAddress: '',
+      masterEditionAccountAddress: '',
+      signature: '',
+      errorMessage: '',
       createdAt: now,
       updatedAt: now,
     })
@@ -126,11 +130,11 @@ export async function dispatch({
   uri: string
   sellerFeeBasisPoints: number
 }): Promise<{
-  destinationAddress: string
-  mintAddress: string
-  metadataAddress: string
-  masterEditionAddress: string
-  txSignature: string
+  tokenMintAddress: string
+  tokenAccountAddress: string
+  metadataAccountAddress: string
+  masterEditionAccountAddress: string
+  signature: string
 }> {
   try {
     const connection = new Connection(process.env.RPC_URL!, 'confirmed')
@@ -199,11 +203,11 @@ export async function dispatch({
       })
     context.log.info(`🔑 ${JSON.stringify({ tx })}`)
     return {
-      destinationAddress: destination.toBase58(),
-      mintAddress: mint.publicKey.toBase58(),
-      metadataAddress: metadata.toBase58(),
-      masterEditionAddress: masterEdition.toBase58(),
-      txSignature: tx,
+      tokenMintAddress: mint.publicKey.toBase58(),
+      tokenAccountAddress: destination.toBase58(),
+      metadataAccountAddress: metadata.toBase58(),
+      masterEditionAccountAddress: masterEdition.toBase58(),
+      signature: tx,
     }
   } catch (error: any) {
     context.log.error('Error writing to Solana:', error)

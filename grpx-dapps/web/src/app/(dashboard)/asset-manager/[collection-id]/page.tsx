@@ -1,14 +1,13 @@
 'use client'
-import { AlertCircle } from 'lucide-react'
 import { CollectionBanner, CollectionData, CollectionHeader, NFTMintingModal } from '@/components/nft/nft-ui'
-import { useGetCollection } from '@/components/nft/nft-data-access'
+import { useGetCollectionDetails } from '@/components/nft/nft-data-access'
 import { useParams } from 'next/navigation'
 import ErrorScreen from '../../error'
 
 export default function CollectionDetailsPage() {
   const params = useParams()
   const collectionId = params['collection-id'] as string
-  const query = useGetCollection(collectionId)
+  const query = useGetCollectionDetails(collectionId)
 
   return (
     <div className="animate-fadeIn relative">

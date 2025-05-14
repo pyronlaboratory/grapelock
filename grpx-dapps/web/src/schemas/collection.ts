@@ -4,21 +4,21 @@ export const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, {
 })
 export const collectionStatusEnum = z.enum(['pending', 'processing', 'published', 'failed', 'archived'])
 export const collectionSchema = z.object({
-  _id: objectIdSchema, // from MongoDB
+  _id: objectIdSchema,
   collectionName: z.string(),
   collectionSymbol: z.string(),
   collectionDescription: z.string().nullable().optional(),
   collectionMedia: z.string().nullable().optional(),
   collectionMetadataUri: z.string().nullable().optional(),
-  creatorAddress: z.string(),
   sellerFeeBasisPoints: z.number().min(0).max(10000),
-  maxSupply: z.number().min(0),
-  destinationAddress: z.string().nullable().optional(),
-  mintAddress: z.string().nullable().optional(),
-  metadataAddress: z.string().nullable().optional(),
-  masterEditionAddress: z.string().nullable().optional(),
+  creatorAddress: z.string(),
+  ownerAddress: z.string(),
+  tokenMintAddress: z.string().nullable().optional(),
+  tokenAccountAddress: z.string().nullable().optional(),
+  metadataAccountAddress: z.string().nullable().optional(),
+  masterEditionAccountAddress: z.string().nullable().optional(),
   status: collectionStatusEnum,
-  txSignature: z.string().nullable().optional(),
+  signature: z.string().nullable().optional(),
   errorMessage: z.string().nullable().optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
@@ -29,12 +29,11 @@ export const createCollectionFormSchema = z.object({
   collectionSymbol: z
     .string()
     .min(1, 'Collection symbol is required')
-    .max(3, 'Collection symbol must be 3 characters or less'),
+    .max(5, 'Collection symbol must be 5 characters or less'),
   collectionDescription: z.string().optional(),
   collectionMedia: z.string().optional(),
   creatorAddress: z.string(),
   sellerFeeBasisPoints: z.coerce.number().min(0).max(10000, 'Fee must be between 0 and 10000 basis points'),
-  maxSupply: z.coerce.number().min(0, 'Max supply must be 0 or greater'),
 })
 export const collectionsResponseSchema = z.object({
   success: z.boolean(),

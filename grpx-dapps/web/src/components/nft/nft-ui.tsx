@@ -122,7 +122,7 @@ function AddressBox({ title, address }: { title: string; address: string }) {
 }
 export function GetStarted() {
   return (
-    <div className="border mt-8 dark:border-none min-w-[350px] max-w-md md:max-w-lg w-auto mx-auto flex flex-col items-center justify-center px-8 py-8 relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-gradient-to-r from-background via-primary-foreground to-accent rounded-2xl h-[450px]">
+    <div className="border dark:border-none min-w-[350px] max-w-md md:max-w-lg w-auto mx-auto flex flex-col items-center justify-center px-8 py-8 relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-gradient-to-r from-background via-primary-foreground to-accent rounded-2xl h-[450px]">
       <div className="p-4 bg-background rounded-full mb-6">
         <Flame className="h-12 w-12 text-amber-400 dark:text-yellow-600" />
       </div>
@@ -372,16 +372,16 @@ export function CollectionData({ collection }: { collection: CollectionResource 
                 <p className="mt-2 text-2xl font-semibold text-green-400">{collection?.sellerFeeBasisPoints / 100}%</p>
               </div>
 
-              <div className="bg-muted dark:bg-black rounded-lg p-4 text-center">
+              {/* <div className="bg-muted dark:bg-black rounded-lg p-4 text-center">
                 <h3 className="text-sm font-medium text-gray-500">Max Supply</h3>
                 <p className="mt-2 text-2xl font-semibold text-green-400">
                   {collection?.maxSupply === 0 ? '∞' : collection?.maxSupply?.toLocaleString()}
                 </p>
-              </div>
+              </div> */}
             </div>
 
             <div className="space-y-4">
-              <AddressBox title="Signature" address={collection.txSignature || ''} />
+              <AddressBox title="Signature" address={collection.signature || ''} />
             </div>
           </div>
 
@@ -392,10 +392,10 @@ export function CollectionData({ collection }: { collection: CollectionResource 
             <div className="space-y-4">
               {/* Compact address display */}
               {[
-                { title: 'Mint Token', address: collection.mintAddress },
-                { title: 'Destination Token', address: collection.destinationAddress },
-                { title: 'Metadata', address: collection.metadataAddress },
-                { title: 'Master Edition', address: collection.masterEditionAddress },
+                { title: 'Mint Token', address: collection.tokenMintAddress },
+                { title: 'Destination Token', address: collection.tokenAccountAddress },
+                { title: 'Metadata', address: collection.metadataAccountAddress },
+                { title: 'Master Edition', address: collection.masterEditionAccountAddress },
               ].map((item, index) => (
                 <AddressBox title={item.title} address={item.address || ''} />
               ))}

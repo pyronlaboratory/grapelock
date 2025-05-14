@@ -285,7 +285,7 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
 
       <div className="my-8 flex flex-col-reverse md:flex-row gap-6">
         {offers.length === 0 ? (
-          <div className="flex justify-center items-center text-center min-h-11/12 bg-muted-background border rounded-lg">
+          <div className="flex justify-center items-center text-center min-h-11/12 bg-muted-background border rounded-lg w-full h-100">
             <p className="text-foreground/60">
               <b className="text-6xl leading-20 font-medium">¯\_(ツ)_/¯</b>
               <br />

@@ -19,7 +19,7 @@ export function useGetCollections(publicKey?: string) {
   })
 }
 
-export function useGetCollection(collectionId?: string) {
+export function useGetCollectionDetails(collectionId?: string) {
   return useQuery({
     queryKey: ['get-collections', collectionId],
     queryFn: async () => {
