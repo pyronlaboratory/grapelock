@@ -69,7 +69,7 @@ export function AccountTokensTable({ address }: { address: PublicKey }) {
               </TableHeader>
               <TableBody>
                 {items?.map(({ account, pubkey }) => (
-                  <TableRow key={pubkey.toString()}>
+                  <TableRow key={pubkey.toString()} className="border-none cursor-pointer">
                     <TableCell className="px-6 py-6">
                       <div className="flex space-x-2">
                         <span className="font-mono">

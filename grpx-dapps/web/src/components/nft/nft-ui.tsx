@@ -19,6 +19,7 @@ import {
   CalendarCheck2,
   Copy,
   ShieldCheck,
+  Wallet,
 } from 'lucide-react'
 
 import { motion } from 'framer-motion'
@@ -37,6 +38,7 @@ import { DialogClose } from '@/components/ui/dialog'
 import { Card, CardContent } from '@/components/ui/card'
 import { VariantProps } from 'class-variance-authority'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { WalletButton } from '../solana/solana-provider'
 
 interface EmptyGridProps {
   collection: CollectionResource
@@ -608,17 +610,6 @@ export function NFTTypeSelection({ handleTypeSelection }: any) {
           </div>
         </CardContent>
       </Card>
-    </div>
-  )
-}
-export const DefaultContainer: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'details' | 'chain'>('details')
-  const { connected } = useWalletUi()
-
-  return (
-    <div className="flex gap-8 flex-col">
-      <div className="rounded-md border-1 border-accent p-32">Featured NFT card</div>
-      <div className="rounded-md border-1 border-accent p-32">Filterable NFT Gallery with Pagination</div>
     </div>
   )
 }

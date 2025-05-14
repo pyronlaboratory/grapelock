@@ -291,7 +291,7 @@ function ModalReceive({ address }: { address: PublicKey }) {
       classes={'dark:bg-white dark:text-black dark:hover:bg-green-300 dark:hover:text-green-900'}
     >
       <b className="text-center font-semibold">🔑 Your Wallet Address</b>
-      <code className="flex justify-center text-center text-gray-600 font-medium tracking-wider text-sm underline bg-gray-50 py-8 rounded-md w-full">
+      <code className="flex justify-center text-center text-gray-600 font-medium tracking-wider text-sm underline bg-gray-50 dark:bg-muted/80 dark:text-green-400 py-8 rounded-md w-full">
         {address.toString()} <Copy className="h-4 w-4 ml-2" />
       </code>
       <AccountQRCode address={address} />

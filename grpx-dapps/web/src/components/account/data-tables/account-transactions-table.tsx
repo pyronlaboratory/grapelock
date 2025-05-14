@@ -74,7 +74,7 @@ export function AccountTransactionsTable({ address }: { address: PublicKey }) {
               </TableHeader>
               <TableBody>
                 {items?.map((item) => (
-                  <TableRow key={item.signature}>
+                  <TableRow key={item.signature} className="border-none cursor-pointer">
                     <TableHead className="font-mono px-6 py-6">
                       <ExplorerLink path={`tx/${item.signature}`} label={ellipsify(item.signature, 8)} />
                     </TableHead>

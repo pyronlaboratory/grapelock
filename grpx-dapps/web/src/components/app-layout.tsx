@@ -10,7 +10,7 @@ import { AccountChecker } from '@/components/account/account-ui'
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col ">
         <main className="min-h-screen">
           <ClusterChecker>
             <AccountChecker />
