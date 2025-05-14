@@ -17,6 +17,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </ClusterChecker>
           {children}
         </main>
+        <AppFooter />
       </div>
       <Toaster position="top-right" />
     </ThemeProvider>

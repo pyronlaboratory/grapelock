@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { CollectionResource } from '@/schemas/collection'
 import { CreateCollectionModal, GetStarted } from './nft-ui'
 import { CollectionDetails } from './nft-collection-details'
-import { CollectionTable } from './data-table/nft-collection-table'
+import { CollectionTable } from './data-tables/nft-collection-table'
 import { useGetNFTs } from './nft-data-access'
 import { NFTResource } from '@/schemas/nft'
 interface NFTCollectionManagerProps {

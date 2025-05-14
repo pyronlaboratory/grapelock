@@ -172,7 +172,7 @@ export const links = {
       icon: ClipboardList,
     },
     {
-      name: 'Wallet',
+      name: 'Account',
       url: '/account',
       icon: Wallet,
     },

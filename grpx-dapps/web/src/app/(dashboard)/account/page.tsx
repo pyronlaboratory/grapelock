@@ -1,25 +1,34 @@
-// app/marketplace/browse/page.tsx
+// app/(dashboard)/account/page.tsx
 'use client'
-import { AccountBalance } from '@/components/account/account-ui'
-import { Card } from '@/components/ui/card'
+import { useMemo } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { PublicKey } from '@solana/web3.js'
+import AccountTransactionsTable from '@/components/account/data-tables/account-transactions-table'
+import AccountTokensTable from '@/components/account/data-tables/account-tokens-table'
+import AccountWallet from '@/components/account/account-wallet'
 
-// Add these individual components to accounts-ui
-export default function MyWalletPage() {
-  const { publicKey, wallet, wallets } = useWallet()
+export default function AccountCenterPage() {
+  const { publicKey } = useWallet()
+  const address = useMemo(() => {
+    if (!publicKey) return
 
+    try {
+      return new PublicKey(publicKey)
+    } catch (e) {
+      console.log(`Invalid public key`, e)
+    }
+  }, [publicKey])
+
+  if (!address) return
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">My Wallet</h1>
-      <div className="flex gap-4 w-full justify-between my-4 text-center">
-        <Card className="w-full">
-          Total Balance
-          <AccountBalance address={publicKey!} />
-        </Card>
-        <Card className="w-full">Wallet Address </Card>
-      </div>
-      <div className="w-full text-center">
-        <Card>Table</Card>
+    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <AccountWallet />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-y-8 lg:gap-8">
+          <AccountTokensTable address={address} />
+          <AccountTransactionsTable address={address} />
+        </div>
       </div>
     </div>
   )
