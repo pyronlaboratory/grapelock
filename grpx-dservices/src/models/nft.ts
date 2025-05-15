@@ -23,12 +23,12 @@ const nftSchema = new mongoose.Schema(
       },
     ],
     sellerFeeBasisPoints: { type: Number, required: true },
-    maxSupply: { type: Number, required: true },
     creatorAddress: { type: String },
-    destinationAddress: { type: String },
-    mintAddress: { type: String },
-    metadataAddress: { type: String },
-    masterEditionAddress: { type: String },
+    ownerAddress: { type: String },
+    tokenAccountAddress: { type: String },
+    tokenMintAddress: { type: String },
+    metadataAccountAddress: { type: String },
+    masterEditionAccountAddress: { type: String },
     status: {
       type: String,
       enum: [
@@ -46,7 +46,7 @@ const nftSchema = new mongoose.Schema(
       ],
       default: 'pending',
     },
-    txSignature: { type: String },
+    signature: { type: String },
     errorMessage: { type: String },
   },
   {

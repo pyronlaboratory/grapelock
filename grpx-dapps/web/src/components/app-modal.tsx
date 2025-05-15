@@ -1,11 +1,14 @@
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { ReactNode } from 'react'
+import { Separator } from './ui/separator'
 
 export function AppModal({
   children,
   classes,
+  override,
   title,
+  innerTitle,
   submit,
   submitDisabled,
   submitLabel,
@@ -17,6 +20,8 @@ export function AppModal({
 }: {
   children: ReactNode
   title: string | ReactNode
+  override?: boolean
+  innerTitle?: ReactNode
   submit?: () => void
   submitDisabled?: boolean
   submitLabel?: string | ReactNode
@@ -38,11 +43,11 @@ export function AppModal({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-[625px] p-4 pb-0">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="text-md font-semibold">{override ? innerTitle : title}</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">{children}</div>
+        <div className="grid gap-4">{children}</div>
         <DialogFooter>
           {submit ? (
             <Button type="submit" onClick={submit} disabled={submitDisabled}>

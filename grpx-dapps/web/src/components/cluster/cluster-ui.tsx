@@ -1,15 +1,14 @@
 'use client'
 
 import { useConnection } from '@solana/wallet-adapter-react'
-
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
-import { ReactNode } from 'react'
 
 import { useCluster } from './cluster-data-access'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { AppAlert } from '@/components/app-alert'
+import { toast } from 'sonner'
+import { Info } from 'lucide-react'
 
 export function ExplorerLink({
   path,
@@ -17,7 +16,7 @@ export function ExplorerLink({
   className,
 }: {
   path: string
-  label: string | ReactNode
+  label: string | React.ReactNode
   className?: string
 }) {
   const { getExplorerUrl } = useCluster()
@@ -33,31 +32,43 @@ export function ExplorerLink({
   )
 }
 
-export function ClusterChecker({ children }: { children: ReactNode }) {
+export function ClusterChecker({ children }: { children: React.ReactNode }) {
   const { cluster } = useCluster()
   const { connection } = useConnection()
 
   const query = useQuery({
-    queryKey: ['version', { cluster, endpoint: connection.rpcEndpoint }],
+    queryKey: ['version', { cluster, endpoint: connection.rpcEndpoint || 'https://api.testnet.solana.com' }],
     queryFn: () => connection.getVersion(),
     retry: 1,
   })
-  if (query.isLoading) {
-    return null
-  }
-  if (query.isError || !query.data) {
-    return (
-      <AppAlert
-        action={
-          <Button variant="outline" onClick={() => query.refetch()}>
-            Refresh
-          </Button>
-        }
-      >
-        Error connecting to cluster <span className="font-bold">{cluster.name}</span>.
-      </AppAlert>
-    )
-  }
+
+  const hasShownError = React.useRef(false)
+  React.useEffect(() => {
+    if (query.isError && !hasShownError.current) {
+      toast(
+        <div className="flex items-start gap-4">
+          <Info className="mt-1 h-5 w-5" />
+          <div className="flex flex-row gap-1">
+            <div className="text-sm font-medium ">Error connecting to cluster ${cluster.name}</div>
+            <div className="text-sm ">
+              <Button variant="outline" onClick={() => query.refetch()}>
+                Refresh
+              </Button>
+            </div>
+          </div>
+        </div>,
+        {
+          duration: 8000,
+          className: 'border',
+        },
+      )
+      hasShownError.current = true
+    }
+
+    if (!query.isError) hasShownError.current = false
+  }, [query.isError, cluster.name, query.refetch])
+
+  if (query.isLoading) return null
   return children
 }
 
