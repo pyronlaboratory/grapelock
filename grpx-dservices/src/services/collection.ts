@@ -16,7 +16,12 @@ const IDL = require('../bridge/grpx_dprotocols.json')
 const context = await getApiContext()
 
 export async function getCollections(publicKey: string) {
-  return await Collection.find({ creatorAddress: publicKey }).lean()
+  try {
+    return await Collection.find({ creatorAddress: publicKey }).sort({ createdAt: -1 }).lean()
+  } catch (error) {
+    console.error('Error fetching collections:', error)
+    throw new Error('Failed to retrieve collections')
+  }
 }
 export async function getCollection(id: string): Promise<CollectionResource> {
   const objectId = Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : null

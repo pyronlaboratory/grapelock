@@ -1,10 +1,10 @@
 'use client'
-import { CreateCollectionModal, GetStarted } from './nft-ui'
-import { CollectionTable, DataTable } from './data-tables/nft-collection-table'
+import { GetStarted } from './nft-ui'
+import { NFTCollectionsDataTable } from './data-tables/nft-collection-table'
 import { useGetCollections } from './nft-data-access'
 import { PublicKey } from '@solana/web3.js'
-import ErrorScreen from '@/app/(dashboard)/error'
 import { columns } from './data-tables/columns'
+import ErrorScreen from '@/app/(dashboard)/error'
 
 export function NFTCollectionManager({ address }: { address: PublicKey }) {
   const query = useGetCollections(address.toBase58())
@@ -22,7 +22,7 @@ export function NFTCollectionManager({ address }: { address: PublicKey }) {
               <h1 className="text-2xl font-bold text-primary">All Collections 📦</h1>
               <h1 className="text-sm font-medium text-gray-500 mt-2">Manage your NFT collections</h1>
               <div className="relative">
-                <DataTable columns={columns} data={query.data} />
+                <NFTCollectionsDataTable columns={columns} data={query.data} />
               </div>
             </>
           )}
