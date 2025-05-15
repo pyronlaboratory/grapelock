@@ -5,38 +5,13 @@ import { Card, CardContent, CardFooter, CardHeader } from '../ui/card'
 import { Button } from '../ui/button'
 import { formatDistanceToNow } from 'date-fns'
 import { useEffect, useState } from 'react'
-import {
-  ArrowUpDown,
-  ArrowUpRight,
-  BadgeCheck,
-  CheckCircle,
-  CheckCircleIcon,
-  CheckIcon,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Copy,
-  ExternalLink,
-  Filter,
-  Funnel,
-  Info,
-  Keyboard,
-  ListFilter,
-  Search,
-  ShieldCheck,
-  SlidersHorizontal,
-  Wallet,
-} from 'lucide-react'
-import { Input } from '../ui/input'
-import { Slider } from '../ui/slider'
-import { useWallet } from '@solana/wallet-adapter-react'
-import { Badge } from '../ui/badge'
-import { NFTResource } from '@/schemas/nft'
+import { Keyboard, Search } from 'lucide-react'
+
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command'
-import { Separator } from '../ui/separator'
-import { cn, ellipsify, getCollectionIdenticon, getIdenticon } from '../../lib/utils'
+import { ellipsify } from '@wallet-ui/react'
+import { getIdenticon } from '../../lib/utils'
 import { NFTPurchaseModal } from './forms/nft-purchase-form'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+
 // export function AssetCard({ asset }: { asset: OfferResource }) {
 //   const [expanded, setExpanded] = useState(false)
 
@@ -160,11 +135,7 @@ export function OfferCard({ offer }: { offer: OfferResource }) {
       <CardContent className="space-y-8 dark:bg-muted/80 dark:hover:bg-blue-600 text-muted-foreground/80 dark:hover:text-white h-[80%]">
         <div className="flex flex-row gap-8 justify-between items-center mb-6 mt-4">
           <div className="flex justify-start gap-4 items-center mt-4">
-            <img
-              src={getCollectionIdenticon(offer.nftId)}
-              alt={offer.nftId}
-              className="h-12 w-12 rounded-full object-cover"
-            />
+            <img src={getIdenticon(offer.nftId)} alt={offer.nftId} className="h-12 w-12 rounded-full object-cover" />
             <h2 className="font-medium text-md">
               {ellipsify(offer?.tokenMintA || '', 6)} <br />
               <span className="font-medium text-[12px]">{ellipsify(offer?.offer || '', 4)}</span> <br />
@@ -313,11 +284,7 @@ export function OffersList({ offers }: { offers: OfferResource[] }) {
           <CommandGroup heading="Suggestions">
             {offers.map((item) => (
               <CommandItem key={item.nftId} className="flex items-center gap-2">
-                <img
-                  src={getCollectionIdenticon(item.nftId)}
-                  alt={item.nftId}
-                  className="h-8 w-8 rounded object-cover"
-                />
+                <img src={getIdenticon(item.nftId)} alt={item.nftId} className="h-8 w-8 rounded object-cover" />
                 <div>
                   <p>{item.tokenMintA}</p>
                   <p className="text-xs text-muted-foreground">

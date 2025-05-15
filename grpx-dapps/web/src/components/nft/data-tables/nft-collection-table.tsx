@@ -18,17 +18,14 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatDate, getCollectionIdenticon } from '@/lib/utils'
+
 import { CollectionResource } from '@/schemas/collection'
-import { CollectionStatusBadge, CreateCollectionModal } from '../nft-ui'
-import { ArrowLeftIcon, ArrowRightIcon, ChevronDown, FunnelIcon, MoreHorizontal } from 'lucide-react'
+import { CreateCollectionModal } from '../nft-ui'
+import { ArrowLeftIcon, ArrowRightIcon, ChevronDown, FunnelIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 
@@ -42,7 +39,7 @@ export function NFTCollectionsDataTable<TData, TValue>({ columns, data }: DataTa
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
-
+  const router = useRouter()
   const table = useReactTable({
     data,
     columns,
@@ -126,7 +123,7 @@ export function NFTCollectionsDataTable<TData, TValue>({ columns, data }: DataTa
                   onClick={(e) => {
                     e.stopPropagation()
                     const collection = row.original as CollectionResource
-                    window.location.href = `/asset-manager/${collection._id}`
+                    router.push(`/asset-manager/${collection._id}`)
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (

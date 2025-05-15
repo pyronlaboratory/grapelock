@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { useMemo } from 'react'
 import { PublicKey } from '@solana/web3.js'
 
-export default function ManagerPage() {
+export default function AssetManagerPage() {
   const { publicKey } = useWallet()
   const address = useMemo(() => {
     if (!publicKey) return

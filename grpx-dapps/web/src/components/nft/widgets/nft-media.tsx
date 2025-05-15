@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button'
 import { Edit } from 'lucide-react'
-import { getCollectionIdenticon } from '@/lib/utils'
+import { getIdenticon } from '@/lib/utils'
 
 export function NFTMedia({ nftId, nftMedia, nftName }: { nftId: string; nftMedia?: string | null; nftName: string }) {
   return (
     <div className="relative overflow-hidden rounded-lg aspect-square bg-muted/20 border">
-      <img src={nftMedia || getCollectionIdenticon(nftId)} alt={nftName} className="object-cover w-full h-full" />
+      <img src={nftMedia || getIdenticon(nftId)} alt={nftName} className="object-cover w-full h-full" />
 
       <Button
         variant="ghost"

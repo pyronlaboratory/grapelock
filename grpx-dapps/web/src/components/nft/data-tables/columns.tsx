@@ -2,7 +2,7 @@
 import { CollectionResource, CollectionStatus } from '@/schemas/collection'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, CopyMinus, ExternalLink, MoreHorizontal, MoreHorizontalIcon, Send } from 'lucide-react'
-import { getCollectionIdenticon } from '@/lib/utils'
+import { getIdenticon } from '@/lib/utils'
 import { CollectionStatusBadge } from '../nft-ui'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
@@ -21,7 +21,7 @@ export const columns: ColumnDef<CollectionResource>[] = [
       return (
         <div className="flex items-center min-w-xs">
           <div className="flex-shrink-0 h-10 w-10">
-            <img className="h-10 w-10 rounded-full object-cover" src={media || getCollectionIdenticon(id)} alt={name} />
+            <img className="h-10 w-10 rounded-full object-cover" src={media || getIdenticon(id)} alt={name} />
           </div>
           <div className="ml-4">
             <div>

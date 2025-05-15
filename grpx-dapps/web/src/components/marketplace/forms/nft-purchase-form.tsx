@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ArrowRight, Check, Info } from 'lucide-react'
 import { useAcceptOffer } from '@/hooks/use-accept-offer'
-import { getCollectionIdenticon } from '@/lib/utils'
+import { getIdenticon } from '@/lib/utils'
 import { AppModal } from '@/components/app-modal'
 import { Button } from '@/components/ui/button'
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -78,7 +78,7 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
         <div className="grid gap-4 py-4">
           <div className="flex items-start gap-4">
             <div className="h-20 w-20 relative rounded overflow-hidden">
-              <img src={getCollectionIdenticon('...')} className="object-cover" />
+              <img src={getIdenticon('...')} className="object-cover" />
             </div>
             <div className="flex flex-col space-y-1">
               <h3 className="font-medium">Château Margaux 2015</h3>

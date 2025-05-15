@@ -15,7 +15,6 @@ import {
   useRequestAirdrop,
   useTransferSol,
 } from './account-data-access'
-import { ellipsify } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { AppAlert } from '@/components/app-alert'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -23,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AppModal } from '@/components/app-modal'
 import { QRCodeSVG } from 'qrcode.react'
+import { ellipsify } from '@wallet-ui/react'
 
 export function AccountBalance({ address }: { address: PublicKey }) {
   const query = useGetBalance({ address })

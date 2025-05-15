@@ -1,5 +1,5 @@
 'use client'
-import { CollectionBanner, CollectionData, CollectionHeader, NFTMintingModal } from '@/components/nft/nft-ui'
+import { CollectionHero, CollectionDetails } from '@/components/nft/nft-ui'
 import { useGetCollectionDetails } from '@/components/nft/nft-data-access'
 import { useParams } from 'next/navigation'
 import ErrorScreen from '../../error'
@@ -10,21 +10,12 @@ export default function CollectionDetailsPage() {
   const query = useGetCollectionDetails(collectionId)
 
   return (
-    <div className="animate-fadeIn relative">
+    <div className="p-8 max-w-6xl mx-auto animate-fadeIn relative">
       {query.isError && <ErrorScreen />}
       {query.isSuccess && (
-        <div className="max-w-6xl mx-auto relative">
-          <div className="mb-8 flex items-center justify-between">
-            <div className="absolute -top-8 right-0 rounded-xl">
-              <NFTMintingModal
-                data={query.data._id}
-                classes="bg-accent text-neutral-400 hover:bg-primary-foreground hover:text-primary px-6 h-[36px] rounded-lg  bg-blue-600 dark:bg-sidebar-primary text-primary-foreground dark:text-primary hover:bg-black hover:text-accent-background dark:hover:bg-sidebar-primary/90 dark:hover:text-primary"
-              />
-            </div>
-          </div>
-          <CollectionHeader collection={query.data} />
-          <CollectionBanner collection={query.data} />
-          <CollectionData collection={query.data} />
+        <div className="">
+          <CollectionHero collection={query.data} />
+          <CollectionDetails collection={query.data} />
         </div>
       )}
     </div>
