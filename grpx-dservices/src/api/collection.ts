@@ -3,22 +3,26 @@ import { Router } from 'express'
 
 import { errorResponse, successResponse } from '../lib/helpers.js'
 import { validate } from '../middlewares/validate.js'
-import { getCollections, registerCollection } from '../services/collection.js'
+import { getCollections, getCollection, registerCollection } from '../services/collection.js'
 import { collectionQueue } from '../queue/index.js'
 import { CollectionResource, createCollectionSchema } from '../types/collection.types.js'
 
 const router = Router()
 
-router.get('/:pubicKey', async (req, res) => {
+router.get('/by-public-key/:publicKey', async (req, res) => {
   try {
-    const collections = await getCollections(req.params.pubicKey)
-    if (!collections || collections.length === 0) {
-      res.status(404).json(errorResponse('Collections not found', 'COLLECTIONS_NOT_FOUND'))
-      return
-    }
-    res.json(successResponse(collections))
+    const collections = await getCollections(req.params.publicKey)
+    res.status(200).json(successResponse(collections))
   } catch (error) {
-    res.status(500).json(errorResponse('Error fetching collections', 'COLLECTIONS_ERROR'))
+    res.status(500).json(errorResponse('Error fetching collections', 'COLLECTIONS_FETCH_ERROR'))
+  }
+})
+router.get('/by-collection-id/:id', async (req, res) => {
+  try {
+    const collection = await getCollection(req.params.id)
+    res.status(200).json(successResponse(collection))
+  } catch (error) {
+    res.status(500).json(errorResponse('Error fetching collection', 'COLLECTION_FETCH_ERROR'))
   }
 })
 router.post('/', validate(createCollectionSchema), async (req, res) => {

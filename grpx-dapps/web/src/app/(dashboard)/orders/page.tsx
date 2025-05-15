@@ -5,29 +5,74 @@ import { useMemo } from 'react'
 import { Loader2, MoreHorizontal } from 'lucide-react'
 import { ellipsify } from '@wallet-ui/react'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import { formatDate } from 'date-fns'
+import api from '@/lib/api'
+import { toast } from 'sonner'
+import { useConfirmOffer } from '@/hooks/use-confirm-offer'
+import { OrderResource } from '@/schemas/order'
+import { useRefundOffer } from '@/hooks/use-refund-offer'
 
 export default function OrdersPage() {
   const { publicKey } = useWallet()
   const publicKeyString = useMemo(() => publicKey?.toBase58(), [publicKey])
-  function handleFulfill(order: any) {
-    console.log('Fulfill order', order)
-    // Add fulfill logic
-  }
 
-  function handleCancel(order: any) {
-    console.log('Cancel order', order)
-    // Add cancel logic
-  }
+  const confirmMutation = useConfirmOffer()
+  const refundMutation = useRefundOffer()
 
-  function handleConfirm(order: any) {
-    console.log('Confirm order', order)
-    // Add confirm logic
+  async function handleFulfill(order: OrderResource) {
+    try {
+      const response = await api(`orders/${order._id.toString()}`, {
+        method: 'PATCH',
+        body: {
+          status: 'awaiting_confirmation',
+        },
+      })
+
+      if (!response) throw new Error('Failed to fulfill order')
+
+      toast.success('Order marked as awaiting confirmation')
+    } catch (error: any) {
+      console.error(error)
+      toast.error('Failed to fulfill order')
+    }
+  }
+  async function handleConfirm(order: OrderResource) {
+    try {
+      const response = await confirmMutation.mutateAsync({ orderObj: order })
+      if (!response || response.status !== 'completed')
+        return toast.error('Failed to confirm order delivery. Please try again.')
+
+      const confirmation = await api(`orders/confirm/${order._id.toString()}`, {
+        method: 'PUT',
+        body: {
+          status: 'completed',
+        },
+      })
+
+      if (!confirmation) throw new Error('Failed to confirm order delivery status.')
+      toast.success(`Purchase confirmed. NFT successfully transferred!`)
+    } catch (error) {
+      console.error('Error confirming order:', error)
+      toast.error('Failed to confirm order. Please try again.')
+    }
+  }
+  async function handleCancel(order: OrderResource) {
+    try {
+      const response = await refundMutation.mutateAsync({ orderObj: order })
+      if (!response) return toast.error('Failed to refund order. Please try again.')
+
+      // if response status is refunded i.e. program returned success.. then update order, offer, nft off-chain data.
+      toast.success(`Refund confirmed.`)
+    } catch (error) {
+      console.error('Error refunding order:', error)
+      toast.error('Failed to refund order. Please try again.')
+    }
   }
 
   const { data: orders, isLoading, error } = useGetOrders(publicKeyString)
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container max-w-6xl mx-auto  py-8 px-4">
       <h1 className="text-2xl font-bold mb-6">Manage orders</h1>
 
       {isLoading ? (
@@ -72,7 +117,7 @@ export default function OrdersPage() {
                     <td className="px-4 py-3">
                       <StatusBadge status={order.status} />
                     </td>
-                    <td className="px-4 py-3">{formatDate(order.createdAt)}</td>
+                    <td className="px-4 py-3">{formatDate(order.createdAt, `dd, MMM yy 'at' HH:mm`)}</td>
                     {/* <td className="px-4 py-3 text-muted-foreground">{formatDate(order.updatedAt)}</td> */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <DropdownMenu>
@@ -84,7 +129,12 @@ export default function OrdersPage() {
                         <DropdownMenuContent>
                           {publicKeyString === order.producerPublicKey ? (
                             <>
-                              <DropdownMenuItem onClick={() => handleFulfill(order)}>Fulfill</DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={order.status !== 'awaiting_delivery'}
+                                onClick={() => order.status === 'awaiting_delivery' && handleFulfill(order)}
+                              >
+                                Fulfill
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleCancel(order)}>Cancel</DropdownMenuItem>
                             </>
                           ) : publicKeyString === order.consumerPublicKey ? (
@@ -95,7 +145,18 @@ export default function OrdersPage() {
                               >
                                 Confirm
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleCancel(order)}>Cancel</DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={['completed', 'cancelled_by_producer', 'cancelled_by_consumer'].includes(
+                                  order.status,
+                                )}
+                                onClick={() =>
+                                  !['completed', 'cancelled_by_producer', 'cancelled_by_consumer'].includes(
+                                    order.status,
+                                  ) && handleCancel(order)
+                                }
+                              >
+                                Cancel
+                              </DropdownMenuItem>
                             </>
                           ) : (
                             <DropdownMenuItem disabled>No actions available</DropdownMenuItem>
@@ -114,20 +175,6 @@ export default function OrdersPage() {
   )
 }
 
-// Helper function to format dates
-function formatDate(dateString: string): string {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
-}
-
-// Status badge component
 function StatusBadge({ status }: { status: string }) {
   let bgColor = 'bg-gray-100 text-gray-800'
 

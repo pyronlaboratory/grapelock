@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ArrowRight, Check, Info } from 'lucide-react'
 import { useAcceptOffer } from '@/hooks/use-accept-offer'
-import { getCollectionIdenticon } from '@/lib/utils'
+import { getIdenticon } from '@/lib/utils'
 import { AppModal } from '@/components/app-modal'
 import { Button } from '@/components/ui/button'
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -20,8 +20,8 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
     try {
       const response = await mutation.mutateAsync({ offerObj: selectedOffer })
       if (!response) return toast.error('Failed to secure offer. Please try again.')
-      const { consumer, status, txSignature } = response
 
+      const { consumer, status, txSignature } = response
       const { data: order } = await api<ApiResponse<{ data: OrderResource; success: boolean }>>(
         `offers/${selectedOffer._id}`,
         {
@@ -33,8 +33,8 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
           },
         },
       )
-      // check data and show success toast..
-      if (order.data.status === 'pending') {
+
+      if (order.data.status === 'awaiting_delivery') {
         toast.success(`Order placed successfully!`)
         setOpen(false)
       }
@@ -47,7 +47,7 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
     <AppModal
       open={open}
       onOpenChange={setOpen}
-      classes={`border-1 bg-yellow-500 text-green-950 hover:!text-green-900 hover:!bg-green-400 w-full my-3 rounded-md !mt-0`}
+      classes={`border-1 bg-yellow-500 text-green-950 hover:!text-green-900 hover:!bg-green-400 my-4 rounded-md !mt-0 h-10`}
       title="Purchase"
       submitDisabled={mutation.isPending}
       submitLabel={
@@ -55,7 +55,7 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
           {mutation.isPending ? (
             <span className="flex items-center">
               Processing
-              <span className="ml-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span className="ml-2 h-4.5 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             </span>
           ) : (
             <span className="flex items-center">
@@ -78,7 +78,7 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
         <div className="grid gap-4 py-4">
           <div className="flex items-start gap-4">
             <div className="h-20 w-20 relative rounded overflow-hidden">
-              <img src={getCollectionIdenticon('...')} className="object-cover" />
+              <img src={getIdenticon('...')} className="object-cover" />
             </div>
             <div className="flex flex-col space-y-1">
               <h3 className="font-medium">Château Margaux 2015</h3>

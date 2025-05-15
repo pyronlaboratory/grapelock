@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { ellipsify } from '../../../lib/utils'
+import { ellipsify } from '@wallet-ui/react'
 
 type StatusType =
   | 'pending'

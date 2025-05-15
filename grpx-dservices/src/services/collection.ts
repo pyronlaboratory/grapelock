@@ -16,18 +16,40 @@ const IDL = require('../bridge/grpx_dprotocols.json')
 const context = await getApiContext()
 
 export async function getCollections(publicKey: string) {
-  return await Collection.find({ creatorAddress: publicKey }).lean()
+  try {
+    return await Collection.find({ creatorAddress: publicKey }).sort({ createdAt: -1 }).lean()
+  } catch (error) {
+    console.error('Error fetching collections:', error)
+    throw new Error('Failed to retrieve collections')
+  }
+}
+export async function getCollection(id: string): Promise<CollectionResource> {
+  const objectId = Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : null
+  if (!objectId) {
+    throw new Error('Invalid collection ID')
+  }
+
+  const collection = await Collection.findById(objectId).lean()
+  if (!collection) {
+    throw new Error('Collection not found')
+  }
+
+  return collection
 }
 export async function registerCollection(payload: CreateCollectionResource): Promise<CollectionResource> {
   try {
     const now = new Date()
     const collection = new Collection({
       ...payload,
+      ownerAddress: payload.creatorAddress,
       collectionMetadataUri: '',
       status: 'pending',
-      mintAddress: '',
-      metadataAddress: '',
-      masterEditionAddress: '',
+      tokenMintAddress: '',
+      tokenAccountAddress: '',
+      metadataAccountAddress: '',
+      masterEditionAccountAddress: '',
+      signature: '',
+      errorMessage: '',
       createdAt: now,
       updatedAt: now,
     })
@@ -113,11 +135,11 @@ export async function dispatch({
   uri: string
   sellerFeeBasisPoints: number
 }): Promise<{
-  destinationAddress: string
-  mintAddress: string
-  metadataAddress: string
-  masterEditionAddress: string
-  txSignature: string
+  tokenMintAddress: string
+  tokenAccountAddress: string
+  metadataAccountAddress: string
+  masterEditionAccountAddress: string
+  signature: string
 }> {
   try {
     const connection = new Connection(process.env.RPC_URL!, 'confirmed')
@@ -186,11 +208,11 @@ export async function dispatch({
       })
     context.log.info(`🔑 ${JSON.stringify({ tx })}`)
     return {
-      destinationAddress: destination.toBase58(),
-      mintAddress: mint.publicKey.toBase58(),
-      metadataAddress: metadata.toBase58(),
-      masterEditionAddress: masterEdition.toBase58(),
-      txSignature: tx,
+      tokenMintAddress: mint.publicKey.toBase58(),
+      tokenAccountAddress: destination.toBase58(),
+      metadataAccountAddress: metadata.toBase58(),
+      masterEditionAccountAddress: masterEdition.toBase58(),
+      signature: tx,
     }
   } catch (error: any) {
     context.log.error('Error writing to Solana:', error)

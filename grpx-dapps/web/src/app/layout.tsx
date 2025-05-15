@@ -7,9 +7,8 @@ import { GeistSans } from 'geist/font/sans'
 import AppFavicon from '@/components/app-favicon'
 
 export const metadata: Metadata = {
-  title: 'Grpx Inc.',
+  title: 'Grpx.',
   description: 'A decentralized supply chain and authenticity network for fine wines, powered by Solana',
-
   icons:
     "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>",
 }

@@ -101,7 +101,7 @@ export function useJobMonitor() {
         action: {
           label: 'View',
           onClick: () =>
-            window.open(`${getSolanaTxExplorerLink(job.result.txSignature, cluster.network ?? 'localnet')}`, '_blank'),
+            window.open(`${getSolanaTxExplorerLink(job.result.signature, cluster.network ?? 'localnet')}`, '_blank'),
         },
       })
       dequeue(job.jobId)

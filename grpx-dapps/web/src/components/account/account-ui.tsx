@@ -2,7 +2,7 @@
 
 import { useWallet } from '@solana/wallet-adapter-react'
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
-import { RefreshCw } from 'lucide-react'
+import { Copy, QrCodeIcon, RefreshCw, ScanQrCode } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 
@@ -15,20 +15,24 @@ import {
   useRequestAirdrop,
   useTransferSol,
 } from './account-data-access'
-import { ellipsify } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { AppAlert } from '@/components/app-alert'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { AppModal } from '@/components/app-modal'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AppModal } from '@/components/app-modal'
+import { QRCodeSVG } from 'qrcode.react'
+import { ellipsify } from '@wallet-ui/react'
 
 export function AccountBalance({ address }: { address: PublicKey }) {
   const query = useGetBalance({ address })
 
   return (
-    <h1 className="text-5xl font-bold cursor-pointer" onClick={() => query.refetch()}>
-      {query.data ? <BalanceSol balance={query.data} /> : '...'} SOL
+    <h1
+      className="text-5xl font-bold cursor-pointer  tracking-tight text-green-400 dark:bg-gradient-to-r from-green-400 via-green-500 to-teal-400 bg-clip-text dark:text-transparent"
+      onClick={() => query.refetch()}
+    >
+      {query.data && <BalanceSol balance={query.data} />}
     </h1>
   )
 }
@@ -69,7 +73,7 @@ export function AccountButtons({ address }: { address: PublicKey }) {
   const { cluster } = useCluster()
   return (
     <div>
-      <div className="space-x-2">
+      <div className="space-x-4">
         {cluster.network?.includes('mainnet') ? null : <ModalAirdrop address={address} />}
         <ModalSend address={address} />
         <ModalReceive address={address} />
@@ -169,6 +173,35 @@ export function AccountTokens({ address }: { address: PublicKey }) {
   )
 }
 
+export function AccountQRCode({ address }: { address: PublicKey }) {
+  return (
+    <div className="flex flex-col items-center relative overflow-clip">
+      <ScanQrCode className="h-50 w-50 absolute -left-25 top-0 text-muted" />
+      <ScanQrCode className="h-50 w-50 absolute -right-25 top-30 text-muted" />
+      <QRCodeSVG
+        value={`https://explorer.solana.com/address/${address}?cluster=devnet`}
+        size={250}
+        level="Q"
+        bgColor="#FFFFFF"
+        fgColor="#000000"
+        marginSize={2}
+        title="View creator on Solana Explorer"
+        className="rounded-xl shadow-sm"
+      />
+      <p className="mt-4 text-xs text-center text-gray-500">
+        Scan to view on&nbsp;
+        <a
+          href={`https://explorer.solana.com/address/${address}?cluster=devnet`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline text-primary hover:text-primary/80"
+        >
+          Solana Explorer
+        </a>
+      </p>
+    </div>
+  )
+}
 export function AccountTransactions({ address }: { address: PublicKey }) {
   const query = useGetSignatures({ address })
   const [showAll, setShowAll] = useState(false)
@@ -252,9 +285,20 @@ function BalanceSol({ balance }: { balance: number }) {
 
 function ModalReceive({ address }: { address: PublicKey }) {
   return (
-    <AppModal title="Receive">
-      <p>Receive assets by sending them to your public key:</p>
-      <code>{address.toString()}</code>
+    <AppModal
+      title={'Receive'}
+      variant={'outline'}
+      classes={'dark:bg-white dark:text-black dark:hover:bg-green-300 dark:hover:text-green-900'}
+    >
+      <b className="text-center font-semibold">🔑 Your Wallet Address</b>
+      <code className="flex justify-center text-center text-gray-600 font-medium tracking-wider text-sm underline bg-gray-50 dark:bg-muted/80 dark:text-green-400 py-8 rounded-md w-full">
+        {address.toString()} <Copy className="h-4 w-4 ml-2" />
+      </code>
+      <AccountQRCode address={address} />
+      <p className="text-center text-xs text-muted-foreground text-truncate">
+        To receive crypto, simply share your public wallet address with the sender. You can copy your address or let
+        them scan your QR code.
+      </p>
     </AppModal>
   )
 }
@@ -265,10 +309,12 @@ function ModalAirdrop({ address }: { address: PublicKey }) {
 
   return (
     <AppModal
-      title="Airdrop"
+      title={'Airdrop'}
       submitDisabled={!amount || mutation.isPending}
       submitLabel="Request Airdrop"
       submit={() => mutation.mutateAsync(parseFloat(amount))}
+      variant={'outline'}
+      classes="bg-yellow-400 dark:bg-yellow-500 dark:text-black dark:hover:bg-green-300 dark:hover:text-green-900"
     >
       <Label htmlFor="amount">Amount</Label>
       <Input
@@ -297,7 +343,7 @@ function ModalSend({ address }: { address: PublicKey }) {
 
   return (
     <AppModal
-      title="Send"
+      title={'Send'}
       submitDisabled={!destination || !amount || mutation.isPending}
       submitLabel="Send"
       submit={() => {
@@ -306,6 +352,8 @@ function ModalSend({ address }: { address: PublicKey }) {
           amount: parseFloat(amount),
         })
       }}
+      variant={'outline'}
+      classes={'dark:bg-white dark:text-black dark:hover:bg-green-300 dark:hover:text-green-900'}
     >
       <Label htmlFor="destination">Destination</Label>
       <Input
@@ -327,6 +375,31 @@ function ModalSend({ address }: { address: PublicKey }) {
         type="number"
         value={amount}
       />
+    </AppModal>
+  )
+}
+
+export function ModalQR({ address }: { address: PublicKey }) {
+  return (
+    <AppModal
+      title={
+        <div className="flex">
+          <QrCodeIcon size={14} className="mr-2" />
+          Share QR
+        </div>
+      }
+      variant={'outline'}
+      classes="ml-2 inline-flex items-center px-3 py-1.5 border text-xs font-medium rounded-md text-gray-700 dark:text-gray-400 bg-white dark:bg-muted/40 border-none hover:bg-gray-50 focus:outline-none duration-200"
+    >
+      <b className="text-center font-semibold">🔑 Your Wallet Address</b>
+      <code className="flex justify-center text-center text-gray-600 dark:text-green-300 font-medium tracking-wider text-sm underline bg-gray-50 dark:bg-muted/80 py-8 rounded-md w-full mb-4">
+        {address.toString()} <Copy className="h-4 w-4 ml-2" />
+      </code>
+      <AccountQRCode address={address} />
+      <p className="text-center text-xs text-muted-foreground text-truncate">
+        To receive crypto, simply share your public wallet address with the sender. You can copy your address or let
+        them scan your QR code.
+      </p>
     </AppModal>
   )
 }

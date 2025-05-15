@@ -33,7 +33,7 @@ export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sideb
                       <Command className="size-4" />
                     </div>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">Grpx Inc</span>
+                      <span className="truncate font-semibold">Grpx</span>
                       <span className="truncate text-xs tracking-wide capitalize">
                         {cluster ? cluster.name : 'Loading...'}
                       </span>

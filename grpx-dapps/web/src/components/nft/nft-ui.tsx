@@ -1,7 +1,6 @@
 'use client'
 import React, { ReactElement, useState } from 'react'
 import Link from 'next/link'
-import { useWalletUi } from '@wallet-ui/react'
 import { useGetNFTs } from './nft-data-access'
 import {
   Info,
@@ -18,32 +17,28 @@ import {
   Loader2,
   CalendarCheck2,
   Copy,
-  ShieldCheck,
 } from 'lucide-react'
 
 import { motion } from 'framer-motion'
-import { QRCodeSVG } from 'qrcode.react'
-
-import { getCollectionIdenticon, ellipsify, formatDate } from '@/lib/utils'
+import { ellipsify } from '@wallet-ui/react'
+import { getIdenticon } from '@/lib/utils'
 import { CollectionStatus, CollectionResource } from '@/schemas/collection'
 import { NFTResource } from '@/schemas/nft'
 import { NFTCollectionForm } from './forms/nft-collection-form'
 import { NFTMintingForm } from './forms/nft-minting-form'
 
 import { AppModal } from '../app-modal'
-import { Button } from '@/components/ui/button'
 import { Badge, badgeVariants } from '@/components/ui/badge'
 import { DialogClose } from '@/components/ui/dialog'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { VariantProps } from 'class-variance-authority'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-
-interface EmptyGridProps {
-  collection: CollectionResource
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { formatDate } from 'date-fns/format'
 
 interface CollectionStatusBadgeProps {
   status: CollectionStatus
+  classes?: string
 }
 const statusConfigMap = {
   pending: {
@@ -107,9 +102,9 @@ function CopyButton({ text }: { text: string }) {
     </TooltipProvider>
   )
 }
-function AddressBox({ title, address }: { title: string; address: string }) {
+export function AddressBox({ title, address }: { title: string; address: string }) {
   return (
-    <div className="bg-gray-100 dark:bg-black rounded-lg p-4 mb-4 hover:shadow-md transition-shadow">
+    <div className="bg-gray-100 dark:bg-background/20 rounded-lg p-4 mb-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <h3 className="text-sm font-medium text-gray-500">{title}</h3>
         <CopyButton text={address} />
@@ -120,30 +115,169 @@ function AddressBox({ title, address }: { title: string; address: string }) {
 }
 export function GetStarted() {
   return (
-    <div className="min-w-[350px] max-w-md md:max-w-lg w-auto mx-auto flex flex-col items-center justify-center px-8 py-8 relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-gradient-to-r from-background via-primary-foreground to-accent rounded-2xl h-[500px]">
+    <div className="border dark:border-none min-w-[350px] max-w-md md:max-w-lg w-auto mx-auto flex flex-col items-center justify-center px-8 py-8 relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-gradient-to-r from-background via-primary-foreground to-accent rounded-2xl h-[450px]">
       <div className="p-4 bg-background rounded-full mb-6">
-        <Flame className="h-12 w-12 text-yellow-600" />
+        <Flame className="h-12 w-12 text-amber-400 dark:text-yellow-600" />
       </div>
 
       <h2 className="text-2xl font-bold text-muted-foreground text-center mb-3">Register Mint</h2>
 
-      <p className="text-sm text-center text-muted-foreground tracking-wide max-w-xs mb-16">
+      <p className="text-sm text-center text-muted-foreground tracking-wide max-w-xs mb-2">
         Create a master edition to start publishing on the marketplace
       </p>
 
       <CreateCollectionModal
         label={'Start Creating'}
         classes={
-          'w-full h-12 -bottom-15 relative overflow-hidden bg-background hover:bg-green-500 text-yellow-600 hover:text-black transition-colors cursor-pointer group'
+          'w-full h-12 -bottom-15 relative overflow-hidden bg-gray-900 dark:bg-background hover:bg-green-500 text-amber-500 dark:text-yellow-600 hover:text-black transition-colors cursor-pointer group font-semibold'
         }
         shineEffect
       />
     </div>
   )
 }
-export function EmptyCollection({ collection }: EmptyGridProps) {
+export function CreateCollectionModal({
+  label = '🌱 Create New',
+  classes = '',
+  shineEffect = false,
+}: {
+  label?: string
+  classes?: string
+  shineEffect?: boolean
+}) {
+  const [open, setOpen] = useState(false)
   return (
-    <div className="text-center py-12">
+    <AppModal
+      open={open}
+      onOpenChange={setOpen}
+      title={label}
+      size="sm"
+      variant="default"
+      shineEffect={shineEffect}
+      classes={classes}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 30 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="fixed inset-0 bg-background/80 z-40"
+      >
+        <div className="max-w-sm md:max-w-2xl mx-auto relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
+          <DialogClose asChild>
+            <button
+              className="cursor-pointer absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </DialogClose>
+          <NFTCollectionForm onSuccess={() => setOpen(false)} />
+        </div>
+      </motion.div>
+    </AppModal>
+  )
+}
+export function CollectionStatusBadge({ status, classes = '' }: CollectionStatusBadgeProps) {
+  const config = statusConfigMap[status] ?? {
+    label: status,
+    variant: 'secondary',
+  }
+  return (
+    <Badge variant={config.variant} className={classes}>
+      {config.icon && <span>{config.icon}</span>}
+      {config.label}
+    </Badge>
+  )
+}
+export function CollectionHero({ collection }: { collection: CollectionResource }) {
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center space-x-3 mb-2">
+        <h1 className="text-2xl font-bold">{collection.collectionName}</h1>
+        <span className="hidden sm:block text-xs bg-gray-200 dark:bg-muted/80 px-2 py-1 rounded-md backdrop-blur-sm">
+          {collection.collectionSymbol}
+        </span>
+        <CollectionStatusBadge status={collection.status} classes="my-4 sm:ml-auto" />
+      </div>
+
+      <h1 className="hidden sm:block text-sm font-medium text-gray-500 mt-2 max-w-lg text-pretty">
+        {collection.collectionDescription}
+      </h1>
+
+      <div className="mt-16">
+        <h3 className="text-sm font-medium text-gray-600">
+          <span>Last updated</span>
+        </h3>
+        <div className="text-sm flex flex-row items-center gap-2 text-gray-400">
+          <CalendarCheck2 className="h-4 w-4" />
+          <p className="mt-1">{formatDate(collection.createdAt, 'dd MMM yy')}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 bg-background/40 rounded-lg shadow overflow-hidden mb-6 border-accent">
+        <div className="relative h-64">
+          <img
+            src={collection?.collectionMedia || getIdenticon(collection?._id)}
+            alt={collection?.collectionName}
+            className="w-full h-full object-cover"
+          />
+
+          <div className="absolute inset-0 bg-gradient-to-b from-white/60 dark:from-black/90 to-transparent"></div>
+        </div>
+      </div>
+    </div>
+  )
+}
+export function CollectionDetails({ collection }: { collection: CollectionResource }) {
+  return (
+    <Tabs defaultValue="accounts" className="space-y-4">
+      <div className="flex flex-col-reverse gap-6 sm:flex-row justify-between">
+        <TabsList className="grid w-full grid-cols-2 max-w-xs">
+          <TabsTrigger value="nfts">NFTs</TabsTrigger>
+          <TabsTrigger value="accounts">Accounts</TabsTrigger>
+        </TabsList>
+        <NFTMintingModal
+          data={collection._id}
+          classes="bg-accent text-neutral-400 hover:bg-primary-foreground hover:text-primary px-4 h-[34px] rounded-lg bg-blue-600 dark:bg-sidebar-primary text-primary-foreground dark:text-primary hover:bg-black hover:text-accent-background dark:hover:bg-sidebar-primary/90 dark:hover:text-primary"
+        />
+      </div>
+      <TabsContent value="accounts">
+        <Card>
+          <CardHeader>
+            <CardDescription>
+              Essential addresses related to the token, metadata, and edition management.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {[
+              { title: 'Token Mint', address: collection.tokenMintAddress },
+              { title: 'Token Account', address: collection.tokenAccountAddress },
+              { title: 'Metadata Account', address: collection.metadataAccountAddress },
+              { title: 'Master Edition Account', address: collection.masterEditionAccountAddress },
+            ].map((item, index) => (
+              <AddressBox title={item.title} address={item.address || ''} />
+            ))}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="nfts">
+        <Card>
+          <CardHeader>
+            <CardDescription>Total assets: 12</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <CollectionData collection={collection} />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  )
+}
+export function CollectionEmpty({ collection }: { collection: CollectionResource }) {
+  return (
+    <div className="text-center my-8 -mt-8">
       <div className="mx-auto h-24 w-24 bg-accent rounded-full flex items-center justify-center">
         <FileQuestion className="h-12 w-12 text-gray-400" />
       </div>
@@ -211,111 +345,16 @@ export function NFTMintingModal({
     </AppModal>
   )
 }
-export function CreateCollectionModal({
-  label = '🌱 Create New',
-  classes = '',
-  shineEffect = false,
-}: {
-  label?: string
-  classes?: string
-  shineEffect?: boolean
-}) {
-  const [open, setOpen] = useState(false)
-  return (
-    <AppModal
-      open={open}
-      onOpenChange={setOpen}
-      title={label}
-      size="sm"
-      variant="default"
-      shineEffect={shineEffect}
-      classes={classes}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 30 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="fixed inset-0 bg-background/80 z-40"
-      >
-        <div className="max-w-sm md:max-w-2xl mx-auto relative md:absolute md:left-1/2 top-10 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
-          <DialogClose asChild>
-            <button
-              className="cursor-pointer absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
-              aria-label="Close"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </DialogClose>
-          <NFTCollectionForm onSuccess={() => setOpen(false)} />
-        </div>
-      </motion.div>
-    </AppModal>
-  )
-}
-export function CollectionStatusBadge({ status }: CollectionStatusBadgeProps) {
-  const config = statusConfigMap[status] ?? {
-    label: status,
-    variant: 'secondary',
-  }
-  return (
-    <Badge variant={config.variant}>
-      {config.icon && <span>{config.icon}</span>}
-      {config.label}
-    </Badge>
-  )
-}
-// TODO: Refactor
-export function CollectionHeader({ collection }: { collection: CollectionResource }) {
-  return (
-    <div className="bg-background/40 rounded-lg shadow overflow-hidden mb-8 border-accent border">
-      <div className="relative h-64">
-        <img
-          src={collection?.collectionMedia || getCollectionIdenticon(collection?._id)}
-          alt={collection?.collectionName}
-          className="w-full h-full object-cover"
-        />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-
-        <div className="absolute bottom-0 left-0 p-6 text-white">
-          <div className="flex items-center space-x-3 mb-2">
-            <h1 className="text-2xl font-bold">{collection?.collectionName}</h1>
-            <span className="text-xs bg-white/20 px-2 py-1 rounded-md backdrop-blur-sm">
-              {collection?.collectionSymbol}
-            </span>
-          </div>
-          <p className="mt-1 text-accent-background">{collection?.collectionDescription}</p>
-        </div>
-      </div>
-    </div>
-  )
-}
-export function CollectionBanner({ collection }: { collection: CollectionResource }) {
-  return (
-    <div className="flex items-center justify-between mb-6 px-4">
-      <CollectionStatusBadge status={collection?.status} />
-      <div className="text-right">
-        <h3 className="text-sm font-medium text-gray-400">
-          <span>Last updated</span>
-        </h3>
-        <div className="text-sm flex flex-row items-center gap-2">
-          <CalendarCheck2 className="h-4 w-4" />
-          <p className="mt-1">{formatDate(collection?.createdAt)}</p>
-        </div>
-      </div>
-    </div>
-  )
-}
 export function CollectionData({ collection }: { collection: CollectionResource }) {
   const { data: nfts = [], isLoading, error: nftsError } = useGetNFTs(collection._id)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 md:gap-8 max-w-8xl mx-auto ">
-      <div className="col-span-1 mb-8">
+      <div className="hidden col-span-1 mb-8">
         <div className="flex flex-col gap-6 w-auto md:max-w-md mx-auto">
           {/* Left column - Creator info and QR code */}
-          <div className="bg-sidebar border rounded-xl p-6 lg:col-span-1">
+          {/* <div className="bg-sidebar border rounded-xl p-6 lg:col-span-1">
             <div className="flex flex-col h-full">
               <div>
                 <h3 className="text-sm font-medium">Creator</h3>
@@ -358,10 +397,10 @@ export function CollectionData({ collection }: { collection: CollectionResource 
                 </Button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Middle column - Collection Details */}
-          <div className="bg-sidebar border rounded-xl p-6 h-fit pb-2">
+          {/* <div className="bg-sidebar border rounded-xl p-6 h-fit pb-2">
             <h2 className="text-sm font-semibold mb-4">Details</h2>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -379,29 +418,28 @@ export function CollectionData({ collection }: { collection: CollectionResource 
             </div>
 
             <div className="space-y-4">
-              <AddressBox title="Signature" address={collection.txSignature || ''} />
+              <AddressBox title="Signature" address={collection.signature || ''} />
             </div>
-          </div>
+          </div> */}
 
           {/* Right column - Account Details */}
-          <div className="bg-sidebar border rounded-xl p-6 h-fit pb-2">
+          {/* <div className="bg-sidebar  rounded-xl p-6 h-fit pb-2">
             <h2 className="text-sm font-semibold mb-4">Accounts</h2>
 
             <div className="space-y-4">
-              {/* Compact address display */}
               {[
-                { title: 'Mint Token', address: collection.mintAddress },
-                { title: 'Destination Token', address: collection.destinationAddress },
-                { title: 'Metadata', address: collection.metadataAddress },
-                { title: 'Master Edition', address: collection.masterEditionAddress },
+                { title: 'Token Mint', address: collection.tokenMintAddress },
+                { title: 'Token Account', address: collection.tokenAccountAddress },
+                { title: 'Metadata Account', address: collection.metadataAccountAddress },
+                { title: 'Master Edition Account', address: collection.masterEditionAccountAddress },
               ].map((item, index) => (
                 <AddressBox title={item.title} address={item.address || ''} />
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
-      <div className="col-span-2">
+      <div className="col-span-3">
         <CollectionGallery collection={collection} nfts={nfts} />
         {isLoading && <div className="mt-4 text-center text-gray-500">Loading NFTs...</div>}
       </div>
@@ -417,7 +455,7 @@ export function CollectionGallery({ nfts, collection }: any) {
         </p>
       </div>
 
-      {nfts?.length ? <NFTGrid nfts={nfts} /> : <EmptyCollection collection={collection} />}
+      {nfts?.length ? <NFTGrid nfts={nfts} /> : <CollectionEmpty collection={collection} />}
     </div>
   )
 }
@@ -450,10 +488,10 @@ export function NFTCard({ nft }: { nft: NFTResource }) {
 
   return (
     <div className="bg-primary-foreground rounded-lg shadow overflow-hidden transition duration-200 hover:shadow-md cursor-pointer">
-      <Link href={`/asset-manager/${nft._id}`}>
+      <Link href={`/asset-manager/${nft.collectionId}/${nft._id}`}>
         <div className="h-60 overflow-hidden">
           <img
-            src={nft.nftMedia || getCollectionIdenticon(nft._id)}
+            src={nft.nftMedia || getIdenticon(nft._id)}
             alt={nft.nftName}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           />
@@ -608,17 +646,6 @@ export function NFTTypeSelection({ handleTypeSelection }: any) {
           </div>
         </CardContent>
       </Card>
-    </div>
-  )
-}
-export const DefaultContainer: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'details' | 'chain'>('details')
-  const { connected } = useWalletUi()
-
-  return (
-    <div className="flex gap-8 flex-col">
-      <div className="rounded-md border-1 border-accent p-32">Featured NFT card</div>
-      <div className="rounded-md border-1 border-accent p-32">Filterable NFT Gallery with Pagination</div>
     </div>
   )
 }

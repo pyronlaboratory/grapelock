@@ -123,11 +123,22 @@
     @apply bg-background text-foreground;
   }
 }
+::-webkit-scrollbar {
+  @apply w-2.5 h-2.5;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-border border-[1px] border-transparent border-solid bg-clip-padding cursor-grab;
+}
 
 .wallet-adapter-button-trigger {
   height: auto !important;
   @apply !border !bg-background !shadow-xs hover:!bg-accent !text-accent-foreground hover:!text-accent-foreground dark:!bg-input/30 !border-input/10 dark:!border-input dark:hover:!bg-input/50;
-  @apply !px-2 !py-[6px] !rounded-md !text-sm !font-semibold !shadow-sm !transition-all;
+  @apply !px-2 !py-[6px] !rounded-md !text-sm !font-semibold !shadow-sm !transition-all !mr-8;
 }
 
 [data-ui='base-button'].md {
@@ -138,6 +149,13 @@
 [data-ui='base-button'].md:hover {
   background: #87ea04;
   color: #000;
+}
+
+.four-zero-four-bg {
+  background-image: url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif);
+  background-color: white;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .shine-effect {

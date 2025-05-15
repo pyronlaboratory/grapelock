@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { AlertCircle, ArrowLeft, ArrowRight, Home } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 interface ErrorScreenProps {
   title?: string
@@ -23,15 +23,6 @@ export default function ErrorScreen({
         <h1 className="text-3xl font-semibold text-primary">{status ? `Error ${status}` : title}</h1>
         <p className="text-muted-foreground text-lg">{message}</p>
 
-        {/* {details && (
-          <div className="w-full mt-4">
-            <div className="bg-accent/50 p-4 rounded-lg overflow-auto max-h-[200px]">
-              <pre className="text-sm font-mono whitespace-pre-wrap">
-                {typeof details === 'string' ? details : JSON.stringify(details, null, 2)}
-              </pre>
-            </div>
-          </div>
-        )} */}
         <Link
           href="/"
           className="mt-6 flex items-center text-sm gap-2 px-6 py-2 bg-sidebar-primary text-white rounded-lg hover:bg-sidebar-primary/90 transition-colors"

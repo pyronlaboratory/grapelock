@@ -1,17 +1,7 @@
+import { formatDate } from 'date-fns'
 import { Clock } from 'lucide-react'
 
 export function NFTTimestamps({ createdAt, updatedAt }: { createdAt: string | Date; updatedAt: string | Date }) {
-  const formatDate = (dateString: string | Date) => {
-    if (!dateString) return 'N/A'
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date)
-  }
   return (
     <div className="border rounded-md ">
       <div className="blob-shape p-4 rounded-lg">
@@ -21,11 +11,11 @@ export function NFTTimestamps({ createdAt, updatedAt }: { createdAt: string | Da
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Created:</span>
-            <span className="font-medium">{formatDate(createdAt)}</span>
+            <span className="font-medium">{formatDate(createdAt, 'dd MMM yy')}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Updated:</span>
-            <span className="font-medium">{formatDate(updatedAt)}</span>
+            <span className="font-medium">{formatDate(updatedAt, 'dd MMM yy')}</span>
           </div>
         </div>
       </div>

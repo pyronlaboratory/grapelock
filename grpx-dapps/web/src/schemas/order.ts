@@ -3,12 +3,11 @@ export const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, {
   message: '_id must be a 24-char hex string',
 })
 export const orderStatus = z.enum([
-  'pending',
-  'cancelled_by_producer',
-  'cancelled_by_consumer',
   'awaiting_delivery',
   'awaiting_confirmation',
   'completed',
+  'cancelled_by_producer',
+  'cancelled_by_consumer',
   'failed',
 ])
 export const createOrderSchema = z.object({

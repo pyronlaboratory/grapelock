@@ -33,7 +33,6 @@ import path from 'path'
 import { ASSOCIATED_PROGRAM_ID } from '@coral-xyz/anchor/dist/cjs/utils/token.js'
 
 const IDL = require('../bridge/grpx_dprotocols.json')
-
 const context = await getApiContext()
 
 /**

@@ -11,7 +11,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from '@/components/ui/button'
 import { AppAlert } from '@/components/app-alert'
 
-export function ExplorerLink({ path, label, className }: { path: string; label: string; className?: string }) {
+export function ExplorerLink({
+  path,
+  label,
+  className,
+}: {
+  path: string
+  label: string | ReactNode
+  className?: string
+}) {
   const { getExplorerUrl } = useCluster()
   return (
     <a
