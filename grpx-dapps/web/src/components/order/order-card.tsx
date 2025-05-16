@@ -1,98 +1,30 @@
 import React, { useState } from 'react'
+import api from '@/lib/api'
+import { toast } from 'sonner'
+import { useConfirmOffer } from '@/hooks/use-confirm-offer'
+import { useRefundOffer } from '@/hooks/use-refund-offer'
+import { PublicKey } from '@solana/web3.js'
+import { ellipsify } from '@wallet-ui/react'
+import { ExplorerLink } from '../cluster/cluster-ui'
+import { OrderStatusBadge } from './order-status-badge'
 import { OrderResource } from '@/schemas/order'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { formatDate } from 'date-fns'
+import { cn } from '@/lib/utils'
+
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
-interface OrderItemProps {
-  order: OrderResource
-}
-
-export const OrderItem: React.FC<OrderItemProps> = ({ order }) => {
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 4)}...${address.slice(-4)}`
-  }
-
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-  const isActionable = order.status === 'awaiting_confirmation' || order.status === 'awaiting_delivery'
-
-  return (
-    <Card className="mb-4 dark:border-none">
-      <CardContent>
-        <div className="flex flex-col md:flex-row md:items-center justify-between">
-          <div>
-            <div className="flex items-center mb-2">
-              {/* Update this */}
-              <Badge variant={'default'} className="mr-2" />
-              <span className="text-sm text-gray-500">Order ID: {order._id.slice(0, 8)}...</span>
-            </div>
-            <div className="grid grid-cols-1 gap-1 md:grid-cols-2 md:gap-4">
-              <div>
-                <span className="text-sm text-gray-500">Producer:</span>{' '}
-                <span className="text-sm font-medium">{formatAddress(order.producerPublicKey)}</span>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500">Consumer:</span>{' '}
-                <span className="text-sm font-medium">{formatAddress(order.consumerPublicKey)}</span>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500">Created:</span>{' '}
-                <span className="text-sm">{formatDate(order.createdAt)}</span>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500">Updated:</span>{' '}
-                <span className="text-sm">{formatDate(order.updatedAt)}</span>
-              </div>
-            </div>
-          </div>
-
-          {isActionable && (
-            <div className="flex mt-4 md:mt-0 space-x-2">
-              {order.status === 'awaiting_confirmation' && (
-                <Button variant="default" size="sm">
-                  Confirm Delivery
-                </Button>
-              )}
-              {order.status === 'awaiting_delivery' && (
-                <Button variant="outline" size="sm">
-                  Track Shipment
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-export default OrderItem
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 import {
   ArrowRight,
+  Check,
+  ChevronUp,
+  ChevronDown,
   ClockArrowUp,
   MoreVerticalIcon,
   PackageCheckIcon,
-  ShoppingBagIcon,
   UserCheck2,
-  UserCheckIcon,
 } from 'lucide-react'
-
-// import { OrderStatus } from './OrderStatus'
-import { ellipsify } from '@wallet-ui/react'
-import { formatDate } from 'date-fns'
-import { Check, Clock, ChevronUp, ChevronDown, Coffee, PackageOpen, UserCheck } from 'lucide-react'
-
-type OrderStatusProps = {
-  status: string
-}
 
 const stages = [
   { name: 'Created', icon: ClockArrowUp },
@@ -101,7 +33,7 @@ const stages = [
   { name: 'Completed', icon: Check },
 ]
 
-export function OrderStatus({ status }: OrderStatusProps) {
+export function OrderProgress({ status }: { status: string }) {
   // Determine the current stage index based on status
   const getCurrentStageIndex = () => {
     switch (status.toLowerCase()) {
@@ -143,57 +75,62 @@ export function OrderStatus({ status }: OrderStatusProps) {
     </div>
   )
 }
-type OrderCardProps = {
-  order: {
-    _id: string
-    offerId: string
-    consumerPublicKey: string
-    producerPublicKey: string
-    status: string
-    createdAt: string | Date
-    updatedAt: string | Date
-  }
-  userRole?: 'consumer' | 'producer'
-}
-import { cn } from '@/lib/utils'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { ExplorerLink } from '../cluster/cluster-ui'
-type StatusBadgeProps = {
-  status: string
-}
 
-export function StatusBadge({ status }: StatusBadgeProps) {
-  const getStatusStyles = () => {
-    switch (status.toLowerCase()) {
-      case 'awaiting_delivery':
-        return 'bg-blue-50 dark:bg-blue-200 text-blue-600 border-blue-200'
-      case 'awaiting_confirmation':
-        return 'bg-yellow-50 dark:bg-yellow-300 text-yellow-600 border-yellow-200'
-      case 'confirmed':
-        return 'bg-amber-50 dark:bg-amber-200 text-amber-600 border-amber-200'
-      case 'completed':
-        return 'bg-green-50 dark:bg-green-200 text-green-600 border-green-200'
-      case 'cancelled':
-        return 'bg-red-50 text-red-600 border-red-200'
-      default:
-        return 'bg-gray-50 text-gray-600 border-gray-200'
+export function OrderCard({ order, address }: { order: OrderResource; address: PublicKey }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const confirmMutation = useConfirmOffer()
+  const refundMutation = useRefundOffer()
+
+  async function handleFulfill(order: OrderResource) {
+    try {
+      const response = await api(`orders/${order._id.toString()}`, {
+        method: 'PATCH',
+        body: {
+          status: 'awaiting_confirmation',
+        },
+      })
+
+      if (!response) throw new Error('Failed to fulfill order')
+
+      toast.success('Order marked as awaiting confirmation')
+    } catch (error: any) {
+      console.error(error)
+      toast.error('Failed to fulfill order')
+    }
+  }
+  async function handleConfirm(order: OrderResource) {
+    try {
+      const response = await confirmMutation.mutateAsync({ orderObj: order })
+      if (!response || response.status !== 'completed')
+        return toast.error('Failed to confirm order delivery. Please try again.')
+
+      const confirmation = await api(`orders/confirm/${order._id.toString()}`, {
+        method: 'PUT',
+        body: {
+          status: 'completed',
+        },
+      })
+
+      if (!confirmation) throw new Error('Failed to confirm order delivery status.')
+      toast.success(`Purchase confirmed. NFT successfully transferred!`)
+    } catch (error) {
+      console.error('Error confirming order:', error)
+      toast.error('Failed to confirm order. Please try again.')
+    }
+  }
+  async function handleCancel(order: OrderResource) {
+    try {
+      const response = await refundMutation.mutateAsync({ orderObj: order })
+      if (!response) return toast.error('Failed to refund order. Please try again.')
+
+      // if response status is refunded i.e. program returned success.. then update order, offer, nft off-chain data.
+      toast.success(`Refund confirmed.`)
+    } catch (error) {
+      console.error('Error refunding order:', error)
+      toast.error('Failed to refund order. Please try again.')
     }
   }
 
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center px-4 py-1 rounded-full text-xs font-medium border my-2 ml-auto mr-2',
-        getStatusStyles(),
-      )}
-    >
-      {status}
-    </span>
-  )
-}
-
-export function OrderCard({ order, userRole = 'consumer' }: OrderCardProps) {
-  const [isOpen, setIsOpen] = useState(false)
   return (
     <div className="border rounded-lg p-4 mb-4 hover:shadow-sm transition-shadow dark:shadow-none dark:border-none dark:bg-black">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -201,31 +138,52 @@ export function OrderCard({ order, userRole = 'consumer' }: OrderCardProps) {
           <div className="flex gap-2 justify-start">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1.5">
                   <MoreVerticalIcon className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {userRole === 'producer' ? (
+                {address.toBase58() === order.producerPublicKey ? (
                   <>
-                    <DropdownMenuItem>Fulfill Order</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={order.status !== 'awaiting_delivery'}
+                      onClick={() => order.status === 'awaiting_delivery' && handleFulfill(order)}
+                    >
+                      Fulfill
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCancel(order)}>Cancel</DropdownMenuItem>
+                  </>
+                ) : address.toBase58() === order.consumerPublicKey ? (
+                  <>
+                    <DropdownMenuItem
+                      disabled={order.status !== 'awaiting_confirmation'}
+                      onClick={() => order.status === 'awaiting_confirmation' && handleConfirm(order)}
+                    >
+                      Confirm
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={['completed', 'cancelled_by_producer', 'cancelled_by_consumer'].includes(order.status)}
+                      onClick={() =>
+                        !['completed', 'cancelled_by_producer', 'cancelled_by_consumer'].includes(order.status) &&
+                        handleCancel(order)
+                      }
+                    >
+                      Cancel
+                    </DropdownMenuItem>
                   </>
                 ) : (
-                  <>
-                    <DropdownMenuItem>Accept Order</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
-                  </>
+                  <DropdownMenuItem disabled>No actions available</DropdownMenuItem>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+
             <div>
               <div className="text-xs text-muted-foreground mb-1 uppercase font-semibold">Order ID</div>
               <h3 className="font-medium">{ellipsify(order._id, 6)}</h3>
             </div>
           </div>
 
-          <StatusBadge status={order.status} />
+          <OrderStatusBadge status={order.status} />
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
@@ -240,15 +198,15 @@ export function OrderCard({ order, userRole = 'consumer' }: OrderCardProps) {
 
         <CollapsibleContent>
           <div className="my-6">
-            <OrderStatus status={order.status} />
+            <OrderProgress status={order.status} />
           </div>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-xs text-muted-foreground">Sender</div>
               <div className="text-sm font-medium dark:border-b w-fit dark:border-b-white">
                 <ExplorerLink
-                  label={ellipsify(order.consumerPublicKey, 4)}
-                  path={`account/${order.consumerPublicKey}`}
+                  label={ellipsify(order.producerPublicKey, 4)}
+                  path={`account/${order.producerPublicKey}`}
                 />
               </div>
             </div>
@@ -259,8 +217,8 @@ export function OrderCard({ order, userRole = 'consumer' }: OrderCardProps) {
               <div className="text-xs text-muted-foreground">Recipient</div>
               <div className="text-sm font-medium dark:border-b w-fit dark:border-b-white">
                 <ExplorerLink
-                  label={ellipsify(order.producerPublicKey, 4)}
-                  path={`account/${order.producerPublicKey}`}
+                  label={ellipsify(order.consumerPublicKey, 4)}
+                  path={`account/${order.consumerPublicKey}`}
                 />
               </div>
             </div>

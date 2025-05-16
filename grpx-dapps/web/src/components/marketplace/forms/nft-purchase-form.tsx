@@ -3,20 +3,24 @@ import { ArrowRight, Check, Info } from 'lucide-react'
 import { useAcceptOffer } from '@/hooks/use-accept-offer'
 import { getIdenticon } from '@/lib/utils'
 import { AppModal } from '@/components/app-modal'
-import { Button } from '@/components/ui/button'
-import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
 import { OfferResource } from '@/schemas/offer'
 import api, { ApiResponse } from '@/lib/api'
 import { OrderResource } from '@/schemas/order'
+import { useWallet } from '@solana/wallet-adapter-react'
 
 export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResource }) {
   const [open, setOpen] = useState(false)
   const mutation = useAcceptOffer()
+  const { publicKey } = useWallet()
 
   const handleSubmit = async () => {
+    if (publicKey?.toBase58() === selectedOffer.producer) {
+      toast.error("You can't purchase your own offer!")
+      return
+    }
     try {
       const response = await mutation.mutateAsync({ offerObj: selectedOffer })
       if (!response) return toast.error('Failed to secure offer. Please try again.')
@@ -43,13 +47,14 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
       toast.error('Failed to purchase NFT. Please try again.')
     }
   }
+
   return (
     <AppModal
       open={open}
       onOpenChange={setOpen}
       classes={`w-fit border-1 bg-yellow-500 text-green-950 hover:!text-green-900 hover:!bg-green-400 my-4 rounded-md !mt-0 h-10`}
       title="Purchase"
-      submitDisabled={mutation.isPending}
+      submitDisabled={publicKey?.toBase58() === selectedOffer.producer || mutation.isPending}
       submitLabel={
         <>
           {mutation.isPending ? (
@@ -78,15 +83,6 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
       }
       innerClasses="sm:max-w-[500px]"
     >
-      {/* <DialogContent className="sm:max-w-[525px]"> */}
-      {/* <DialogHeader>
-          <DialogTitle>Accept Offer*</DialogTitle>
-          <span className="text-xs italic mb-6">
-            By accepting this offer, you agree to the terms of the Solana-based escrow contract securing this
-            transaction*
-          </span>
-        </DialogHeader> */}
-
       <div className="grid gap-4 space-y-2">
         <div className="flex items-start gap-4">
           <div className="h-20 w-20 relative rounded-full overflow-hidden">
@@ -148,46 +144,6 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
           </div>
         </div>
       </div>
-      {/* <DialogContent>
-   
-      </DialogContent> */}
-      {/* <DialogFooter>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center text-xs text-muted-foreground mr-auto cursor-pointer">
-                  <Info className="h-3 w-3 mr-1" />
-                  How it works
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[250px]">
-                <p>
-                  This NFT represents ownership of a physical bottle of wine. The blockchain ensures authenticity and
-                  tracks the wine's journey from vineyard to bottle.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-
-          <Button onClick={handleSubmit} disabled={mutation.isPending}>
-            {mutation.isPending ? (
-              <span className="flex items-center">
-                Processing
-                <span className="ml-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              </span>
-            ) : (
-              <span className="flex items-center">
-                Confirm Purchase
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </span>
-            )}
-          </Button>
-        </DialogFooter> */}
-      {/* </DialogContent> */}
     </AppModal>
   )
 }
