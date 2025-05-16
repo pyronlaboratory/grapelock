@@ -31,7 +31,7 @@ type NFTTypeCardProps = {
 function NFTTypeCard({ emoji, title, description, features, onClick }: NFTTypeCardProps) {
   return (
     <Card
-      className="cursor-pointer border-2 shadow-none  hover:border-purple-400 hover:shadow-md transition-all !bg-accent"
+      className="cursor-pointer border-2 shadow-none hover:border-purple-400 hover:shadow-md transition-all bg-accent/40 dark:hover:bg-black"
       onClick={onClick}
     >
       <CardContent className="mt-12 flex flex-col items-center text-center">
@@ -157,14 +157,10 @@ export function NFTMintingForm({ data, onSuccess }: { data?: Object | null; onSu
     }
   }
 
-  console.log('Errors:', form.formState.errors)
-  console.log('Is Valid:', form.formState.isValid)
-  console.log('Values:', form.getValues())
-
   return showTypeSelection ? (
     <NFTTypeSelection selectType={selectType} />
   ) : (
-    <div className="">
+    <div className="!min-w-xl">
       <TooltipProvider>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

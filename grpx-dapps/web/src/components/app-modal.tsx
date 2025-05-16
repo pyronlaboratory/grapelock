@@ -6,6 +6,7 @@ import { Separator } from './ui/separator'
 export function AppModal({
   children,
   classes,
+  innerClasses = '',
   override,
   title,
   innerTitle,
@@ -26,6 +27,7 @@ export function AppModal({
   submitDisabled?: boolean
   submitLabel?: string | ReactNode
   classes?: string
+  innerClasses?: string
   shineEffect?: boolean
   size?: 'sm' | 'lg' | 'default' | 'icon' | null | undefined
   variant?: 'outline' | 'default'
@@ -43,7 +45,7 @@ export function AppModal({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[625px] p-4">
+      <DialogContent className={`${innerClasses} "sm:max-w-[625px] p-4"`}>
         <DialogHeader>
           <DialogTitle className="text-md font-semibold">{override ? innerTitle : title}</DialogTitle>
         </DialogHeader>

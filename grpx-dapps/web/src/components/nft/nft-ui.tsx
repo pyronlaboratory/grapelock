@@ -399,6 +399,7 @@ export function NFTMintingModal({
       onOpenChange={setOpen}
       override={true}
       innerTitle={<NFTMintingModalHeader />}
+      innerClasses="sm:max-w-2xl"
     >
       <NFTMintingForm onSuccess={() => setOpen(false)} data={data} />
     </AppModal>

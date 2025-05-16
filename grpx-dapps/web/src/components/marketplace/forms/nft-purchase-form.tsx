@@ -47,7 +47,7 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
     <AppModal
       open={open}
       onOpenChange={setOpen}
-      classes={`border-1 bg-yellow-500 text-green-950 hover:!text-green-900 hover:!bg-green-400 my-4 rounded-md !mt-0 h-10`}
+      classes={`w-fit border-1 bg-yellow-500 text-green-950 hover:!text-green-900 hover:!bg-green-400 my-4 rounded-md !mt-0 h-10`}
       title="Purchase"
       submitDisabled={mutation.isPending}
       submitLabel={
@@ -66,77 +66,92 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
         </>
       }
       submit={handleSubmit}
-    >
-      <DialogContent className="sm:max-w-[425px]">
+      override={true}
+      innerTitle={
         <DialogHeader>
-          <DialogTitle>Purchase NFT</DialogTitle>
-          <DialogDescription className="text-sm">
-            You're about to purchase a digital certificate of authenticity and ownership for this wine
-          </DialogDescription>
+          <DialogTitle>Accept Offer*</DialogTitle>
+          <span className="text-xs font-medium italic mb-6 max-w-lg leading-5 text-muted-foreground/80">
+            By accepting this offer, you agree to the terms of the Solana-based escrow contract securing this
+            transaction*
+          </span>
         </DialogHeader>
+      }
+      innerClasses="sm:max-w-[500px]"
+    >
+      {/* <DialogContent className="sm:max-w-[525px]"> */}
+      {/* <DialogHeader>
+          <DialogTitle>Accept Offer*</DialogTitle>
+          <span className="text-xs italic mb-6">
+            By accepting this offer, you agree to the terms of the Solana-based escrow contract securing this
+            transaction*
+          </span>
+        </DialogHeader> */}
 
-        <div className="grid gap-4 py-4">
-          <div className="flex items-start gap-4">
-            <div className="h-20 w-20 relative rounded overflow-hidden">
-              <img src={getIdenticon('—')} className="object-cover" />
-            </div>
-            <div className="flex flex-col space-y-1">
-              <h3 className="font-medium">Château Margaux 2015</h3>
-              <p className="text-sm text-muted-foreground">2015 • Bordeaux, France</p>
-              <p className="text-sm font-bold mt-1 font-mono">{selectedOffer.sellingPrice} SOL</p>
-            </div>
+      <div className="grid gap-4 space-y-2">
+        <div className="flex items-start gap-4">
+          <div className="h-20 w-20 relative rounded-full overflow-hidden">
+            <img src={getIdenticon(selectedOffer._id)} className="object-cover" />
           </div>
-
-          <Separator />
-
-          <div className="space-y-2">
-            <h4 className="text-xs font-medium text-gray-400">What you'll get:</h4>
-            <ul className="text-sm space-y-1">
-              <li className="flex items-center gap-2 text-gray-500">
-                <Check className="h-4 w-4 text-green-500" />
-                Digital proof of ownership
-              </li>
-              <li className="flex items-center gap-2 text-gray-500">
-                <Check className="h-4 w-4 text-green-500" />
-                Complete supply chain history
-              </li>
-              <li className="flex items-center gap-2 text-gray-500">
-                <Check className="h-4 w-4 text-green-500" />
-                Option to redeem physical bottle
-              </li>
-              <li className="flex items-center gap-2 text-gray-500">
-                <Check className="h-4 w-4 text-green-500" />
-                Access to exclusive wine events
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-muted/40 p-3 rounded-md text-sm">
-            <div className="flex justify-between mb-1">
-              <span>Price</span>
-              <span className="font-mono">
-                {selectedOffer.sellingPrice}{' '}
-                <span className="text-[0.75em] tracking-wider text-muted-foreground/80">SOL</span>
-              </span>
-            </div>
-            <div className="flex justify-between mb-1">
-              <span>Gas fee (est.)</span>
-              <span className="font-mono">
-                0.0085 <span className="text-[0.75em] tracking-wider text-muted-foreground/80">SOL</span>
-              </span>
-            </div>
-            <Separator className="my-2" />
-            <div className="flex justify-between font-bold">
-              <span>Total</span>
-              <span className="font-mono  text-green-500">
-                {(selectedOffer.sellingPrice + 0.0085).toFixed(3)}{' '}
-                <span className="text-[0.75em] tracking-wider">SOL</span>
-              </span>
-            </div>
+          <div className="flex flex-col space-y-1">
+            <h3 className="font-medium">Château Margaux 2015</h3>
+            <p className="text-sm text-muted-foreground">2015 • Bordeaux, France</p>
+            <p className="text-sm font-bold mt-1 font-mono">{selectedOffer.sellingPrice} SOL</p>
           </div>
         </div>
 
-        <DialogFooter>
+        <Separator />
+
+        <div className="space-y-2">
+          <h4 className="text-xs font-medium text-gray-400">What you'll get..</h4>
+          <ul className="text-sm space-y-1">
+            <li className="flex items-center gap-2 text-gray-500 dark:text-primary">
+              <Check className="h-4 w-4 text-green-500" />
+              Digital proof of ownership
+            </li>
+            <li className="flex items-center gap-2 text-gray-500 dark:text-primary">
+              <Check className="h-4 w-4 text-green-500" />
+              Complete supply chain history
+            </li>
+            <li className="flex items-center gap-2 text-gray-500 dark:text-primary">
+              <Check className="h-4 w-4 text-green-500" />
+              Option to redeem physical bottle
+            </li>
+            <li className="flex items-center gap-2 text-gray-500 dark:text-primary">
+              <Check className="h-4 w-4 text-green-500" />
+              Access to exclusive wine events
+            </li>
+          </ul>
+        </div>
+
+        <div className="bg-muted/40 p-3 rounded-md text-sm">
+          <div className="flex justify-between mb-1">
+            <span>Price</span>
+            <span className="font-mono">
+              {selectedOffer.sellingPrice}{' '}
+              <span className="text-[0.75em] tracking-wider text-muted-foreground/80">SOL</span>
+            </span>
+          </div>
+          <div className="flex justify-between mb-1">
+            <span>Gas fee (est.)</span>
+            <span className="font-mono">
+              0.0085 <span className="text-[0.75em] tracking-wider text-muted-foreground/80">SOL</span>
+            </span>
+          </div>
+
+          <Separator className="my-2" />
+          <div className="flex justify-between font-bold">
+            <span>Total</span>
+            <span className="font-mono  text-green-500">
+              {(selectedOffer.sellingPrice + 0.0085).toFixed(3)}{' '}
+              <span className="text-[0.75em] tracking-wider">SOL</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      {/* <DialogContent>
+   
+      </DialogContent> */}
+      {/* <DialogFooter>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -171,8 +186,8 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
               </span>
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </DialogFooter> */}
+      {/* </DialogContent> */}
     </AppModal>
   )
 }

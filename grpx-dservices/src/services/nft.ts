@@ -316,7 +316,7 @@ export async function dispatch({
     const balance = await connection.getBalance(wallet.publicKey)
     const transactionHistory = await connection.getSignaturesForAddress(wallet.publicKey)
 
-    if (balance < 1_000_000 || transactionHistory.length === 0) {
+    if (balance < 1_000_000_000 || transactionHistory.length === 0) {
       context.log.info(`Requesting airdrop for ${wallet.publicKey.toBase58()}`)
       try {
         const airdropSig = await connection.requestAirdrop(wallet.publicKey, 1_000_000_000) // 1 SOL
