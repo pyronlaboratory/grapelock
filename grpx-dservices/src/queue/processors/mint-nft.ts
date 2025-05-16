@@ -9,23 +9,22 @@ import {
   dispatch,
 } from '../../services/nft.js'
 import { NFTResource } from '../../types/nft.types.js'
+import { JobResult } from '../../types/job.types.js'
 import { prepareMetadata } from '../../services/metadata.js'
 
-type JobResult = {
-  status: 'success' | 'failed'
-  jobId: string
-  nftId?: string
-  txSignature?: string
-  destinationAddress?: string
-  mintAddress?: string
-  metadataAddress?: string
-  masterEditionAddress?: string
-  error?: string | any
-}
-
 const context = await getApiContext()
-
-export async function processMintingJob(job: Job<any, any, string>): Promise<JobResult> {
+export async function processMintingJob(job: Job<any, any, string>): Promise<
+  JobResult &
+    Partial<{
+      nftId: string
+      signature: string
+      tokenMintAddress: string
+      tokenAccountAddress: string
+      metadataAccountAddress: string
+      masterEditionAccountAddress: string
+      error: string | any
+    }>
+> {
   const { id, name, token, data } = job
   context.log.info(`⚙️ Executing ${name!} job | id: ${id!}`)
 
@@ -41,6 +40,7 @@ export async function processMintingJob(job: Job<any, any, string>): Promise<Job
     }[]
     const resource = {
       name: nftName ?? '',
+      symbol: nftSymbol ?? '',
       description: nftDescription ?? '',
       image: nftMedia ?? '',
       // animationUrl: nftAnimationUrl,
@@ -56,36 +56,37 @@ export async function processMintingJob(job: Job<any, any, string>): Promise<Job
 
     // Write transaction on Solana
     const collectionMint = await getCollectionMintAddressForNFT(nft._id.toString())
-    const { destinationAddress, mintAddress, metadataAddress, masterEditionAddress, txSignature } = await dispatch({
-      name: nftName ?? '',
-      symbol: nftSymbol ?? '',
-      description: nftDescription ?? '',
-      uri: metadataUri ?? '',
-      creatorAddress: nft.creatorAddress ?? '',
-      sellerFeeBasisPoints: sellerFeeBasisPoints ?? 0,
-      collectionMintAddress: collectionMint,
-    })
-    if (!txSignature) throw new Error('Minting transaction signature not found')
+    const { signature, tokenMintAddress, tokenAccountAddress, metadataAccountAddress, masterEditionAccountAddress } =
+      await dispatch({
+        name: nftName ?? '',
+        symbol: nftSymbol ?? '',
+        description: nftDescription ?? '',
+        uri: metadataUri ?? '',
+        creatorAddress: nft.creatorAddress ?? '',
+        sellerFeeBasisPoints: sellerFeeBasisPoints ?? 0,
+        collectionMintAddress: collectionMint,
+      })
+    if (!signature) throw new Error('Minting transaction signature not found')
 
     // Update offchain records and logs
     await updateNFT(nft._id.toString(), {
-      destinationAddress,
-      mintAddress,
-      metadataAddress,
-      masterEditionAddress,
-      txSignature,
+      tokenMintAddress,
+      tokenAccountAddress,
+      metadataAccountAddress,
+      masterEditionAccountAddress,
+      signature,
     })
     await mintNFT(nft._id.toString())
-    context.log.info(`NFT minted successfully | job id: ${id}`)
+    context.log.info(`✨ NFT minted successfully | job id: ${id}`)
     return {
-      status: 'success',
-      jobId: id!,
+      status: 'completed',
+      jobId: id ?? 'unknown',
       nftId: nft._id.toString(),
-      txSignature,
-      destinationAddress,
-      mintAddress,
-      metadataAddress,
-      masterEditionAddress,
+      signature,
+      tokenAccountAddress,
+      tokenMintAddress,
+      metadataAccountAddress,
+      masterEditionAccountAddress,
     }
   } catch (error: any) {
     context.log.error('Minting job processing failed:', error)

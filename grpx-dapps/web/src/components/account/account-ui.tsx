@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
 import { Copy, QrCodeIcon, RefreshCw, ScanQrCode } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 
 import { useCluster } from '../cluster/cluster-data-access'
 import { ExplorerLink } from '../cluster/cluster-ui'
@@ -16,7 +16,8 @@ import {
   useTransferSol,
 } from './account-data-access'
 import { Button } from '@/components/ui/button'
-import { AppAlert } from '@/components/app-alert'
+import { toast } from 'sonner'
+import { Info } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -49,23 +50,58 @@ export function AccountBalanceCheck({ address }: { address: PublicKey }) {
   const { cluster } = useCluster()
   const mutation = useRequestAirdrop({ address })
   const query = useGetBalance({ address })
+  // const hasShownError = useRef(false)
+  // useEffect(() => {
+  //   if (query.isError && !hasShownError.current) {
+  //     toast(
+  //       <div className="flex items-start gap-4">
+  //         <Info className="mt-1 h-5 w-5" />
+  //         <div className="flex flex-row gap-1">
+  //           <div className="text-sm font-medium ">
+  //             You are connected to <strong>{cluster.name}</strong> but your account is not found on this cluster.
+  //           </div>
+  //           <div className="text-sm ">
+  //             <Button variant="outline" onClick={() => mutation.mutateAsync(1).catch((err) => console.log(err))}>
+  //               Request Airdrop
+  //             </Button>
+  //           </div>
+  //         </div>
+  //       </div>,
+  //       {
+  //         duration: 8000,
+  //         className: 'border',
+  //       },
+  //     )
+  //     hasShownError.current = true
+  //   }
 
-  if (query.isLoading) {
-    return null
-  }
-  if (query.isError || !query.data) {
-    return (
-      <AppAlert
-        action={
-          <Button variant="outline" onClick={() => mutation.mutateAsync(1).catch((err) => console.log(err))}>
-            Request Airdrop
-          </Button>
-        }
-      >
-        You are connected to <strong>{cluster.name}</strong> but your account is not found on this cluster.
-      </AppAlert>
+  //   if (!query.isError) hasShownError.current = false
+  // }, [query.isError, cluster.name, query.refetch])
+
+  if (query.isLoading) return null
+
+  if (query.isError) {
+    toast(
+      <div className="flex items-start gap-4">
+        <Info className="mt-1 h-5 w-5" />
+        <div className="flex flex-row gap-1">
+          <div className="text-sm font-medium ">
+            You are connected to <strong>{cluster.name}</strong> but your account is not found on this cluster.
+          </div>
+          <div className="text-sm ">
+            <Button variant="outline" onClick={() => mutation.mutateAsync(1).catch((err) => console.log(err))}>
+              Request Airdrop
+            </Button>
+          </div>
+        </div>
+      </div>,
+      {
+        duration: 8000,
+        className: 'border',
+      },
     )
   }
+
   return null
 }
 

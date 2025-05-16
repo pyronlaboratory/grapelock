@@ -1,201 +1,226 @@
+// 'use client'
+// import { useGetOrders } from '@/components/orders/order-data-access'
+// import { useWallet } from '@solana/wallet-adapter-react'
+// import { useMemo } from 'react'
+// import { Loader2, MoreHorizontal } from 'lucide-react'
+// import { ellipsify } from '@wallet-ui/react'
+// import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
+// import { formatDate } from 'date-fns'
+// import api from '@/lib/api'
+// import { toast } from 'sonner'
+// import { useConfirmOffer } from '@/hooks/use-confirm-offer'
+// import { OrderResource } from '@/schemas/order'
+// import { useRefundOffer } from '@/hooks/use-refund-offer'
+
+// export default function OrdersPage() {
+//   const { publicKey } = useWallet()
+//   const publicKeyString = useMemo(() => publicKey?.toBase58(), [publicKey])
+
+//   const confirmMutation = useConfirmOffer()
+//   const refundMutation = useRefundOffer()
+
+//   async function handleFulfill(order: OrderResource) {
+//     try {
+//       const response = await api(`orders/${order._id.toString()}`, {
+//         method: 'PATCH',
+//         body: {
+//           status: 'awaiting_confirmation',
+//         },
+//       })
+
+//       if (!response) throw new Error('Failed to fulfill order')
+
+//       toast.success('Order marked as awaiting confirmation')
+//     } catch (error: any) {
+//       console.error(error)
+//       toast.error('Failed to fulfill order')
+//     }
+//   }
+//   async function handleConfirm(order: OrderResource) {
+//     try {
+//       const response = await confirmMutation.mutateAsync({ orderObj: order })
+//       if (!response || response.status !== 'completed')
+//         return toast.error('Failed to confirm order delivery. Please try again.')
+
+//       const confirmation = await api(`orders/confirm/${order._id.toString()}`, {
+//         method: 'PUT',
+//         body: {
+//           status: 'completed',
+//         },
+//       })
+
+//       if (!confirmation) throw new Error('Failed to confirm order delivery status.')
+//       toast.success(`Purchase confirmed. NFT successfully transferred!`)
+//     } catch (error) {
+//       console.error('Error confirming order:', error)
+//       toast.error('Failed to confirm order. Please try again.')
+//     }
+//   }
+//   async function handleCancel(order: OrderResource) {
+//     try {
+//       const response = await refundMutation.mutateAsync({ orderObj: order })
+//       if (!response) return toast.error('Failed to refund order. Please try again.')
+
+//       // if response status is refunded i.e. program returned success.. then update order, offer, nft off-chain data.
+//       toast.success(`Refund confirmed.`)
+//     } catch (error) {
+//       console.error('Error refunding order:', error)
+//       toast.error('Failed to refund order. Please try again.')
+//     }
+//   }
+
+//   const { data: orders, isLoading, error } = useGetOrders(publicKeyString)
+
+//   return (
+//     <div className="container max-w-6xl mx-auto  py-8 px-4">
+//       <h1 className="text-2xl font-bold mb-6">Manage orders</h1>
+
+//       {isLoading ? (
+//         <div className="flex justify-center items-center h-64">
+//           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+//           <span className="ml-2 text-muted-foreground">Loading orders...</span>
+//         </div>
+//       ) : error ? (
+//         <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
+//           <p className="font-medium">Error loading orders</p>
+//           <p className="text-sm mt-1">Please try again later</p>
+//         </div>
+//       ) : (
+//         <div className="overflow-x-auto rounded-lg border shadow-sm">
+//           <table className="w-full text-sm">
+//             <thead>
+//               <tr className="bg-muted">
+//                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Order</th>
+//                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Offer</th>
+//                 {/* <th className="px-4 py-3 text-left font-medium text-muted-foreground">Consumer</th> */}
+//                 {/* <th className="px-4 py-3 text-left font-medium text-muted-foreground">Producer</th> */}
+//                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+//                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Created</th>
+//                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
+//                 {/* <th className="px-4 py-3 text-left font-medium text-muted-foreground">Updated</th> */}
+//               </tr>
+//             </thead>
+//             <tbody className="divide-y">
+//               {orders?.length === 0 ? (
+//                 <tr>
+//                   <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+//                     No orders found
+//                   </td>
+//                 </tr>
+//               ) : (
+//                 orders?.map((order: any, index: number) => (
+//                   <tr key={order._id} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
+//                     <td className="px-4 py-3 tracking-wide">{ellipsify(order._id, 6)}</td>
+//                     <td className="px-4 py-3 tracking-wide">{ellipsify(order.offerId, 6)}</td>
+//                     {/* <td className="px-4 py-3 font-mono text-xs">{ellipsify(order.consumerPublicKey, 10)}</td> */}
+//                     {/* <td className="px-4 py-3 font-mono text-xs">{ellipsify(order.producerPublicKey, 10)}</td> */}
+//                     <td className="px-4 py-3">
+//                       <StatusBadge status={order.status} />
+//                     </td>
+//                     <td className="px-4 py-3">{formatDate(order.createdAt, `dd, MMM yy 'at' HH:mm`)}</td>
+//                     {/* <td className="px-4 py-3 text-muted-foreground">{formatDate(order.updatedAt)}</td> */}
+//                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+//                       <DropdownMenu>
+//                         <DropdownMenuTrigger asChild>
+//                           <button className="text-gray-500 hover:text-gray-700 transition">
+//                             <MoreHorizontal size={16} />
+//                           </button>
+//                         </DropdownMenuTrigger>
+//                         <DropdownMenuContent>
+//                           {publicKeyString === order.producerPublicKey ? (
+//                             <>
+//                               <DropdownMenuItem
+//                                 disabled={order.status !== 'awaiting_delivery'}
+//                                 onClick={() => order.status === 'awaiting_delivery' && handleFulfill(order)}
+//                               >
+//                                 Fulfill
+//                               </DropdownMenuItem>
+//                               <DropdownMenuItem onClick={() => handleCancel(order)}>Cancel</DropdownMenuItem>
+//                             </>
+//                           ) : publicKeyString === order.consumerPublicKey ? (
+//                             <>
+//                               <DropdownMenuItem
+//                                 disabled={order.status !== 'awaiting_confirmation'}
+//                                 onClick={() => order.status === 'awaiting_confirmation' && handleConfirm(order)}
+//                               >
+//                                 Confirm
+//                               </DropdownMenuItem>
+//                               <DropdownMenuItem
+//                                 disabled={['completed', 'cancelled_by_producer', 'cancelled_by_consumer'].includes(
+//                                   order.status,
+//                                 )}
+//                                 onClick={() =>
+//                                   !['completed', 'cancelled_by_producer', 'cancelled_by_consumer'].includes(
+//                                     order.status,
+//                                   ) && handleCancel(order)
+//                                 }
+//                               >
+//                                 Cancel
+//                               </DropdownMenuItem>
+//                             </>
+//                           ) : (
+//                             <DropdownMenuItem disabled>No actions available</DropdownMenuItem>
+//                           )}
+//                         </DropdownMenuContent>
+//                       </DropdownMenu>
+//                     </td>
+//                   </tr>
+//                 ))
+//               )}
+//             </tbody>
+//           </table>
+//         </div>
+//       )}
+//     </div>
+//   )
+// }
+
+// function StatusBadge({ status }: { status: string }) {
+//   let bgColor = 'bg-gray-100 text-gray-800'
+
+//   switch (status?.toLowerCase()) {
+//     case 'completed':
+//       bgColor = 'bg-green-100 text-green-800'
+//       break
+//     case 'pending':
+//       bgColor = 'bg-yellow-100 text-yellow-800'
+//       break
+//     case 'cancelled':
+//       bgColor = 'bg-red-100 text-red-800'
+//       break
+//     case 'processing':
+//       bgColor = 'bg-blue-100 text-blue-800'
+//       break
+//   }
+
+//   return (
+//     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor}`}>
+//       {status}
+//     </span>
+//   )
+// }
+
 'use client'
-import { useGetOrders } from '@/components/orders/order-data-access'
+import React, { useMemo } from 'react'
+import { PublicKey } from '@solana/web3.js'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { useMemo } from 'react'
-import { Loader2, MoreHorizontal } from 'lucide-react'
-import { ellipsify } from '@wallet-ui/react'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { formatDate } from 'date-fns'
-import api from '@/lib/api'
-import { toast } from 'sonner'
-import { useConfirmOffer } from '@/hooks/use-confirm-offer'
-import { OrderResource } from '@/schemas/order'
-import { useRefundOffer } from '@/hooks/use-refund-offer'
+import OrderManager from '@/components/order/order-manager'
 
-export default function OrdersPage() {
+const Orders: React.FC = () => {
   const { publicKey } = useWallet()
-  const publicKeyString = useMemo(() => publicKey?.toBase58(), [publicKey])
+  const address = useMemo(() => {
+    if (!publicKey) return
 
-  const confirmMutation = useConfirmOffer()
-  const refundMutation = useRefundOffer()
-
-  async function handleFulfill(order: OrderResource) {
     try {
-      const response = await api(`orders/${order._id.toString()}`, {
-        method: 'PATCH',
-        body: {
-          status: 'awaiting_confirmation',
-        },
-      })
-
-      if (!response) throw new Error('Failed to fulfill order')
-
-      toast.success('Order marked as awaiting confirmation')
-    } catch (error: any) {
-      console.error(error)
-      toast.error('Failed to fulfill order')
+      return new PublicKey(publicKey)
+    } catch (e) {
+      console.log(`Invalid public key`, e)
     }
-  }
-  async function handleConfirm(order: OrderResource) {
-    try {
-      const response = await confirmMutation.mutateAsync({ orderObj: order })
-      if (!response || response.status !== 'completed')
-        return toast.error('Failed to confirm order delivery. Please try again.')
+  }, [publicKey])
 
-      const confirmation = await api(`orders/confirm/${order._id.toString()}`, {
-        method: 'PUT',
-        body: {
-          status: 'completed',
-        },
-      })
+  if (!address) return
 
-      if (!confirmation) throw new Error('Failed to confirm order delivery status.')
-      toast.success(`Purchase confirmed. NFT successfully transferred!`)
-    } catch (error) {
-      console.error('Error confirming order:', error)
-      toast.error('Failed to confirm order. Please try again.')
-    }
-  }
-  async function handleCancel(order: OrderResource) {
-    try {
-      const response = await refundMutation.mutateAsync({ orderObj: order })
-      if (!response) return toast.error('Failed to refund order. Please try again.')
-
-      // if response status is refunded i.e. program returned success.. then update order, offer, nft off-chain data.
-      toast.success(`Refund confirmed.`)
-    } catch (error) {
-      console.error('Error refunding order:', error)
-      toast.error('Failed to refund order. Please try again.')
-    }
-  }
-
-  const { data: orders, isLoading, error } = useGetOrders(publicKeyString)
-
-  return (
-    <div className="container max-w-6xl mx-auto  py-8 px-4">
-      <h1 className="text-2xl font-bold mb-6">Manage orders</h1>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-muted-foreground">Loading orders...</span>
-        </div>
-      ) : error ? (
-        <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
-          <p className="font-medium">Error loading orders</p>
-          <p className="text-sm mt-1">Please try again later</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-muted">
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Order</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Offer</th>
-                {/* <th className="px-4 py-3 text-left font-medium text-muted-foreground">Consumer</th> */}
-                {/* <th className="px-4 py-3 text-left font-medium text-muted-foreground">Producer</th> */}
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Created</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
-                {/* <th className="px-4 py-3 text-left font-medium text-muted-foreground">Updated</th> */}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {orders?.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    No orders found
-                  </td>
-                </tr>
-              ) : (
-                orders?.map((order: any, index: number) => (
-                  <tr key={order._id} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
-                    <td className="px-4 py-3 tracking-wide">{ellipsify(order._id, 6)}</td>
-                    <td className="px-4 py-3 tracking-wide">{ellipsify(order.offerId, 6)}</td>
-                    {/* <td className="px-4 py-3 font-mono text-xs">{ellipsify(order.consumerPublicKey, 10)}</td> */}
-                    {/* <td className="px-4 py-3 font-mono text-xs">{ellipsify(order.producerPublicKey, 10)}</td> */}
-                    <td className="px-4 py-3">
-                      <StatusBadge status={order.status} />
-                    </td>
-                    <td className="px-4 py-3">{formatDate(order.createdAt, `dd, MMM yy 'at' HH:mm`)}</td>
-                    {/* <td className="px-4 py-3 text-muted-foreground">{formatDate(order.updatedAt)}</td> */}
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="text-gray-500 hover:text-gray-700 transition">
-                            <MoreHorizontal size={16} />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {publicKeyString === order.producerPublicKey ? (
-                            <>
-                              <DropdownMenuItem
-                                disabled={order.status !== 'awaiting_delivery'}
-                                onClick={() => order.status === 'awaiting_delivery' && handleFulfill(order)}
-                              >
-                                Fulfill
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleCancel(order)}>Cancel</DropdownMenuItem>
-                            </>
-                          ) : publicKeyString === order.consumerPublicKey ? (
-                            <>
-                              <DropdownMenuItem
-                                disabled={order.status !== 'awaiting_confirmation'}
-                                onClick={() => order.status === 'awaiting_confirmation' && handleConfirm(order)}
-                              >
-                                Confirm
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                disabled={['completed', 'cancelled_by_producer', 'cancelled_by_consumer'].includes(
-                                  order.status,
-                                )}
-                                onClick={() =>
-                                  !['completed', 'cancelled_by_producer', 'cancelled_by_consumer'].includes(
-                                    order.status,
-                                  ) && handleCancel(order)
-                                }
-                              >
-                                Cancel
-                              </DropdownMenuItem>
-                            </>
-                          ) : (
-                            <DropdownMenuItem disabled>No actions available</DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  )
+  return <OrderManager address={address} />
 }
 
-function StatusBadge({ status }: { status: string }) {
-  let bgColor = 'bg-gray-100 text-gray-800'
-
-  switch (status?.toLowerCase()) {
-    case 'completed':
-      bgColor = 'bg-green-100 text-green-800'
-      break
-    case 'pending':
-      bgColor = 'bg-yellow-100 text-yellow-800'
-      break
-    case 'cancelled':
-      bgColor = 'bg-red-100 text-red-800'
-      break
-    case 'processing':
-      bgColor = 'bg-blue-100 text-blue-800'
-      break
-  }
-
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor}`}>
-      {status}
-    </span>
-  )
-}
+export default Orders

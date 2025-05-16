@@ -22,18 +22,18 @@ export function useMakeOffer() {
   return useMutation({
     mutationKey: ['make-offer'],
     mutationFn: async ({
-      nftMintAddress,
+      nftTokenMintAddress,
       creatorAddress,
       sellingPrice,
     }: {
-      nftMintAddress: string
+      nftTokenMintAddress: string
       creatorAddress: string
       sellingPrice: number
     }) => {
       if (!wallet.publicKey || !wallet.signTransaction) throw new Error('Wallet not connected')
 
-      if (!nftMintAddress || !PublicKey.isOnCurve(nftMintAddress)) {
-        throw new Error(`Invalid NFT mint address: ${nftMintAddress}`)
+      if (!nftTokenMintAddress || !PublicKey.isOnCurve(nftTokenMintAddress)) {
+        throw new Error(`Invalid NFT mint address: ${nftTokenMintAddress}`)
       }
 
       const provider = new anchor.AnchorProvider(connection, wallet as AnchorWallet, { commitment: 'confirmed' })
@@ -44,7 +44,7 @@ export function useMakeOffer() {
       const producer = wallet.publicKey || creatorAddress
       const consumer = PublicKey.default
 
-      const tokenMintA = new PublicKey(nftMintAddress)
+      const tokenMintA = new PublicKey(nftTokenMintAddress)
       const tokenMintB = new PublicKey('So11111111111111111111111111111111111111112')
 
       const producerTokenAccountA = getAssociatedTokenAddressSync(tokenMintA, producer, true, tokenProgram) // This should be nft destinationAddress
@@ -137,7 +137,7 @@ export function useMakeOffer() {
       // Main transaction instructions 🤮
       const latestBlockhash = await connection.getLatestBlockhash()
       const ix = await program.methods
-        .open(id, new anchor.BN(1), new anchor.BN(sellingPrice * LAMPORTS_PER_SOL))
+        .open(id, new anchor.BN(1), new anchor.BN(sellingPrice))
         .accounts({ ...accounts })
         .instruction()
 

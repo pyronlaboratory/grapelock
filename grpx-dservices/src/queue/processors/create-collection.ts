@@ -9,21 +9,21 @@ import {
 } from '../../services/collection.js'
 import { prepareMetadata } from '../../services/metadata.js'
 import { CollectionResource } from '../../types/collection.types.js'
-
-type JobResult = {
-  status: 'success' | 'failed'
-  jobId: string
-  collectionId?: string
-  signature?: string
-  tokenMintAddress?: string
-  tokenAccountAddress?: string
-  metadataAccountAddress?: string
-  masterEditionAccountAddress?: string
-  error?: string | any
-}
+import { JobResult } from '../../types/job.types.js'
 
 const context = await getApiContext()
-export async function processCollectionJob(job: Job<any, any, string>): Promise<JobResult> {
+export async function processCollectionJob(job: Job<any, any, string>): Promise<
+  JobResult &
+    Partial<{
+      collectionId: string
+      signature: string
+      tokenMintAddress: string
+      tokenAccountAddress: string
+      metadataAccountAddress: string
+      masterEditionAccountAddress: string
+      error: string | any
+    }>
+> {
   const { id, name, token, data } = job
   context.log.info(`⚙️ Executing ${name!} job | id: ${id!}`)
 
@@ -67,7 +67,7 @@ export async function processCollectionJob(job: Job<any, any, string>): Promise<
     await publishCollection(collection._id.toString())
     context.log.info(`🥳 Collection processed successfully | job id: ${id}`)
     return {
-      status: 'success',
+      status: 'completed',
       jobId: id ?? 'unknown',
       collectionId: collection._id.toString(),
       signature,

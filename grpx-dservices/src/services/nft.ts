@@ -1,13 +1,14 @@
 import { NFT } from '../models/nft.js'
 import {
-  FullNFTResource,
   MintNFTResource,
   NFTBeaconReadingResource,
   NFTBeaconResource,
   NFTPhysicalAssetResource,
   NFTResource,
   NFTTagResource,
+  NFTFullResource,
   nftSchema,
+  VerifyNFTResource,
 } from '../types/nft.types.js'
 import { getApiContext } from '../lib/context.js'
 import mongoose, { Types } from 'mongoose'
@@ -24,7 +25,7 @@ import {
   getAssociatedTokenAddressSync,
 } from '@solana/spl-token'
 import { TOKEN_METADATA_PROGRAM_ID, getMasterEdition, getMetadata } from './solana.js'
-import { PublicKey, Keypair, SystemProgram, Connection, Transaction } from '@solana/web3.js'
+import { SYSVAR_INSTRUCTIONS_PUBKEY, PublicKey, Keypair, SystemProgram, Connection, Transaction } from '@solana/web3.js'
 import { AnchorProvider, Program, setProvider, Wallet } from '@coral-xyz/anchor'
 import { GrpxDprotocols } from '../bridge/grpx_dprotocols.js'
 
@@ -53,11 +54,11 @@ export async function getCollectionMintAddressForNFT(nftId: string): Promise<str
 
   const collection = nft.collectionId as any
 
-  if (!collection || !collection.mintAddress) {
-    throw new Error('Associated collection or its mintAddress not found')
+  if (!collection || !collection.tokenMintAddress) {
+    throw new Error('Collection token mint address not found')
   }
 
-  return collection.mintAddress
+  return collection.tokenMintAddress
 }
 
 export async function getNFTs(collectionId: string) {
@@ -68,7 +69,7 @@ export async function getNFTs(collectionId: string) {
   return await NFT.find({ collectionId }).lean()
 }
 
-export async function getNFTById(nftId: string): Promise<FullNFTResource | null> {
+export async function getNFTById(nftId: string): Promise<NFTFullResource | null> {
   if (!mongoose.Types.ObjectId.isValid(nftId)) {
     throw new Error('Invalid NFT ID format')
   }
@@ -78,8 +79,8 @@ export async function getNFTById(nftId: string): Promise<FullNFTResource | null>
 
   const [physicalAsset, tags, beacons] = await Promise.all([
     PhysicalAsset.findOne({ nftId: nftId }).lean() as Promise<NFTPhysicalAssetResource | null>,
-    Tag.find({ productId: nftId }).lean() as Promise<NFTTagResource[]>,
-    Beacon.find({ productId: nftId }).lean() as Promise<NFTBeaconResource[]>,
+    Tag.find({ nftId: nftId }).lean() as Promise<NFTTagResource[]>,
+    Beacon.find({ nftId: nftId }).lean() as Promise<NFTBeaconResource[]>,
   ])
 
   const beaconsWithReadings = await Promise.all(
@@ -93,7 +94,9 @@ export async function getNFTById(nftId: string): Promise<FullNFTResource | null>
 
   return {
     ...nft,
+    nftSymbol: nft.nftSymbol || 'GRPX',
     creatorAddress: nft.creatorAddress || 'anonymous',
+    ownerAddress: nft.ownerAddress || 'anonymous',
     nftAttributes: (nft.nftAttributes || [])
       .filter((attr) => attr.trait_type && attr.value)
       .map((attr) => ({
@@ -106,18 +109,38 @@ export async function getNFTById(nftId: string): Promise<FullNFTResource | null>
   }
 }
 
+export async function registerTag(payload: VerifyNFTResource, signature: string): Promise<NFTTagResource> {
+  const now = new Date()
+  const status = signature ? 'active' : 'inactive'
+  const tag = new Tag({
+    ...payload,
+    nftId: new Types.ObjectId(payload.nftId),
+    assetId: payload.assetId ? new Types.ObjectId(payload.assetId) : undefined,
+    status: signature ? 'active' : 'pending',
+    activationDate: signature ? now : undefined,
+    lastVerifiedAt: now,
+    signature: signature || undefined,
+    createdAt: now,
+    updatedAt: now,
+  })
+
+  await tag.save()
+  return tag.toObject() as NFTTagResource
+}
+
 export async function registerNFT(payload: MintNFTResource): Promise<NFTResource> {
   try {
     const nft = await NFT.create({
       ...payload,
       // collectionId: new mongoose.Types.ObjectId(payload.collectionId),
-      // creatorAddress: payload.creatorAddress,
+      creatorAddress: payload.creatorAddress,
+      ownerAddress: payload.creatorAddress,
       status: 'pending',
-      mintAddress: null,
-      destinationAddress: null,
-      metadataAddress: null,
-      masterEditionAddress: null,
-      txSignature: null,
+      tokenMintAddress: null,
+      tokenAccountAddress: null,
+      metadataAccountAddress: null,
+      masterEditionAccountAddress: null,
+      signature: null,
       errorMessage: null,
     })
     const nftObject = nft.toObject()
@@ -151,71 +174,9 @@ export async function processNFT(id: string): Promise<NFTResource | undefined> {
   }
 }
 
-export async function updateNFT(id: string, updates: Partial<NFTResource>) {
-  try {
-    console.log(updates)
-    await NFT.findByIdAndUpdate(id, {
-      ...updates,
-      updatedAt: new Date(),
-    })
-  } catch (error: any) {
-    context.log.error('Error updating nft:', error)
-    throw new Error('Failed to update nft data')
-  }
-}
-
-export async function mintNFT(id: string) {
-  try {
-    await NFT.findByIdAndUpdate(id, {
-      status: 'minted',
-      updatedAt: new Date(),
-    })
-  } catch (error: any) {
-    context.log.error('Error marking nft as minted:', error)
-    throw new Error('Failed to confirm nft minting')
-  }
-}
-
-export async function failNFT(id: string, message: string) {
-  try {
-    await NFT.findByIdAndUpdate(id, {
-      status: 'failed',
-      errorMessage: message,
-      updatedAt: new Date(),
-    })
-  } catch (error) {
-    context.log.error('Error updating minting status to fail:', error)
-    throw new Error('Failed to update minting status')
-  }
-}
-
-// Write to solana block
-export async function dispatch({
-  name,
-  symbol,
-  description,
-  uri,
-  creatorAddress,
-  sellerFeeBasisPoints,
-  collectionMintAddress,
-}: {
-  name: string
-  symbol: string
-  description: string
-  uri: string
-  creatorAddress: string
-  sellerFeeBasisPoints: number
-  collectionMintAddress: string
-}): Promise<{
-  destinationAddress: string
-  mintAddress: string
-  metadataAddress: string
-  masterEditionAddress: string
-  txSignature: string
-}> {
+export async function auditNFT(payload: VerifyNFTResource): Promise<string> {
   try {
     const connection = new Connection(process.env.RPC_URL ?? 'https://api.devnet.solana.com', 'confirmed')
-
     const walletKeypair = loadKeypair(path.resolve(process.env.SOLANA_SIGNER_PATH!))
     const wallet: Wallet = new Wallet(walletKeypair)
 
@@ -240,9 +201,141 @@ export async function dispatch({
 
     const program: Program<GrpxDprotocols> = new Program<GrpxDprotocols>(IDL, provider)
 
-    // Minting keys and authority
-    const mint = Keypair.generate()
+    const nftId = payload.nftId
+    const nft = await getNFTById(nftId)
+    const collectionMintAddress = await getCollectionMintAddressForNFT(nftId)
+    const collectionMint = new PublicKey(collectionMintAddress)
+    const collectionMetadata = await getMetadata(collectionMint)
+    const collectionMasterEdition = await getMasterEdition(collectionMint)
+    const mint = new PublicKey(nft?.tokenMintAddress || '')
+    const mintMetadata = nft?.metadataAccountAddress || ''
     const mintAuthority = PublicKey.findProgramAddressSync([Buffer.from('authority')], program.programId)[0]
+
+    const tx = await program.methods
+      .verify()
+      .accountsPartial({
+        authority: wallet.publicKey,
+        metadata: mintMetadata,
+        mint,
+        mintAuthority,
+        collectionMint: collectionMint,
+        collectionMetadata,
+        collectionMasterEdition,
+        systemProgram: SystemProgram.programId,
+        sysvarInstruction: SYSVAR_INSTRUCTIONS_PUBKEY,
+        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+      })
+      .rpc({
+        skipPreflight: true,
+      })
+    return tx
+  } catch (error) {
+    context.log.error('Error auditing nft:', error)
+    throw new Error('Failed to audit nft')
+  }
+}
+
+export async function updateNFT(id: string, updates: Partial<NFTResource>): Promise<NFTResource> {
+  try {
+    const updated = await NFT.findByIdAndUpdate(
+      id,
+      {
+        ...updates,
+        updatedAt: new Date(),
+      },
+      { new: true },
+    )
+
+    if (!updated) {
+      throw new Error('NFT not found')
+    }
+
+    return updated
+  } catch (error: any) {
+    context.log.error('Error updating nft:', error)
+    throw new Error('Failed to update nft data')
+  }
+}
+
+export async function mintNFT(id: string) {
+  try {
+    await NFT.findByIdAndUpdate(id, {
+      status: 'minted',
+      updatedAt: new Date(),
+    })
+    // Also register default asset / tags / beacons
+  } catch (error: any) {
+    context.log.error('Error marking nft as minted:', error)
+    throw new Error('Failed to confirm nft minting')
+  }
+}
+
+export async function failNFT(id: string, message: string) {
+  try {
+    await NFT.findByIdAndUpdate(id, {
+      status: 'failed',
+      errorMessage: message,
+      updatedAt: new Date(),
+    })
+  } catch (error) {
+    context.log.error('Error updating minting status to fail:', error)
+    throw new Error('Failed to update minting status')
+  }
+}
+
+export async function dispatch({
+  name,
+  symbol,
+  description,
+  uri,
+  creatorAddress,
+  sellerFeeBasisPoints,
+  collectionMintAddress,
+}: {
+  name: string
+  symbol: string
+  description: string
+  uri: string
+  creatorAddress: string
+  sellerFeeBasisPoints: number
+  collectionMintAddress: string
+}): Promise<{
+  tokenMintAddress: string
+  tokenAccountAddress: string
+  metadataAccountAddress: string
+  masterEditionAccountAddress: string
+  signature: string
+}> {
+  try {
+    const connection = new Connection(process.env.RPC_URL ?? 'https://api.devnet.solana.com', 'confirmed')
+
+    const walletKeypair = loadKeypair(path.resolve(process.env.SOLANA_SIGNER_PATH!))
+    const wallet: Wallet = new Wallet(walletKeypair)
+
+    // Request airdrop if balance is low or account has no transaction history
+    const balance = await connection.getBalance(wallet.publicKey)
+    const transactionHistory = await connection.getSignaturesForAddress(wallet.publicKey)
+
+    if (balance < 1_000_000_000 || transactionHistory.length === 0) {
+      context.log.info(`Requesting airdrop for ${wallet.publicKey.toBase58()}`)
+      try {
+        const airdropSig = await connection.requestAirdrop(wallet.publicKey, 1_000_000_000) // 1 SOL
+        await connection.confirmTransaction(airdropSig, 'confirmed')
+        context.log.info(`Airdrop successful: ${airdropSig}`)
+      } catch (airdropErr) {
+        context.log.error('Airdrop failed or not supported on current network:', airdropErr)
+      }
+    }
+
+    // Provider and program
+    const provider = new AnchorProvider(connection, wallet, { commitment: 'confirmed' })
+    setProvider(provider)
+
+    const program: Program<GrpxDprotocols> = new Program<GrpxDprotocols>(IDL, provider)
+
+    // Minting keys and authority
+    const mintAuthority = PublicKey.findProgramAddressSync([Buffer.from('authority')], program.programId)[0]
+    const mint = Keypair.generate()
 
     const metadata = await getMetadata(mint.publicKey)
     context.log.info(JSON.stringify({ metadata }))
@@ -297,11 +390,11 @@ export async function dispatch({
     context.log.info(`NFT transferred to ${recipientPublicKey.toBase58()}: ${txSig}`)
 
     return {
-      destinationAddress: destination.toBase58(),
-      mintAddress: mint.publicKey.toBase58(),
-      metadataAddress: metadata.toBase58(),
-      masterEditionAddress: masterEdition.toBase58(),
-      txSignature: tx,
+      tokenMintAddress: mint.publicKey.toBase58(),
+      tokenAccountAddress: destination.toBase58(),
+      metadataAccountAddress: metadata.toBase58(),
+      masterEditionAccountAddress: masterEdition.toBase58(),
+      signature: tx,
     }
   } catch (error: any) {
     context.log.error('Error writing to Solana:', error)

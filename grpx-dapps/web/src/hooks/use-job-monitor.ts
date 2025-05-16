@@ -23,29 +23,21 @@ export function useJobMonitor() {
   const pollingRef = useRef<NodeJS.Timeout | null>(null)
   const shownToasts = useRef<Set<string>>(new Set())
   const { cluster } = useCluster()
-  // Load from localStorage on init
+
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
-
     if (saved) {
       const parsed: JobState[] = JSON.parse(saved)
       setJobs(parsed)
     }
   }, [])
 
-  // // Persist to localStorage
-  // useEffect(() => {
-  //   localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs))
-  // }, [jobs])
-
-  // Polling logic
   useEffect(() => {
     const hasActiveJobs = jobs.some((job) => job.status === 'queued' || job.status === 'processing')
     if (hasActiveJobs && !pollingRef.current) start()
     else if (!hasActiveJobs && pollingRef.current) stop()
   }, [jobs])
 
-  // start / stop polling
   const start = () => {
     if (pollingRef.current) return
 
@@ -54,7 +46,7 @@ export function useJobMonitor() {
         jobs.map(async (job) => {
           if (job.status === 'completed' || job.status === 'failed') return job
           try {
-            const res = await api<ApiResponse<JobState>>(`jobs/collection/${job.jobId}`)
+            const res = await api<ApiResponse<JobState>>(`jobs/${job.jobId}`)
             const newStatus: JobStatus = res.data.status
             if (newStatus !== job.status) showToast({ ...job, ...res.data })
             return { ...job, ...res.data }
@@ -73,7 +65,6 @@ export function useJobMonitor() {
     }
   }
 
-  // add / remove / update job
   const enqueue = (job: JobState) => {
     setJobs((prev) => [...prev, job])
   }

@@ -21,14 +21,12 @@ export default function AccountCenterPage() {
 
   if (!address) return
   return (
-    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <AccountWallet connected={connected} address={address} />
+    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-8">
+      <AccountWallet connected={connected} address={address} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-y-8 lg:gap-8">
-          <AccountTokensTable address={address} />
-          <AccountTransactionsTable address={address} />
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-y-8 lg:gap-8">
+        <AccountTokensTable address={address} />
+        <AccountTransactionsTable address={address} />
       </div>
     </div>
   )

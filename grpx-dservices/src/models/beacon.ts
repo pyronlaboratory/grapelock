@@ -13,8 +13,9 @@ const locationSchema = new mongoose.Schema({
 
 const beaconSchema = new mongoose.Schema(
   {
+    nftId: { type: mongoose.Schema.Types.ObjectId, ref: 'nfts', required: true },
+    assetId: { type: mongoose.Schema.Types.ObjectId, ref: 'physical_assets' },
     sensorId: { type: String, required: true },
-    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'physical_assets', required: true },
     sensorType: String,
     manufacturer: String,
     model: String,

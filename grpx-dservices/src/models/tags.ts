@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-const tamperHistorySchema = new mongoose.Schema({
+const logsSchema = new mongoose.Schema({
   timestamp: Date,
   detectionMethod: String,
   details: String,
@@ -8,19 +8,21 @@ const tamperHistorySchema = new mongoose.Schema({
 
 const tagSchema = new mongoose.Schema(
   {
+    nftId: { type: mongoose.Schema.Types.ObjectId, ref: 'nfts', required: true },
+    assetId: { type: mongoose.Schema.Types.ObjectId, ref: 'physical_assets' },
     chipId: { type: String, required: true },
     chipType: String,
-    manufacturer: String,
-    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'physical_assets', required: true },
+    chipManufacturer: String,
     activationDate: Date,
-    publicKey: String,
     lastVerifiedAt: Date,
     verificationCount: Number,
     status: {
       type: String,
       enum: ['inactive', 'active', 'tampered', 'deactivated', 'decommissioned'],
     },
-    tamperHistory: [tamperHistorySchema],
+    logs: [logsSchema],
+    signature: { type: String },
+    errorMessage: { type: String },
   },
   { timestamps: true },
 )
