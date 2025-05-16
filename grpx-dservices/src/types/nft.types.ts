@@ -1,15 +1,16 @@
 import { z } from 'zod'
 import { Types } from 'mongoose'
+
 export const objectIdSchema = z.custom<Types.ObjectId>((val) => val instanceof Types.ObjectId, {
   message: '_id must be a MongoDB ObjectId',
 })
 export const nftTypeEnum = z.enum(['single', 'batch'])
+
 export const nftStatusEnum = z.enum([
   'pending',
   'processing',
   'failed',
   'minted',
-  'linked',
   'verified',
   'in_circulation',
   'primary_sale_happened',
@@ -18,8 +19,7 @@ export const nftStatusEnum = z.enum([
   'burned',
 ])
 export const nftPhysicalAssetStatusEnum = z.enum([
-  'unlinked',
-  'linked',
+  'pending',
   'verified',
   'degraded',
   'in_transit',
@@ -28,6 +28,7 @@ export const nftPhysicalAssetStatusEnum = z.enum([
   'cancelled',
 ])
 export const nftTagStatusEnum = z.enum(['inactive', 'active', 'tampered', 'deactivated', 'decommissioned'])
+
 export const nftBeaconStatusEnum = z.enum([
   'inactive',
   'active',
@@ -41,7 +42,7 @@ export const nftSchema = z.object({
   _id: objectIdSchema,
   nftType: nftTypeEnum,
   nftName: z.string(),
-  nftSymbol: z.string(),
+  nftSymbol: z.string().nullable().optional(),
   nftDescription: z.string().nullable().optional(),
   nftMedia: z.string().nullable().optional(),
   nftExternalUrl: z.string().nullable().optional(),
@@ -49,16 +50,17 @@ export const nftSchema = z.object({
   nftAttributes: z
     .array(
       z.object({
-        trait_type: z.string().min(1, 'Trait type is required'),
-        value: z.string().min(1, 'Value is required'),
+        trait_type: z.string().min(1, 'Trait type is required').nullable().optional(),
+        value: z.string().min(1, 'Value is required').nullable().optional(),
       }),
     )
+    .nullable()
     .optional(),
   batchSize: z.number().optional().nullable(),
   batchType: z.string().optional().nullable(),
   collectionId: objectIdSchema,
-  creatorAddress: z.string(),
-  ownerAddress: z.string(),
+  creatorAddress: z.string().nullable().optional(),
+  ownerAddress: z.string().nullable().optional(),
   status: nftStatusEnum,
   sellerFeeBasisPoints: z.number().min(0).max(10000),
   tokenAccountAddress: z.string().nullable().optional(),
@@ -114,16 +116,16 @@ export const nftPhysicalAssetSchema = z.object({
 })
 export const nftTagSchema = z.object({
   _id: objectIdSchema,
+  nftId: objectIdSchema,
+  assetId: objectIdSchema.optional(),
   chipId: z.string(),
-  chipType: z.string(),
-  manufacturer: z.string(),
-  productId: objectIdSchema,
-  activationDate: z.date(),
-  publicKey: z.string(),
-  lastVerifiedAt: z.date().optional(),
+  chipType: z.string().optional(),
+  chipManufacturer: z.string().optional(),
+  activationDate: z.string().or(z.date()),
+  lastVerifiedAt: z.string().or(z.date()),
   verificationCount: z.number().optional(),
   status: nftTagStatusEnum,
-  tamperHistory: z
+  logs: z
     .array(
       z.object({
         timestamp: z.date(),
@@ -132,14 +134,17 @@ export const nftTagSchema = z.object({
       }),
     )
     .optional(),
+  signature: z.string().optional(),
+  errorMessage: z.string().optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()),
   __v: z.number().optional(),
 })
 export const nftBeaconSchema = z.object({
   _id: objectIdSchema,
+  nftId: objectIdSchema,
+  assetId: objectIdSchema.optional(),
   sensorId: z.string(),
-  productId: objectIdSchema,
   sensorType: z.string(),
   manufacturer: z.string(),
   model: z.string(),
@@ -203,6 +208,19 @@ export const mintNFTSchema = z.object({
   creatorAddress: z.string(),
   sellerFeeBasisPoints: z.coerce.number().min(0).max(10000, 'Fee must be between 0 and 10000 basis points'),
 })
+export const verifyNFTSchema = z.object({
+  nftId: z.string(),
+  assetId: z.string().optional(),
+  chipId: z.string(),
+  chipType: z.string().optional(),
+  chipManufacturer: z.string().optional(),
+})
+export interface NFTFullResource extends NFTResource {
+  physicalAsset?: NFTPhysicalAssetResource | null
+  tags?: NFTTagResource[]
+  beacons?: (NFTBeaconResource & { readings?: NFTBeaconReadingResource[] })[]
+}
+
 export type NFTResource = z.infer<typeof nftSchema>
 export type NFTType = z.infer<typeof nftTypeEnum>
 export type NFTStatus = z.infer<typeof nftStatusEnum>
@@ -210,9 +228,6 @@ export type NFTPhysicalAssetResource = z.infer<typeof nftPhysicalAssetSchema>
 export type NFTTagResource = z.infer<typeof nftTagSchema>
 export type NFTBeaconResource = z.infer<typeof nftBeaconSchema>
 export type NFTBeaconReadingResource = z.infer<typeof nftBeaconReadingSchema>
+
 export type MintNFTResource = z.infer<typeof mintNFTSchema>
-export interface FullNFTResource extends NFTResource {
-  physicalAsset?: NFTPhysicalAssetResource | null
-  tags?: NFTTagResource[]
-  beacons?: (NFTBeaconResource & { readings?: NFTBeaconReadingResource[] })[]
-}
+export type VerifyNFTResource = z.infer<typeof verifyNFTSchema>

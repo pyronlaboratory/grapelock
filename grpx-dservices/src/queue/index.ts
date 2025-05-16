@@ -4,11 +4,9 @@ import { getApiContext } from '../lib/context.js'
 
 const { redisConnection } = getApiConfig()
 const context = await getApiContext()
-
-let collectionQueue: Queue, nftQueue: Queue, offerQueue: Queue
-
+let factoryQueue: Queue
 try {
-  collectionQueue = new Queue('collection_queue', {
+  factoryQueue = new Queue('factory_queue', {
     connection: {
       url: redisConnection,
       retryStrategy(times) {
@@ -17,20 +15,9 @@ try {
       },
     },
   })
-  context.log.info(`🔁 New ${collectionQueue.name} created successfully`)
-
-  nftQueue = new Queue('nft_queue', {
-    connection: {
-      url: redisConnection,
-      retryStrategy(times) {
-        if (times > 0) return null
-        return Math.min(times * 200, 2000)
-      },
-    },
-  })
-  context.log.info(`🔁 New ${nftQueue.name} created successfully`)
+  context.log.info(`🔁 New ${factoryQueue.name} created successfully`)
 } catch (error) {
   context.log.error('Failed to connect to Redis:', error)
 }
 
-export { collectionQueue, nftQueue, offerQueue }
+export { factoryQueue }

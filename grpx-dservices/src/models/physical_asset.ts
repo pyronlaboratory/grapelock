@@ -41,7 +41,7 @@ const physicalAssetSchema = new mongoose.Schema(
     weight: weightSchema,
     status: {
       type: String,
-      enum: ['unlinked', 'linked', 'verified', 'degraded', 'in_transit', 'delivered', 'consumed', 'cancelled'],
+      enum: ['pending', 'verified', 'degraded', 'in_transit', 'delivered', 'consumed', 'cancelled'],
     },
     containedItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'physical_assets' }],
   },

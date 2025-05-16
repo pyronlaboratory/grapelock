@@ -43,7 +43,7 @@ export function AppModal({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[625px] p-4 pb-0">
+      <DialogContent className="sm:max-w-[625px] p-4">
         <DialogHeader>
           <DialogTitle className="text-md font-semibold">{override ? innerTitle : title}</DialogTitle>
         </DialogHeader>

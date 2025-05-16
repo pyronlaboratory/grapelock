@@ -512,15 +512,26 @@ export function NFTMintingForm({ data, onSuccess }: { data?: Object | null; onSu
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => (activeTab === 'metadata' ? setActiveTab('basic') : setShowTypeSelection(true))}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    activeTab === 'metadata' ? setActiveTab('basic') : setShowTypeSelection(true)
+                  }}
                 >
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Previous
                 </Button>
               </div>
               <div className="flex gap-3">
-                {activeTab !== 'metadata' ? (
-                  <Button type="button" onClick={() => (activeTab === 'basic' ? setActiveTab('metadata') : null)}>
+                {activeTab === 'basic' ? (
+                  <Button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setActiveTab('metadata')
+                    }}
+                  >
                     Next
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -533,7 +544,7 @@ export function NFTMintingForm({ data, onSuccess }: { data?: Object | null; onSu
                       </>
                     ) : (
                       <>
-                        <Check className="text-green-600" />
+                        <Check className="mr-2 h-4 w-4 text-green-600" />
                         Mint NFT
                       </>
                     )}

@@ -1,20 +1,19 @@
+import { Separator } from '@/components/ui/separator'
 import { NFTType } from '@/schemas/nft'
 import { Info } from 'lucide-react'
 
 export function NFTBasicInformation({
+  nftName,
   nftSymbol,
   nftType,
   batchSize,
   batchType,
-  maxSupply,
-  sellerFeeBasisPoints,
 }: {
+  nftName: string
   nftSymbol: string
   nftType: NFTType
   batchSize: number
   batchType: string
-  maxSupply: number
-  sellerFeeBasisPoints: number
 }) {
   return (
     <div className="border rounded-md">
@@ -24,33 +23,29 @@ export function NFTBasicInformation({
         </h3>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
+            <span className="text-muted-foreground">Name</span>
+            <span className="font-medium">{nftName}</span>
+          </div>
+          <div className="flex justify-between">
             <span className="text-muted-foreground">Symbol</span>
             <span className="font-medium">{nftSymbol}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Type</span>
+            <span className="text-muted-foreground">Edition Type</span>
             <span className="font-medium capitalize">{nftType}</span>
           </div>
           {nftType === 'batch' && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Batch Type:</span>
-              <span className="font-medium">{batchType || 'N/A'}</span>
+              <span className="text-muted-foreground">Batch Type</span>
+              <span className="font-medium">{batchType}</span>
             </div>
           )}
           {nftType === 'batch' && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Batch Size:</span>
-              <span className="font-medium">{batchSize || 'N/A'}</span>
+              <span className="text-muted-foreground">Batch Size</span>
+              <span className="font-medium">{batchSize}</span>
             </div>
           )}
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Max Supply:</span>
-            <span className="font-medium">{maxSupply}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Fee Points:</span>
-            <span className="font-medium">{sellerFeeBasisPoints}</span>
-          </div>
         </div>
       </div>
     </div>

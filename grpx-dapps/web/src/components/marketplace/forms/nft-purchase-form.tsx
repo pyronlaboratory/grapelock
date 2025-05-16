@@ -78,7 +78,7 @@ export function NFTPurchaseModal({ selectedOffer }: { selectedOffer: OfferResour
         <div className="grid gap-4 py-4">
           <div className="flex items-start gap-4">
             <div className="h-20 w-20 relative rounded overflow-hidden">
-              <img src={getIdenticon('...')} className="object-cover" />
+              <img src={getIdenticon('—')} className="object-cover" />
             </div>
             <div className="flex flex-col space-y-1">
               <h3 className="font-medium">Château Margaux 2015</h3>
