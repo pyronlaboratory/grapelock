@@ -178,8 +178,9 @@ export function OrderCard({ order, address }: { order: OrderResource; address: P
             </DropdownMenu>
 
             <div>
-              <div className="text-xs text-muted-foreground mb-1 uppercase font-semibold">Order ID</div>
-              <h3 className="font-medium">{ellipsify(order._id, 6)}</h3>
+              <div className="text-[11px] text-muted-foreground mb-1 uppercase font-semibold">Order ID</div>
+
+              <h3 className="font-medium font-mono text-sm">{ellipsify(order._id, 6)}</h3>
             </div>
           </div>
 

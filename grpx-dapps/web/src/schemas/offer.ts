@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { nftSchema } from '../schemas/nft'
 export const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, {
   message: '_id must be a 24-char hex string',
 })
@@ -34,12 +35,15 @@ export const offerSchema = z
     __v: z.number().optional(),
   })
   .passthrough()
+export const extendedOfferSchema = offerSchema.extend({
+  nft: nftSchema.optional(),
+})
 export const allOpenVerifiedOffersResponseSchema = z.object({
-  data: z.object({ data: z.array(offerSchema) }),
-
+  data: z.array(extendedOfferSchema),
   success: z.boolean(),
 })
 export type CreateOfferResource = z.infer<typeof createOfferSchema>
 export type OfferStatus = z.infer<typeof offerStatus>
 export type OfferResource = z.infer<typeof offerSchema>
 export type AllOpenVerifiedOffersResponse = z.infer<typeof allOpenVerifiedOffersResponseSchema>
+export type ExtendedOfferResource = z.infer<typeof extendedOfferSchema>

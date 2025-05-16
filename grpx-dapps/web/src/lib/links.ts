@@ -166,11 +166,11 @@ export const links = {
       url: '/asset-manager',
       icon: PackagePlus,
     },
-    {
-      name: 'Infrastructure',
-      url: '/infrastructure',
-      icon: ServerCog,
-    },
+    // {
+    //   name: 'Infrastructure',
+    //   url: '/infrastructure',
+    //   icon: ServerCog,
+    // },
     {
       name: 'Orders',
       url: '/orders',

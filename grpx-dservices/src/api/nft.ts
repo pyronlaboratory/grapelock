@@ -1,6 +1,5 @@
 // api/nft.ts
 import { Router } from 'express'
-import { getApiContext } from '../lib/context.js'
 import { errorResponse, successResponse } from '../lib/helpers.js'
 import { validate } from '../middlewares/validate.js'
 import { factoryQueue } from '../queue/index.js'
@@ -8,7 +7,7 @@ import { getNFTById, getNFTs, updateNFT, auditNFT, registerNFT, registerTag } fr
 import { NFTResource, mintNFTSchema, verifyNFTSchema } from '../types/nft.types.js'
 
 const router = Router()
-const context = await getApiContext()
+
 router.get('/:collectionId', async (req, res) => {
   try {
     const nfts = await getNFTs(req.params.collectionId)

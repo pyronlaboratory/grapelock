@@ -1,22 +1,31 @@
 import { getApiContext } from '../lib/context.js'
 import { Offer } from '../models/offer.js'
-import { CreateOfferResource, OfferResource } from '../types/offer.types.js'
+import { CreateOfferResource, OfferResource, OfferWithNFTDetails } from '../types/offer.types.js'
 import { NFT } from '../models/nft.js'
 
 const context = await getApiContext()
 
-export async function getAllOpenVerfifiedOffers(): Promise<OfferResource[]> {
-  const openOffers = await Offer.find({ status: ['open', 'in_progress'] }).lean()
+export async function getAllOpenVerfifiedOffers(): Promise<OfferWithNFTDetails[]> {
+  const openOffers = await Offer.find({ status: ['open'] }).lean()
   const nftIds = openOffers.map((offer) => offer.nftId)
   const inCirculationNFTs = await NFT.find({
     _id: { $in: nftIds },
     status: 'in_circulation',
-  }).select('_id')
+  }).lean()
 
-  const validNftIdSet = new Set(inCirculationNFTs.map((nft) => nft._id.toString()))
-  const filteredOffers = openOffers.filter((offer) => validNftIdSet.has(offer.nftId.toString()))
+  const nftMap = new Map(inCirculationNFTs.map((nft) => [nft._id.toString(), nft]))
 
-  return filteredOffers as OfferResource[]
+  const filteredOffers = openOffers
+    .filter((offer) => nftMap.has(offer.nftId.toString()))
+    .map((offer) => {
+      const nft = nftMap.get(offer.nftId.toString())
+      return {
+        ...offer,
+        nft,
+      }
+    })
+
+  return filteredOffers as OfferWithNFTDetails[]
 }
 
 export async function getOfferById(id: string): Promise<OfferResource> {

@@ -31,6 +31,7 @@ import { VariantProps } from 'class-variance-authority'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatDate } from 'date-fns/format'
+import { ExplorerLink } from '@/components/cluster/cluster-ui'
 
 interface StatusBadgeProps {
   status: CollectionStatus
@@ -106,7 +107,13 @@ export function AddressBox({ title, address }: { title: string; address: string 
         <h3 className="text-sm font-medium text-gray-500">{title}</h3>
         <CopyButton text={address} />
       </div>
-      <code className="text-sm w-full py-2 rounded-md block truncate">{ellipsify(address)}</code>
+      <code className="text-sm w-full py-2 rounded-md block truncate">
+        <ExplorerLink
+          className="border-b-1 border-primary"
+          label={ellipsify(address?.toString())}
+          path={`account/${address}`}
+        />
+      </code>
     </div>
   )
 }
