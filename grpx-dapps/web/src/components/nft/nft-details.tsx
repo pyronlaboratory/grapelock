@@ -37,7 +37,7 @@ export default function NFTDetails({ nft }: { nft: NFTFullResource }) {
             {nft.status !== 'verified' && (
               <span className="-mb-4 text-sm font-semibold text-amber-500 flex items-center gap-2">
                 <InfoIcon className="h-4 w-4" />
-                This option is only available for verified NFTs
+                Available only for non-circulating verified NFTs
               </span>
             )}
             <NFTSaleModal

@@ -1,5 +1,7 @@
-import { Types } from 'mongoose'
 import { z } from 'zod'
+import { Types } from 'mongoose'
+import { NFTResource } from '../types/nft.types.js'
+
 export const objectIdSchema = z.custom<Types.ObjectId>((val) => val instanceof Types.ObjectId, {
   message: '_id must be a MongoDB ObjectId',
 })
@@ -52,3 +54,6 @@ export const offerSchema = z.object({
 export type CreateOfferResource = z.infer<typeof createOfferSchema>
 export type OfferStatus = z.infer<typeof offerStatus>
 export type OfferResource = z.infer<typeof offerSchema>
+export interface OfferWithNFTDetails extends OfferResource {
+  nft: NFTResource
+}

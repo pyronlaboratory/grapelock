@@ -8,12 +8,8 @@ export const useGetOffers = () => {
     queryFn: async () => {
       const response = await api<any>('offers')
       const parsed = allOpenVerifiedOffersResponseSchema.parse(response)
-
-      if (!parsed.success) {
-        throw new Error('Failed to parse offers response')
-      }
-
-      return parsed.data.data
+      if (!parsed.success) throw new Error('Failed to parse offers response')
+      return parsed.data
     },
     staleTime: 60_000,
     retry: false,

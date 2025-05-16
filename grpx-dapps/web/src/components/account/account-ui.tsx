@@ -50,36 +50,8 @@ export function AccountBalanceCheck({ address }: { address: PublicKey }) {
   const { cluster } = useCluster()
   const mutation = useRequestAirdrop({ address })
   const query = useGetBalance({ address })
-  // const hasShownError = useRef(false)
-  // useEffect(() => {
-  //   if (query.isError && !hasShownError.current) {
-  //     toast(
-  //       <div className="flex items-start gap-4">
-  //         <Info className="mt-1 h-5 w-5" />
-  //         <div className="flex flex-row gap-1">
-  //           <div className="text-sm font-medium ">
-  //             You are connected to <strong>{cluster.name}</strong> but your account is not found on this cluster.
-  //           </div>
-  //           <div className="text-sm ">
-  //             <Button variant="outline" onClick={() => mutation.mutateAsync(1).catch((err) => console.log(err))}>
-  //               Request Airdrop
-  //             </Button>
-  //           </div>
-  //         </div>
-  //       </div>,
-  //       {
-  //         duration: 8000,
-  //         className: 'border',
-  //       },
-  //     )
-  //     hasShownError.current = true
-  //   }
-
-  //   if (!query.isError) hasShownError.current = false
-  // }, [query.isError, cluster.name, query.refetch])
 
   if (query.isLoading) return null
-
   if (query.isError) {
     toast(
       <div className="flex items-start gap-4">
