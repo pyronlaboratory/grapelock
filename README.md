@@ -1,6 +1,6 @@
 # **Grapelock 🍇**
 
-DePIN protocols using Solana Blockchain for Wine Authentication and Regulation Network
+Solana Protocols for Wine Authentication and Regulation Network
 
 Core features include:
 
